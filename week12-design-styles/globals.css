@@ -1,0 +1,95 @@
+/* src/app/globals.css ── 12주차: 디자인 스타일 4종 */
+
+body {
+  min-height: 100vh;
+}
+
+/* 센서 숫자는 계측기처럼 고정폭 글꼴로 */
+.sensor-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ════════════════════════════════════════════════════
+   스타일은 <html data-style="..."> 한 글자로 바뀝니다.
+   아래는 전부 Bootstrap 위에 "덮어쓰는" 규칙입니다.
+   ════════════════════════════════════════════════════ */
+
+/* ───────── 미니멀리즘 ─────────
+   그림자를 없애고 얇은 테두리로만 구분합니다.
+   테두리 투명도 0.40 — 이 값이어야 명암비 3:1을 넘습니다 (12주차 5번 항목) */
+[data-style="min"] body {
+  background: #141619;
+}
+[data-style="min"] .card {
+  background: #1c1f23;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0.5rem;
+  box-shadow: none;
+}
+[data-style="min"] .btn {
+  border-radius: 0.375rem;
+  box-shadow: none;
+}
+[data-style="min"] .nav-tabs {
+  border-bottom-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ───────── 뉴모피즘 ─────────
+   카드와 배경이 "같은 색"이고, 그림자 두 개로만 구분합니다.
+   그래서 경계가 태생적으로 흐립니다 — 12주차 5번 항목에서 직접 재봅니다 */
+[data-style="neu"] body {
+  background: #22262b;
+}
+[data-style="neu"] .card {
+  background: #22262b;
+  border: none;
+  border-radius: 1.25rem;
+  box-shadow: 8px 8px 16px #171a1e, -8px -8px 16px #2d3238;
+}
+[data-style="neu"] .btn {
+  border: none;
+  border-radius: 0.9rem;
+  box-shadow: 5px 5px 10px #171a1e, -5px -5px 10px #2d3238;
+}
+[data-style="neu"] .progress {
+  background: #22262b;
+  box-shadow: inset 3px 3px 6px #171a1e, inset -3px -3px 6px #2d3238;
+}
+[data-style="neu"] .nav-tabs {
+  border-bottom-color: transparent;
+}
+
+/* ───────── 글래스모피즘 ─────────
+   뒤가 비쳐 보이게 합니다. 뒤에 색이 있어야 효과가 살아나므로
+   배경에 그라데이션을 깝니다 */
+[data-style="glass"] body {
+  background: linear-gradient(135deg, #1a2740 0%, #3b2a52 50%, #123a3f 100%);
+  background-attachment: fixed;
+}
+[data-style="glass"] .card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1rem;
+}
+[data-style="glass"] .btn {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+[data-style="glass"] .modal-content {
+  background: rgba(30, 35, 50, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+[data-style="glass"] .progress {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ───────── 스타일 전환 막대 ─────────
+   비교용입니다. 전시할 때는 화면에서 빼세요 (12주차 8번 항목) */
+.style-switcher {
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 0.5rem;
+}
