@@ -15,8 +15,10 @@ const PICO_DRIVE = process.argv[2] || null;
 const OUT = path.join(ROOT, "우리팀-소스.md");
 
 // ── 통째로 건너뛸 폴더 ──
+// ※ "lib" 은 넣지 않습니다. 2주차에서 만든 src/lib/db.ts 가 빠져 버립니다.
+//    (CIRCUITPY/lib 는 아래에서 main.py 만 읽으므로 애초에 들어오지 않습니다)
 const SKIP_DIRS = new Set([
-  "node_modules", ".next", ".git", ".vscode", "out", "build", "lib",
+  "node_modules", ".next", ".git", ".vscode", "out", "build",
 ]);
 
 // ── 절대 넣으면 안 되는 파일 (비밀번호가 들어있다) ──
