@@ -180,16 +180,13 @@ part_label(21.5, "SG90 서보모터")
 
 # RGB LED (30~33행)
 body("F", 30, 33, 1.4, "#5b6470")
-for r, nm in ((30, "R"), (31, "공통(-)"), (32, "G"), (33, "B")):
+for r, nm in ((30, "GND"), (31, "B"), (32, "G"), (33, "R")):
     pinpad("F", r, nm)
-part_label(28.2, "RGB LED", "공통 캐소드")
-resistor("H", 30, 36, "")
-resistor("I", 32, 37, "")
-resistor("G", 33, 38, "")
-ax.text(COL["F"] - 0.75, Y(35.5), "220Ω × 3", ha="right", va="center", fontsize=6.0,
-        color="#1f3864", fontweight="bold", zorder=12, bbox=BOX)
-ax.text(COL["F"] - 0.75, Y(36.5), "(R·G·B 각 1개)", ha="right", va="center", fontsize=5.2,
-        color="#777", zorder=12, bbox=BOX)
+part_label(28.2, "RGB LED 모듈", "저항 내장 · 4핀")
+ax.text(COL["F"] - 0.75, Y(34.6), "핀 순서는 위에서부터", ha="right", va="center", fontsize=5.4,
+        color="#b3261e", zorder=12, bbox=BOX)
+ax.text(COL["F"] - 0.75, Y(35.6), "GND · B · G · R", ha="right", va="center", fontsize=6.0,
+        color="#b3261e", fontweight="bold", zorder=12, bbox=BOX)
 
 # DHT11 (42~44행)
 body("F", 42, 44, 1.4, "#3b7bbf")
@@ -259,14 +256,13 @@ wire(P("I", 18), (RAIL_R_BLU, Y(18)), W_BLK, rad=0.12)
 # SG90
 wire(P("J", 23), (RAIL_R_BLU, Y(23)), W_BLK, rad=0.12)
 wire_lane(P("J", 24), P("I", 1), 12.6, W_5V)          # VBUS 5V
-wire_dip(P("G", 25), P("B", 25), 27.3, SIG["GP15"])
-wire_lane(P("A", 25), P("A", 20), -0.75, SIG["GP15"])
+wire_dip(P("G", 25), P("B", 20), 27.3, SIG["GP15"])       # GP15 직결 (점퍼 1개)
 
 # RGB LED
-wire(P("J", 31), (RAIL_R_BLU, Y(31)), W_BLK, rad=0.12)
-wire_lane(P("J", 36), P("I", 19), 11.9, SIG["GP17"])
-wire_lane(P("J", 37), P("I", 17), 12.6, SIG["GP18"])
-wire_lane(P("J", 38), P("I", 16), 13.3, SIG["GP19"])
+wire(P("J", 30), (RAIL_R_BLU, Y(30)), W_BLK, rad=0.12)   # GND
+wire_lane(P("J", 31), P("I", 16), 13.3, SIG["GP19"])      # B -> GP19
+wire_lane(P("J", 32), P("I", 17), 12.6, SIG["GP18"])      # G -> GP18
+wire_lane(P("J", 33), P("I", 19), 11.9, SIG["GP17"])      # R -> GP17
 
 # DHT11
 wire(P("J", 42), (RAIL_R_RED, Y(42)), W_RED, rad=0.12)
@@ -308,17 +304,17 @@ line(7.5, "점퍼선은 왼쪽 A·B열 / 오른쪽 I·J열에만 꽂으세요.",
 
 head(9.8, "연결표 (코드의 GP 번호 기준)")
 tbl = [
-    ("RGB LED  R", "220Ω -> GP17", SIG["GP17"]),
-    ("RGB LED  G", "220Ω -> GP18", SIG["GP18"]),
-    ("RGB LED  B", "220Ω -> GP19", SIG["GP19"]),
-    ("RGB LED  공통(-)", "GND 레일", W_BLK),
+    ("RGB 모듈  GND  (맨 위)", "GND 레일", W_BLK),
+    ("RGB 모듈  B", "GP19", SIG["GP19"]),
+    ("RGB 모듈  G", "GP18", SIG["GP18"]),
+    ("RGB 모듈  R  (맨 아래)", "GP17", SIG["GP17"]),
     ("DHT11  DATA", "GP16", SIG["GP16"]),
     ("DHT11  VCC", "3V3 레일", W_RED),
     ("DHT11  GND", "GND 레일", W_BLK),
     ("CdS 분압점", "GP26 (ADC0)", SIG["GP26"]),
     ("10kΩ 위쪽", "3V3 레일", W_RED),
     ("CdS 아래쪽", "GND 레일", W_BLK),
-    ("SG90  주황(신호)", "GP15", SIG["GP15"]),
+    ("SG90  주황(신호)", "GP15 직결", SIG["GP15"]),
     ("SG90  빨강", "VBUS (5V)", W_5V),
     ("SG90  갈색", "GND 레일", W_BLK),
 ]
@@ -331,31 +327,32 @@ for name, dest, col in tbl:
     y += 1.5
 
 head(31.0, "꼭 확인할 것")
-y = 32.8
+y = 32.6
 warn = [
     ("CdS는 GND쪽, 10kΩ은 3V3쪽입니다.", "순서를 바꾸면 무드등이 정반대로 동작합니다."),
     ("SG90 전원은 3V3이 아닌 VBUS(5V)입니다.", "3V3에 연결하면 힘이 부족해 떨립니다."),
-    ("RGB LED는 공통 캐소드 기준입니다.", "가장 긴 다리가 공통(-)입니다."),
-    ("DHT11·RGB LED 핀 순서는 제품마다 다릅니다.", "부품에 인쇄된 표시를 꼭 확인하세요."),
+    ("RGB LED는 저항 내장 모듈입니다.", "따로 220Ω을 달면 너무 어두워집니다."),
+    ("서보 신호선은 GP15에 점퍼 1개로 직결합니다.", "브레드보드를 한 번 거치면 점퍼가 2개 듭니다."),
+    ("DHT11·RGB 모듈 핀 순서는 제품마다 다릅니다.", "기판에 인쇄된 글자를 꼭 확인하세요."),
 ]
 for a, b in warn:
     line(y, "· " + a, "#b3261e", 6.4, True)
     line(y + 1.1, "   " + b, "#666", 6.2)
-    y += 2.5
+    y += 2.3
 
-head(43.4, "점퍼선 색 규칙")
+head(44.2, "점퍼선 색 규칙")
 for i, (t, c) in enumerate((("빨강 = 3V3 전원", W_RED), ("검정 = GND", W_BLK),
                             ("주황 = VBUS 5V 전원", W_5V), ("그 외 색 = GPIO 신호선", "#8d44c9"))):
     cx = TX + (i % 2) * 13.0
-    cy = 45.2 + (i // 2) * 1.35
+    cy = 45.9 + (i // 2) * 1.35
     ax.add_patch(Rectangle((cx, Y(cy) - 0.26), 1.2, 0.52, fc=c, ec="none"))
     ax.text(cx + 1.8, Y(cy), t, ha="left", va="center", fontsize=6.4, color="#333")
 
 # ---------- 팀 프로젝트 확장 ----------
-ax.add_patch(FancyBboxPatch((TX - 0.6, Y(67.1)), 26.0, 18.3,
+ax.add_patch(FancyBboxPatch((TX - 0.6, Y(67.1)), 26.0, 18.5,
                             boxstyle="round,pad=0.2,rounding_size=0.4",
                             fc="#f2f9f5", ec="#6aa98a", lw=1.0, zorder=0.5))
-head(49.6, "팀 프로젝트 — 센서를 더 붙일 때")
+head(49.4, "팀 프로젝트 — 센서를 더 붙일 때")
 
 line(51.4, "쓸 수 있는 핀", "#1f3864", 7.0, True)
 pins = [
