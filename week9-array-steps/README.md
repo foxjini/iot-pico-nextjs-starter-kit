@@ -33,6 +33,8 @@
 
 ## 모의 Pico 서버
 
+> **수업에서는 파이썬 판을 쓰세요** — [`../mock-pico/`](../mock-pico/README.md) 의 `mock_pi_09.py` 는 설치가 필요 없고(`npm install ws` 불필요), 창에서 글자 한 개를 쳐서 상황을 바로 바꿀 수 있습니다. 프로토콜은 같습니다.
+
 `mock-pico9.js` 는 9주차 Pico(센서 5개)와 같은 프로토콜입니다.
 
 ```bash

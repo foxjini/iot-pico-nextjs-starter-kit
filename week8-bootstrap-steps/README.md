@@ -30,6 +30,8 @@
 
 ## 모의 Pico 서버
 
+> **수업에서는 파이썬 판을 쓰세요** — [`../mock-pico/`](../mock-pico/README.md) 의 `mock_pi_08.py` 는 설치가 필요 없고(`npm install ws` 불필요), 창에서 글자 한 개를 쳐서 상황을 바로 바꿀 수 있습니다. 프로토콜은 같습니다.
+
 `mock-pico.js` 는 3주차 Pico WebSocket 서버와 **같은 프로토콜**을 흉내냅니다.
 하드웨어 없이 화면만 확인할 때 씁니다.
 
