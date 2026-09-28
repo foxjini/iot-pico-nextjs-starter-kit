@@ -44,7 +44,7 @@ SIG = {"GP16": "#d9a300", "GP17": "#d63384", "GP18": "#2e9e4f",
 
 fig, ax = plt.subplots(figsize=(8.27, 11.69))
 ax.set_xlim(-8.5, 48.5)
-ax.set_ylim(-68, 5.5)
+ax.set_ylim(-76, 5.5)
 ax.axis("off")
 
 # ---------- 브레드보드 ----------
@@ -96,8 +96,12 @@ ax.text(RAIL_R_RED - 0.3, Y(66.2), "3V3", ha="center", va="center", fontsize=6,
         color=W_RED, fontweight="bold", zorder=4, rotation=90)
 ax.text(RAIL_R_BLU + 0.7, Y(66.2), "GND", ha="center", va="center", fontsize=6,
         color="#2f6fdb", fontweight="bold", zorder=4, rotation=90)
-ax.text(-3.5, Y(66.8), "왼쪽 레일 — 비어 있음\n(팀 센서 전원용)", ha="center", va="center",
-        fontsize=5.2, color="#2f7a55", fontweight="bold", zorder=4, linespacing=1.4)
+ax.text(RAIL_L_RED - 0.3, Y(66.2), "외부 5V", ha="center", va="center", fontsize=6,
+        color=W_5V, fontweight="bold", zorder=4, rotation=90)
+ax.text(RAIL_L_BLU + 0.7, Y(66.2), "GND", ha="center", va="center", fontsize=6,
+        color="#2f6fdb", fontweight="bold", zorder=4, rotation=90)
+ax.text(-3.5, Y(68.6), "별도 5V 어댑터\n(노트북 USB 아님)", ha="center", va="center",
+        fontsize=5.4, color=W_5V, fontweight="bold", zorder=4, linespacing=1.4)
 
 # ---------- Pico 2 W ----------
 bx0, bx1 = 1.37, 9.63
@@ -113,7 +117,7 @@ LEFT = ["GP0", "GP1", "GND", "GP2", "GP3", "GP4", "GP5", "GND", "GP6", "GP7",
         "GP8", "GP9", "GND", "GP10", "GP11", "GP12", "GP13", "GND", "GP14", "GP15"]
 RIGHT = ["VBUS", "VSYS", "GND", "3V3_EN", "3V3", "ADC_VREF", "GP28", "AGND", "GP27",
          "GP26", "RUN", "GP22", "GND", "GP21", "GP20", "GP19", "GP18", "GND", "GP17", "GP16"]
-USED_L, USED_R = {"GP15"}, {"VBUS", "3V3", "GP26", "GP19", "GP18", "GP17", "GP16"}
+USED_L, USED_R = {"GP15"}, {"3V3", "GP26", "GP19", "GP18", "GP17", "GP16"}
 # ★ 팀이 새로 쓸 수 있는 아날로그 핀 — 두 개뿐이라 눈에 띄게 표시한다
 FREE_ADC = {"GP27", "GP28"}
 
@@ -253,10 +257,32 @@ def wire_lane(p1, p2, bulge_x, color, lw=1.8):
 wire(P("I", 5), (RAIL_R_RED, Y(5)), W_RED, rad=0.12)
 wire(P("I", 18), (RAIL_R_BLU, Y(18)), W_BLK, rad=0.12)
 
-# SG90
-wire(P("J", 23), (RAIL_R_BLU, Y(23)), W_BLK, rad=0.12)
-wire_lane(P("J", 24), P("I", 1), 12.6, W_5V)          # VBUS 5V
-wire_dip(P("G", 25), P("B", 20), 27.3, SIG["GP15"])       # GP15 직결 (점퍼 1개)
+# ★ 공통 GND 브리지 — 외부 전원의 GND와 Pico GND를 하나로 (없으면 서보가 제멋대로 돈다)
+wire((RAIL_L_BLU, Y(60)), (RAIL_R_BLU, Y(60)), W_BLK, rad=0.03, lw=2.0)
+ax.text((RAIL_L_BLU + RAIL_R_BLU) / 2, Y(58.9),
+        "공통 GND — 이 점퍼가 없으면 서보가 제멋대로 돕니다",
+        ha="center", va="center", fontsize=5.6, color="#b3261e", fontweight="bold",
+        zorder=14, bbox=dict(fc="white", ec="none", alpha=0.9, pad=1.4))
+
+# ★ 커패시터 — 외부 5V 레일 사이. 서보 기동 순간의 전류를 대신 내준다
+CAP_T, CAP_B = 27.2, 29.6
+for xx in (RAIL_L_RED, RAIL_L_BLU):
+    ax.plot([xx, xx], [Y(CAP_T), Y(CAP_B - 1.3)], color="#9a9a9a", lw=1.2, zorder=9)
+    ax.add_patch(Circle((xx, Y(CAP_T)), 0.19, fc="#9a9a9a", ec="none", zorder=11))
+ax.add_patch(FancyBboxPatch((RAIL_L_RED - 0.40, Y(CAP_B)), (RAIL_L_BLU - RAIL_L_RED) + 0.80, 1.3,
+                            boxstyle="round,pad=0.05,rounding_size=0.25",
+                            fc="#3b4a6b", ec="#1f2b45", lw=0.8, zorder=10))
+ax.text(RAIL_L_RED, Y(CAP_B - 0.65), "+", ha="center", va="center", fontsize=8,
+        color="white", fontweight="bold", zorder=12)
+ax.text(-3.5, Y(32.4), "470~1000μF", ha="center", va="center", fontsize=5.2,
+        color="#1f3864", fontweight="bold", zorder=12, bbox=BOX)
+ax.text(-3.5, Y(33.4), "긴 다리 = +", ha="center", va="center", fontsize=4.8,
+        color="#b3261e", zorder=12, bbox=BOX)
+
+# SG90 — 전원은 외부 5V 레일에서, 신호만 Pico GP15 로
+wire(P("G", 23), (RAIL_L_BLU, Y(23)), W_BLK, rad=0.10)    # 갈색 GND -> 왼쪽 파랑
+wire(P("G", 24), (RAIL_L_RED, Y(24)), W_5V, rad=-0.10)    # 빨강 5V  -> 왼쪽 빨강
+wire_dip(P("G", 25), P("B", 20), 27.3, SIG["GP15"])       # 주황 신호 -> GP15 직결 (점퍼 1개)
 
 # RGB LED
 wire(P("J", 30), (RAIL_R_BLU, Y(30)), W_BLK, rad=0.12)   # GND
@@ -279,7 +305,7 @@ ax.text(-5.4, Y(-4.3), "최종 배선도", ha="left", va="bottom",
         fontsize=15, fontweight="bold", color="#1f3864")
 ax.text(-5.4, Y(-2.9), "Raspberry Pi Pico 2 W  ·  830홀 브레드보드  ·  조도 연동 무드등 + 온도 연동 게이지",
         ha="left", va="bottom", fontsize=7.2, color="#555")
-ax.text(-5.4, Y(-1.6), "※ 1·2·3·8·9·11·12주차 내내 이 배선 그대로입니다. 팀 센서는 왼쪽 빈 자리에 추가하세요.",
+ax.text(-5.4, Y(-1.6), "※ 서보 전원은 노트북 USB(VBUS)가 아니라 별도 5V 어댑터에서 받습니다. 1·2·3·8·9·11·12주차 내내 이 배선 그대로입니다.",
         ha="left", va="bottom", fontsize=6.4, color="#8a8580")
 
 # ---------- 우측 설명 ----------
@@ -315,8 +341,10 @@ tbl = [
     ("10kΩ 위쪽", "3V3 레일", W_RED),
     ("CdS 아래쪽", "GND 레일", W_BLK),
     ("SG90  주황(신호)", "GP15 직결", SIG["GP15"]),
-    ("SG90  빨강", "VBUS (5V)", W_5V),
-    ("SG90  갈색", "GND 레일", W_BLK),
+    ("SG90  빨강", "왼쪽 빨강 = 외부 5V", W_5V),
+    ("SG90  갈색", "왼쪽 파랑 = 외부 GND", W_BLK),
+    ("커패시터 470~1000μF", "왼쪽 레일 (+는 빨강 쪽)", "#3b4a6b"),
+    ("공통 GND 브리지", "왼쪽 파랑 ↔ 오른쪽 파랑", W_BLK),
 ]
 y = 11.6
 for name, dest, col in tbl:
@@ -326,11 +354,12 @@ for name, dest, col in tbl:
             color="#222", fontweight="bold")
     y += 1.5
 
-head(31.0, "꼭 확인할 것")
-y = 32.6
+head(34.2, "꼭 확인할 것")
+y = 36.0
 warn = [
     ("CdS는 GND쪽, 10kΩ은 3V3쪽입니다.", "순서를 바꾸면 무드등이 정반대로 동작합니다."),
-    ("SG90은 VBUS(5V) + 커패시터 470~1000μF.", "USB 500mA로는 기동 순간(700~1000mA)이 모자라 Pico가 리셋됩니다."),
+    ("SG90 전원은 외부 5V. VBUS에 연결하지 마세요.", "노트북 USB 500mA로는 기동 순간(700~1000mA)이 모자라 Pico가 리셋됩니다."),
+    ("왼쪽 파랑 ↔ 오른쪽 파랑을 반드시 이으세요.", "공통 GND가 없으면 PWM의 기준이 없어 서보가 제멋대로 돕니다."),
     ("RGB LED는 저항 내장 모듈입니다.", "따로 220Ω을 달면 너무 어두워집니다."),
     ("서보 신호선은 GP15에 점퍼 1개로 직결합니다.", "브레드보드를 한 번 거치면 점퍼가 2개 듭니다."),
     ("DHT11·RGB 모듈 핀 순서는 제품마다 다릅니다.", "기판에 인쇄된 글자를 꼭 확인하세요."),
@@ -340,42 +369,42 @@ for a, b in warn:
     line(y + 1.1, "   " + b, "#666", 6.2)
     y += 2.3
 
-head(44.2, "점퍼선 색 규칙")
+head(50.2, "점퍼선 색 규칙")
 for i, (t, c) in enumerate((("빨강 = 3V3 전원", W_RED), ("검정 = GND", W_BLK),
-                            ("주황 = VBUS 5V 전원", W_5V), ("그 외 색 = GPIO 신호선", "#8d44c9"))):
+                            ("주황 = 외부 5V 전원", W_5V), ("그 외 색 = GPIO 신호선", "#8d44c9"))):
     cx = TX + (i % 2) * 13.0
-    cy = 45.9 + (i // 2) * 1.35
+    cy = 51.9 + (i // 2) * 1.35
     ax.add_patch(Rectangle((cx, Y(cy) - 0.26), 1.2, 0.52, fc=c, ec="none"))
     ax.text(cx + 1.8, Y(cy), t, ha="left", va="center", fontsize=6.4, color="#333")
 
 # ---------- 팀 프로젝트 확장 ----------
-ax.add_patch(FancyBboxPatch((TX - 0.6, Y(67.1)), 26.0, 18.5,
+ax.add_patch(FancyBboxPatch((TX - 0.6, Y(73.8)), 26.0, 18.8,
                             boxstyle="round,pad=0.2,rounding_size=0.4",
                             fc="#f2f9f5", ec="#6aa98a", lw=1.0, zorder=0.5))
-head(49.4, "팀 프로젝트 — 센서를 더 붙일 때")
+head(55.8, "팀 프로젝트 — 센서를 더 붙일 때")
 
-line(51.4, "쓸 수 있는 핀", "#1f3864", 7.0, True)
+line(57.6, "쓸 수 있는 핀", "#1f3864", 7.0, True)
 pins = [
     ("아날로그 (전압이 연속으로 변하는 센서)", "GP27, GP28 — 두 개뿐", "#b3261e"),
     ("디지털 (켜짐/꺼짐, 펄스, 통신)", "GP0~GP14, GP20~GP22", "#222"),
     ("절대 쓰면 안 되는 핀", "GP23·GP24·GP25·GP29", "#b3261e"),
 ]
-y = 52.9
+y = 59.1
 for a, b, c in pins:
     line(y, "· " + a, "#333", 6.2)
     line(y, b, c, 6.2, True, x=TX + 15.5)
     y += 1.35
-line(56.9, "   GP23·24·25·29는 무선 칩 전용 — 쓰면 Wi-Fi가 죽습니다.", "#666", 6.0)
+line(63.1, "   GP23·24·25·29는 무선 칩 전용 — 쓰면 Wi-Fi가 죽습니다.", "#666", 6.0)
 
-line(58.6, "전원", "#1f3864", 7.0, True)
-line(60.0, "· 3.3V 센서 → 오른쪽 빨강 레일 (3V3)", "#333", 6.2)
-line(61.2, "· 5V 센서 → VBUS(40번 핀). 전류가 큰 부품은 별도 5V를 왼쪽 레일에", "#333", 6.2)
-line(62.4, "· 3V3는 다 합쳐 약 300mA까지. 서보·펌프·모터는 별도 전원", "#b3261e", 6.2, True)
-line(63.6, "· GND는 전부 하나로 — 왼쪽 레일을 쓰면 양쪽 파랑 레일을 점퍼로 잇기", "#b3261e", 6.2, True)
+line(64.8, "전원", "#1f3864", 7.0, True)
+line(66.2, "· 3.3V 센서 → 오른쪽 빨강 레일 (Pico 3V3)", "#333", 6.2)
+line(67.4, "· 5V 센서 → 왼쪽 빨강 레일 (외부 5V). 서보와 같이 씁니다", "#333", 6.2)
+line(68.6, "· 3V3는 다 합쳐 약 300mA까지. 서보·펌프·모터는 별도 전원", "#b3261e", 6.2, True)
+line(69.8, "· 왼쪽은 5V, 오른쪽은 3.3V — 3.3V 센서를 왼쪽에 꽂으면 망가집니다", "#b3261e", 6.2, True)
 
-line(65.0, "※ 센서가 Pico로 내보내는 신호가 5V면 분압 저항이 필요합니다.",
+line(71.2, "※ 센서가 Pico로 내보내는 신호가 5V면 분압 저항이 필요합니다.",
      "#b3261e", 6.4, True)
-line(66.1, "   HC-SR04의 ECHO가 대표적 — 1kΩ+2kΩ으로 3.3V까지 낮춰서 받으세요.",
+line(72.3, "   HC-SR04의 ECHO가 대표적 — 1kΩ+2kΩ으로 3.3V까지 낮춰서 받으세요.",
      "#666", 6.0)
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
