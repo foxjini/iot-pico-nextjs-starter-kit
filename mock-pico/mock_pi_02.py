@@ -172,7 +172,7 @@ def main():
     print("보낼 서버 주소:", API_BASE)
     print()
     print("서버 주소가 다르면 이렇게 켜세요:")
-    print("    py mock_pi_02.py http://192.168.137.1:3000")
+    print("    py mock_pi_02.py http://192.168.0.10:3000")
     print("Next.js 가 npm run dev:lan 으로 켜져 있어야 합니다.")
     print("-" * 62)
     print_menu()
