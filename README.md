@@ -38,6 +38,26 @@
 - `node_modules`, `package.json` 등 `create-next-app`이 만든 나머지 파일들은 이 스타터 킷에 없습니다 — 정상입니다. 그 파일들은 안 건드립니다.
 - 파일을 다 채운 후에는 교재의 "실행 및 확인" 절차대로 진행하면 됩니다.
 
+## 13주차부터 — Tailwind 프로젝트는 **따로** 만듭니다
+
+12주차까지 쓰던 Bootstrap 프로젝트(`iot-week2-api`)는 그대로 두고, 옆에 새 프로젝트를 만듭니다.
+
+```bash
+npx create-next-app@latest iot-tailwind --typescript --app --eslint --tailwind --src-dir --import-alias "@/*"
+cd iot-tailwind
+npm run dev -- -p 3001
+```
+
+Bootstrap 쪽은 3000 번, Tailwind 쪽은 3001 번으로 띄워 두 화면을 나란히 비교합니다.
+
+> 한 프로젝트에 둘을 같이 넣으면 **같은 이름의 클래스 687개가 부딪칩니다.**
+> Bootstrap 쪽에 `!important` 가 붙어 있어 `p-4` 가 16px 이 아니라 24px 이 됩니다 — 에러도 없이.
+> 8주차에서 Tailwind 를 껐던 이유가 그대로 유효해서, 섞지 않고 옆에 새로 짓습니다.
+> 자세한 것은 [`week13-tailwind-ui/README.md`](week13-tailwind-ui/README.md) 에 있습니다.
+
+`week13-tailwind-ui` 폴더의 `.tsx` 파일들은 **속이 채워져 있습니다.** 통째로 복사해
+새 프로젝트의 `src/app/dashboard/page.tsx` 에 붙여넣으면 됩니다.
+
 ## 실물 Pico 가 없을 때 — `mock-pico` 폴더
 
 Pico 2 W 가 모자라거나 아직 도착하지 않았을 때, 윈도우 PC 의 파이썬으로

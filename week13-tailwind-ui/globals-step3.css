@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* ★ 3단계 — 0단계의 globals.css 에 이 @theme 블록을 더합니다.
+
+    색에 "뜻"으로 이름을 붙입니다.
+   #1d232b 같은 숫자를 화면 곳곳에 흩어 놓으면 나중에 한 번에 못 바꿉니다.
+   여기 한 곳만 고치면 화면 전체가 바뀝니다.
+
+   @theme 안에 --color-ink 라고 적으면 Tailwind 가
+   text-ink / bg-ink / border-ink 를 자동으로 만들어 줍니다. 이름만 지으면 됩니다. */
+@theme {
+  /* ── 스타일마다 바뀌는 것 — 15주차에서 이 다섯 줄만 갈아끼웁니다 ── */
+  --color-base:    #14181c;   /* 페이지 배경 */
+  --color-surface: #1d232b;   /* 카드 배경 */
+  --color-line:    #2b323b;   /* 경계선 */
+  --color-ink:     #e9ebec;   /* 본문 글자 */
+  --color-ink-dim: #8b929b;   /* 보조 글자 */
+
+  /* ── 뜻이 정해진 것 — 바꾸지 않습니다 ── */
+  --color-ok:   #4fa88f;      /* 정상 */
+  --color-warn: #d9a441;      /* 주의 */
+  --color-bad:  #d2605a;      /* 오류 */
+  --color-idle: #4c5560;      /* 값 없음·비활성 */
+}
+
+body {
+  background: var(--color-base);
+  color: var(--color-ink);
+}

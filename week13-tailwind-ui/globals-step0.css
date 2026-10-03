@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* ★ 0단계 — create-next-app 이 만들어 준 globals.css 를 이것으로 통째로 바꿉니다.
+   기본값은 밝은 배경이라 전시용 화면에 맞지 않습니다.
+   색 이름은 3단계에서 붙입니다. 지금은 배경과 글자색만 정합니다. */
+body {
+  background: #14181c;
+  color: #e9ebec;
+}

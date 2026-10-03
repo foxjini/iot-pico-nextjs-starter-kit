@@ -142,7 +142,7 @@ SEND_INTERVAL = 1.0          # 진짜 Pico 와 같이 1초마다 보낸다
 STATE = {"dark": False, "hot": False, "dht_broken": False, "cds_broken": False}
 
 # 브라우저가 보낸 마지막 제어 명령 (진짜 Pico 의 LED/서보 자리)
-ACTUATOR = {"led_r": 0, "led_g": 0, "led_b": 0, "servo_angle": 90}
+ACTUATOR = {"led_r": 0, "led_g": 0, "led_b": 0, "servo_angle": 90, "valve": 0}
 
 
 def _temperature(n):
@@ -171,12 +171,18 @@ def _light_percent(n):
 
 def apply_command(command):
     """브라우저가 보낸 JSON 을 진짜 Pico 처럼 적용한다."""
-    for key in ("led_r", "led_g", "led_b", "servo_angle"):
+    before_valve = ACTUATOR["valve"]
+    for key in ("led_r", "led_g", "led_b", "servo_angle", "valve"):
         if key in command:
             ACTUATOR[key] = command[key]
     print("[WS] 명령 적용 완료:", json.dumps(command, ensure_ascii=False))
-    print("      -> LED:({}, {}, {})  서보:{}도".format(
-        ACTUATOR["led_r"], ACTUATOR["led_g"], ACTUATOR["led_b"], ACTUATOR["servo_angle"]))
+    print("      -> LED:({}, {}, {})  서보:{}도  밸브:{}".format(
+        ACTUATOR["led_r"], ACTUATOR["led_g"], ACTUATOR["led_b"], ACTUATOR["servo_angle"],
+        "열림" if ACTUATOR["valve"] else "닫힘"))
+    # 같은 명령이 1 초마다 되풀이되면 진짜 스텝모터는 계속 돈다 — 그것을 눈에 보이게 한다
+    if "valve" in command and command["valve"] == before_valve:
+        print("      (!) 밸브가 이미 그 상태인데 또 명령이 왔습니다 "
+              "— \"상태가 바뀔 때만 보내기\" 가 빠졌습니다")
 
 
 def _discomfort(t, h):
