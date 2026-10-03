@@ -925,6 +925,8 @@
         <strong>Pico 2 W 핀 가이드:</strong> 
         Wi-Fi 전용 핀(<code>GP23, GP24, GP25, GP29</code>) 및 기존 사용 핀(<code>GP15:서보, GP16:DHT11, GP17~19:RGB, GP26:CdS</code>)은 자동 제외되며,
         아날로그 센서는 <strong>GP27, GP28</strong>에, 디지털 센서 및 액추에이터는 <strong>GP0~GP14, GP20~GP22</strong>에 안전하게 자동 배정됩니다.
+        <br><strong>스텝모터(28BYJ-48 + ULN2003)</strong>를 고르면 <strong>IN1~IN4 네 핀이 연속으로</strong> 잡힙니다 — 표에서는 첫 핀만 고르면 됩니다.
+        전원은 반드시 <strong>외부 5V(왼쪽 레일)</strong>에서 받으세요. 3V3에 물리면 Pico가 재부팅됩니다.
       </span>
     </div>
   </div>
@@ -1641,6 +1643,12 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
         <h5>센서 읽기에 실패하면 <strong><code>None</code></strong> 을 돌려주는가</h5><p>없는 값을 지어내면 안 됩니다. 화면에서 &ldquo;값 없음&rdquo;으로 보여야 고장을 알아챌 수 있습니다.</p></div></label>
       <label class="check-item"><input type="checkbox" id="chk_p4" class="auto-save"><div class="check-label-wrap">
         <h5>명령을 <strong><code>command.get("키", 0)</code></strong> 으로 받는가</h5><p><code>command["키"]</code> 로 받으면 키가 하나 빠졌을 때 Pico가 멈춥니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_p6" class="auto-save"><div class="check-label-wrap">
+        <h5>[스텝모터] 모터를 <strong>한 번에 다 돌리지 않고 조금씩</strong> 움직이는가</h5><p><code>time.sleep()</code> 으로 수천 스텝을 한 번에 돌리면 그 몇 초 동안 WebSocket이 멈춰 <strong>대시보드 연결이 끊어집니다.</strong> 루프 한 번에 몇 스텝씩만.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_p7" class="auto-save"><div class="check-label-wrap">
+        <h5>[스텝모터] 다 돌면 <strong>네 핀을 <code>False</code></strong> 로 만드는가</h5><p>코일을 켜 둔 채로 두면 모터가 뜨거워지고 전류를 계속 먹습니다. 시작할 때도 <code>False</code> 로 초기화.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_p8" class="auto-save"><div class="check-label-wrap">
+        <h5>[스텝모터] <strong>새 라이브러리를 쓰지 않았는가</strong></h5><p><code>digitalio</code> 네 개와 반스텝 8단계 순서면 충분합니다. <code>import adafruit_motor</code> 가 보이면 프롬프트 7로.</p></div></label>
       <label class="check-item"><input type="checkbox" id="chk_p5" class="auto-save"><div class="check-label-wrap">
         <h5><strong>기존 온도·습도·조도·RGB·서보 코드가 지워지지 않았는가</strong></h5><p>AI가 새 기능만 남기고 기존 코드를 통째로 날려버리는 일이 자주 있습니다.</p></div></label>
     </div>
@@ -1705,13 +1713,40 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
   // 우리 팀 주제에 맞게 이름·핀·키를 바꾸세요.
   let hwItems = [
     { id: 'hw_1', type: 'sensor',   name: '토양수분 센서', signal: 'analog',     pin: 'GP27', power: '3v3',  behavior: '0~100 % 수분 측정', key: 'soil' },
-    { id: 'hw_2', type: 'actuator', name: '물펌프 릴레이', signal: 'digital_out', pin: 'GP20', power: 'ext5v', behavior: 'ON / OFF (255 / 0)', key: 'pump' }
+    { id: 'hw_2', type: 'actuator', name: '급수 밸브 (28BYJ-48 스텝모터)', signal: 'stepper4', pin: 'GP10', power: 'ext5v', behavior: '열기 / 닫기 (1024스텝)', key: 'valve' }
   ];
 
   const POWER_LABEL = {
     '3v3':   '3V3 (오른쪽 레일)',
     'ext5v': '외부 5V (왼쪽 레일)'
   };
+
+
+  // 28BYJ-48 + ULN2003 은 IN1~IN4 네 핀을 연속으로 씁니다.
+  // 표에서는 첫 핀(IN1)만 고르고, 나머지 셋은 여기서 계산합니다.
+  const RESERVED_ALWAYS = ['GP23', 'GP24', 'GP25', 'GP29'];
+
+  function reservedPins() {
+    const r = RESERVED_ALWAYS.slice();
+    if (baseComponents.servo) r.push('GP15');
+    if (baseComponents.dht11) r.push('GP16');
+    if (baseComponents.rgb) r.push('GP17', 'GP18', 'GP19');
+    if (baseComponents.cds) r.push('GP26');
+    return r;
+  }
+
+  // 첫 핀부터 네 개를 돌려주고, 쓸 수 없는 핀이 섞였는지도 알려준다
+  function stepperPins(firstPin) {
+    const n = parseInt(String(firstPin).replace('GP', ''), 10);
+    const taken = reservedPins();
+    const pins = [], bad = [];
+    for (let i = 0; i < 4; i++) {
+      const name = 'GP' + (n + i);
+      pins.push(name);
+      if (n + i > 28 || taken.includes(name)) bad.push(name);
+    }
+    return { pins: pins, bad: bad };
+  }
 
   function getAvailablePins() {
     const pins = [
@@ -1806,6 +1841,7 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
             ` : `
               <option value="digital_out" ${item.signal === 'digital_out' ? 'selected' : ''}>디지털 출력 (스위치/릴레이)</option>
               <option value="pwm_out" ${item.signal === 'pwm_out' ? 'selected' : ''}>PWM 출력 (모터속도/서보/밝기)</option>
+              <option value="stepper4" ${item.signal === 'stepper4' ? 'selected' : ''}>스텝모터 4핀 (28BYJ-48)</option>
             `}
           </select>
         </td>
@@ -1815,6 +1851,12 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
               <option value="${p.pin}" ${item.pin === p.pin ? 'selected' : ''}>${p.label}</option>
             `).join('')}
           </select>
+          ${item.signal === 'stepper4' ? (() => {
+            const st = stepperPins(item.pin);
+            return `<div class="field-note" style="${st.bad.length ? 'color:#dc2626;font-weight:700;' : ''}">
+              IN1~IN4 → ${st.pins.join(', ')}${st.bad.length ? ' ⚠ ' + st.bad.join(', ') + ' 는 쓸 수 없습니다' : ''}
+            </div>`;
+          })() : ''}
         </td>
         <td>
           <select class="form-control" onchange="updateItem(${index}, 'power', this.value)">
@@ -1888,20 +1930,30 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
     let aIdx = 0;
     let dIdx = 0;
 
-    hwItems.forEach(item => {
-      if (item.signal === 'analog') {
-        if (aIdx < analogPins.length) {
-          item.pin = analogPins[aIdx++];
-        } else if (dIdx < digitalPins.length) {
-          item.pin = digitalPins[dIdx++];
-        }
-      } else {
-        if (dIdx < digitalPins.length) {
-          item.pin = digitalPins[dIdx++];
-        } else if (aIdx < analogPins.length) {
-          item.pin = analogPins[aIdx++];
-        }
+    // 스텝모터부터 자리를 잡는다 — 연속된 네 칸이 필요해서 까다롭다
+    const used = [];
+    hwItems.filter(i => i.signal === 'stepper4').forEach(item => {
+      const taken = reservedPins().concat(used);
+      let found = null;
+      for (let n = 0; n <= 25 && !found; n++) {
+        const group = [0, 1, 2, 3].map(k => 'GP' + (n + k));
+        if (group.every(g => digitalPins.includes(g) && !taken.includes(g))) found = group;
       }
+      if (found) {
+        item.pin = found[0];
+        found.forEach(g => used.push(g));
+      }
+    });
+
+    hwItems.filter(i => i.signal !== 'stepper4').forEach(item => {
+      const skip = reservedPins().concat(used);
+      if (item.signal === 'analog') {
+        while (aIdx < analogPins.length && skip.includes(analogPins[aIdx])) aIdx++;
+        if (aIdx < analogPins.length) { item.pin = analogPins[aIdx]; used.push(analogPins[aIdx++]); return; }
+      }
+      while (dIdx < digitalPins.length && skip.includes(digitalPins[dIdx])) dIdx++;
+      if (dIdx < digitalPins.length) { item.pin = digitalPins[dIdx]; used.push(digitalPins[dIdx++]); }
+      else if (aIdx < analogPins.length) { item.pin = analogPins[aIdx]; used.push(analogPins[aIdx++]); }
     });
 
     renderTable();
@@ -1951,7 +2003,11 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
     p0 += `\n[ 추가할 액추에이터 ]\n`;
     if (actuators.length) {
       actuators.forEach(a => {
-        p0 += `- ${a.name} / ${a.pin} (${a.signal === 'pwm_out' ? 'PWM 값조절' : '켜고끄기'}) / JSON 키 "${a.key}" / 전원 ${POWER_LABEL[a.power] || '외부 5V (왼쪽 레일)'}\n`;
+        const way = a.signal === 'pwm_out' ? 'PWM 값조절'
+                  : a.signal === 'stepper4' ? '스텝모터 4핀, 28BYJ-48 + ULN2003' : '켜고끄기';
+        const pinTxt = a.signal === 'stepper4'
+                     ? `IN1~IN4 = ${stepperPins(a.pin).pins.join(', ')}` : a.pin;
+        p0 += `- ${a.name} / ${pinTxt} (${way}) / JSON 키 "${a.key}" / 전원 ${POWER_LABEL[a.power] || '외부 5V (왼쪽 레일)'}\n`;
       });
     } else { p0 += `- 없음\n`; }
     p0 += `\n[ 자동으로 하고 싶은 일 ]\n(프롬프트 3에 적을 내용입니다. 여기에도 한 줄로 적어 주세요)\n\n`;
@@ -2039,8 +2095,23 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
     let p2b = `main.py 에 액추에이터를 추가해 주세요.\n\n`;
     actuators.forEach(a => {
       const isPwm = (a.signal || '').includes('pwm');
-      p2b += `- ${a.name} (핀 ${a.pin}, 전원 ${POWER_LABEL[a.power] || '외부 5V (왼쪽 레일)'})\n`;
-      if (isPwm) {
+      const pinTxt2 = a.signal === 'stepper4'
+                    ? stepperPins(a.pin).pins.join(' · ') : a.pin;
+      p2b += `- ${a.name} (핀 ${pinTxt2}, 전원 ${POWER_LABEL[a.power] || '외부 5V (왼쪽 레일)'})\n`;
+      if (a.signal === 'stepper4') {
+        const st = stepperPins(a.pin);
+        p2b += `  · 28BYJ-48 스텝모터 + ULN2003 드라이버입니다\n`;
+        p2b += `  · IN1=${st.pins[0]}, IN2=${st.pins[1]}, IN3=${st.pins[2]}, IN4=${st.pins[3]}\n`;
+        p2b += `  · 라이브러리는 쓰지 마세요. digitalio 네 개와 반스텝 8단계 순서로 직접 돌려 주세요\n`;
+        p2b += `  · 한 번 움직이는 양은 1024 스텝(약 90도)으로 하겠습니다\n`;
+        p2b += `  · command.get("${a.key}", 0) 으로 받아 0보다 크면 정방향, 아니면 역방향으로 돌립니다\n`;
+        p2b += `    이미 그 상태면 아무것도 하지 마세요\n`;
+        p2b += `  · ★ 아주 중요 — 한 번에 다 돌리면 몇 초 동안 WebSocket 이 멈춰 대시보드가 끊어집니다.\n`;
+        p2b += `    "앞으로 몇 스텝 더 가야 하는지"를 변수에 넣어 두고, 기존 asyncio 루프가\n`;
+        p2b += `    한 번 돌 때마다 몇 스텝씩만 움직이게 해 주세요 (await async_sleep(0) 구조 그대로)\n`;
+        p2b += `  · ★ 다 돌면 네 핀을 모두 False 로 만들어 코일을 꺼 주세요 (안 끄면 모터가 뜨거워집니다)\n`;
+        p2b += `  · ★ 시작할 때도 네 핀을 False 로 초기화해 주세요\n`;
+      } else if (isPwm) {
         p2b += `  · pwmio.PWMOut(board.${a.pin}, frequency=1000) 으로 초기화\n`;
         p2b += `  · command.get("${a.key}", 0) 으로 받아 duty_cycle 로 바꿔 주세요\n`;
       } else {
@@ -2079,6 +2150,10 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
     p3 += `  (?? 0 으로 0 처리하면 안 됩니다. 센서가 고장 났을 때 엉뚱한 동작을 계속하게 됩니다)\n`;
     p3 += `- 지금 상태와 같으면 명령을 다시 보내지 마세요\n`;
     p3 += `  (센서값이 1초마다 들어오므로, 그대로 두면 1초마다 같은 명령을 보냅니다)\n`;
+    if (actuators.some(a => a.signal === 'stepper4')) {
+      p3 += `  ★ 스텝모터는 명령을 받을 때마다 또 돕니다. 한 방향으로 계속 감기면 망가지니\n`;
+      p3 += `    반드시 "상태가 바뀔 때만" 보내 주세요\n`;
+    }
     p3 += `- 자동 모드를 끄면 사람이 스위치로 직접 켜고 끌 수 있어야 합니다\n\n`;
     p3 += `src/app/dashboard/page.tsx 전체 완성본으로 주세요.`;
     setTpl('template_step3', p3);
@@ -2256,7 +2331,9 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
     hwItems.forEach(item => {
       const t = item.type === 'sensor' ? '센서 (입력)' : '액추에이터 (출력)';
       const pw = POWER_LABEL[item.power] || (item.type === 'sensor' ? '3V3 (오른쪽 레일)' : '외부 5V (왼쪽 레일)');
-      md += `| ${t} | ${item.name} | ${item.signal} | **${item.pin}** | ${pw} | ${item.behavior} | \`${item.key}\` |\n`;
+      const pinTxt = item.signal === 'stepper4'
+                   ? stepperPins(item.pin).pins.join(' · ') + ' (IN1~IN4)' : item.pin;
+      md += `| ${t} | ${item.name} | ${item.signal} | **${pinTxt}** | ${pw} | ${item.behavior} | \`${item.key}\` |\n`;
     });
     md += `\n> ⚠️ 외부 5V는 브레드보드 **왼쪽 빨강 레일**입니다. Pico의 VBUS는 쓰지 않습니다.\n`;
     md += `> 왼쪽 파랑 레일과 오른쪽 파랑 레일이 **점퍼로 이어져 있어야** 합니다.\n\n`;
