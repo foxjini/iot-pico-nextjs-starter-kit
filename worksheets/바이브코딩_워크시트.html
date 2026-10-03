@@ -1,0 +1,2371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>바이브 코딩 워크시트 · 우리 팀 주제로 옮기기</title>
+  <!-- Google Fonts: Inter & Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --meta-blue: #0866ff;
+      --meta-blue-dark: #0053d6;
+      --meta-blue-light: #e7f2ff;
+      --meta-blue-surface: #f0f7ff;
+      --meta-navy: #0e1e38;
+
+      --text-main: #1c1e21;
+      --text-secondary: #5a6069;
+      --text-muted: #8a8d91;
+
+      --bg-body: #f7f9fc;
+      --bg-card: #ffffff;
+      --border-color: #e4e6eb;
+      --border-focus: #0866ff;
+
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06);
+
+      --badge-sensor: #059669;
+      --badge-sensor-bg: #d1fae5;
+      --badge-actuator: #d97706;
+      --badge-actuator-bg: #fef3c7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 120px;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    /* Header Banner */
+    .header-banner {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 36px 40px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-banner::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, var(--meta-blue), #00c6ff);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .badge-class {
+      background: var(--meta-blue-light);
+      color: var(--meta-blue);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .save-status-indicator {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #10b981;
+    }
+
+    .main-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--meta-navy);
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 860px;
+      line-height: 1.6;
+    }
+
+    /* Team Meta Form */
+    .team-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--meta-navy);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-control {
+      background: #fdfdfd;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text-main);
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(8, 102, 255, 0.12);
+      background: #ffffff;
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 30px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.25s ease;
+    }
+
+    .section-card:hover {
+      box-shadow: var(--shadow-card);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-badge {
+      background: var(--meta-blue);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--meta-navy);
+    }
+
+    .section-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Type Tags */
+    .tag-sensor {
+      background: var(--badge-sensor-bg);
+      color: var(--badge-sensor);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tag-actuator {
+      background: var(--badge-actuator-bg);
+      color: var(--badge-actuator);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Dynamic Hardware Management Toolbar */
+    .hw-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .hw-toolbar-left {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-tool {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-tool:hover {
+      background: var(--meta-blue-light);
+      border-color: var(--meta-blue);
+      color: var(--meta-blue);
+    }
+
+    .btn-tool.btn-accent {
+      background: var(--meta-blue-surface);
+      border-color: #93c5fd;
+      color: var(--meta-blue-dark);
+    }
+
+    .btn-tool.btn-accent:hover {
+      background: var(--meta-blue);
+      color: #fff;
+    }
+
+    .btn-delete-row {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-delete-row:hover {
+      background: #dc2626;
+      color: #ffffff;
+    }
+
+    /* Hardware Table */
+    .hw-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .hw-table th {
+      background: var(--bg-body);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .hw-table td {
+      padding: 10px 14px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+      background: #ffffff;
+    }
+
+    .hw-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .hw-table select.form-control {
+      padding: 8px 10px;
+    }
+
+    /* Pin Restriction Warning Box */
+    .pin-info-box {
+      margin-top: 14px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Prompt Box Elements */
+    .prompt-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 860px) {
+      .prompt-container {
+        grid-template-columns: 1fr;
+      }
+      .team-meta-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .prompt-box {
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .example-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    .my-box {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+    }
+
+    .my-box:focus-within {
+      border-color: var(--meta-blue);
+      box-shadow: 0 0 0 3px rgba(8, 102, 255, 0.12);
+    }
+
+    .box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .box-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--meta-navy);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dynamic-badge {
+      font-size: 11px;
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .btn-action {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:hover {
+      background: var(--meta-blue-light);
+      border-color: var(--meta-blue);
+      color: var(--meta-blue);
+    }
+
+    .btn-copy-template {
+      background: var(--meta-blue-surface);
+      border-color: #bee3f8;
+      color: var(--meta-blue-dark);
+    }
+
+    .prompt-code-view {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      flex: 1;
+      max-height: 480px;
+    }
+
+    .prompt-textarea {
+      width: 100%;
+      min-height: 220px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-main);
+      resize: vertical;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .prompt-textarea:focus {
+      outline: none;
+      border-color: var(--meta-blue);
+      background: #fafcff;
+    }
+
+    /* Checklist */
+    .checklist-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .check-item:hover {
+      background: #f1f5f9;
+    }
+
+    .check-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--meta-blue);
+      cursor: pointer;
+    }
+
+    .check-label-wrap h5 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--meta-navy);
+      margin-bottom: 2px;
+    }
+
+    .check-label-wrap p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Fixed Bottom Action Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border-color);
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    .bottom-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-main {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--meta-blue);
+      border: 1px solid var(--meta-blue);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--meta-blue-dark);
+      box-shadow: 0 4px 12px rgba(8, 102, 255, 0.3);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    /* Print Style Optimization */
+    @media print {
+      body {
+        background: #fff;
+        padding-bottom: 0;
+      }
+      .bottom-bar, .btn-action, .hw-toolbar, .btn-delete-row {
+        display: none !important;
+      }
+      .section-card, .header-banner {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        break-inside: avoid;
+      }
+    }
+
+    /* ── 11주차 보완분 ───────────────────────────── */
+    .guide-callout {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: var(--meta-blue-surface);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 13.5px;
+      color: #1e3a5f;
+      line-height: 1.65;
+    }
+    .guide-callout i { color: var(--meta-blue); flex-shrink: 0; margin-top: 2px; }
+
+    .warn-callout {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 13.5px;
+      color: #7c2d12;
+      line-height: 1.65;
+      margin-top: 14px;
+    }
+    .warn-callout i { color: #ea580c; flex-shrink: 0; margin-top: 2px; }
+
+    .danger-callout {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 13.5px;
+      color: #7f1d1d;
+      line-height: 1.65;
+      margin-top: 14px;
+    }
+    .danger-callout i { color: #dc2626; flex-shrink: 0; margin-top: 2px; }
+
+    .info-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 14px;
+      font-size: 13.5px;
+    }
+    .info-table th {
+      background: var(--bg-body);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .info-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+      background: #fff;
+      vertical-align: top;
+    }
+    .info-table tr:last-child td { border-bottom: none; }
+
+    .code-block {
+      background: #0e1e38;
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      overflow-x: auto;
+      margin-top: 12px;
+      white-space: pre;
+    }
+
+    .checklist-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--meta-navy);
+      margin: 18px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .checklist-title:first-child { margin-top: 0; }
+
+    .field-note {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .hw-table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .hw-table { min-width: 920px; }
+    .hw-table td:first-child, .hw-table th:first-child { white-space: nowrap; }
+    .tag-sensor, .tag-actuator { white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header Banner -->
+  <div class="header-banner">
+    <div class="header-top">
+      <span class="badge-class">
+        <i data-lucide="sparkles" size="14"></i> 11주차 바이브 코딩 · 우리 팀 주제 워크시트
+      </span>
+      <div class="save-status-indicator">
+        <div class="status-dot" id="saveDot"></div>
+        <span id="saveText">자동 저장 활성화 (LocalStorage)</span>
+      </div>
+    </div>
+    <h1 class="main-title">바이브 코딩으로 우리 팀 작품 만들기</h1>
+    <p class="subtitle">
+      11주차 수업에서는 <strong>모두 같이 「교실 스마트팜」</strong>을 만들며 프롬프트 0~7을 익혔습니다.
+      이제 <strong>우리 팀 주제</strong>로 같은 일을 합니다. 아래 설계표에 센서와 액추에이터를 등록하면
+      <strong>프롬프트 0~7이 우리 팀 부품 이름·핀 번호·JSON 키로 자동으로 채워집니다.</strong>
+      채운 뒤에는 그대로 복사해서 생성형 AI에 붙여넣으면 됩니다.
+    </p>
+    <div class="guide-callout" style="margin-top:18px;">
+      <i data-lucide="book-open" size="18"></i>
+      <div>
+        <strong>이 워크시트는 11주차 교재와 짝입니다.</strong>
+        순서·규칙·검수 항목이 모두 교재와 같습니다. 막히면
+        <code>week11-vibe-coding/프롬프트-모음-스마트팜.md</code> (수업에서 한 완성형 예제)를 옆에 두고 비교하세요.
+        부품이 아직 없으면 <code>mock-pico/mock_pi_11.py</code> 를 켜고 창에 <code>add &lt;키&gt; &lt;최소&gt; &lt;최대&gt;</code> 를 치면
+        그 센서가 있는 것처럼 화면을 먼저 완성할 수 있습니다.
+      </div>
+    </div>
+
+    <!-- Team Meta Information Form -->
+    <div class="team-meta-grid">
+      <div class="form-group">
+        <label class="form-label" for="teamName">
+          <i data-lucide="users" size="14"></i> 팀 번호 및 팀명
+        </label>
+        <input type="text" id="teamName" class="form-control auto-save" placeholder="예: 3조 / 스마트 팜 팀">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="teamMembers">
+          <i data-lucide="user-check" size="14"></i> 팀원 명단
+        </label>
+        <input type="text" id="teamMembers" class="form-control auto-save" placeholder="예: 홍길동, 김철수, 이영희">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="projectTitle">
+          <i data-lucide="target" size="14"></i> 작품명 (프로젝트 주제)
+        </label>
+        <input type="text" id="projectTitle" class="form-control auto-save" placeholder="예: 자동 급수 스마트 화분 시스템">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SECTION A: 주제 정하기 -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">1단계</span>
+          <h2 class="section-title">우리 팀 주제 정하기</h2>
+        </div>
+        <p class="section-desc">여기에 적은 내용이 <strong>프롬프트 0</strong>에 그대로 들어갑니다. 한 줄로 설명할 수 없으면 아직 주제가 정해지지 않은 것입니다.</p>
+      </div>
+    </div>
+
+    <div style="display: grid; gap: 16px;">
+      <div class="form-group">
+        <label class="form-label" for="topicOneLine">
+          <i data-lucide="message-square" size="14"></i> 한 줄 설명 — &ldquo;무엇이 어떻게 되면 무엇을 한다&rdquo;
+        </label>
+        <input type="text" id="topicOneLine" class="form-control auto-save"
+          placeholder="예: 교실 화분의 흙이 마르면 자동으로 물을 주고, 어두우면 생장등을 켠다">
+        <p class="field-note">11주차 예제(스마트팜)의 한 줄 설명이 바로 이 형식입니다.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="topicWhy">
+          <i data-lucide="help-circle" size="14"></i> 왜 필요한가 — 누구의 어떤 불편을 줄이나
+        </label>
+        <input type="text" id="topicWhy" class="form-control auto-save"
+          placeholder="예: 주말에 아무도 물을 주지 않아 교실 화분이 자주 말라 죽는다">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="topicVisitor">
+          <i data-lucide="hand" size="14"></i> 전시회에서 관람객이 <strong>직접 해볼 수 있는 것</strong> 하나
+        </label>
+        <input type="text" id="topicVisitor" class="form-control auto-save"
+          placeholder="예: 조도 센서를 손으로 가려 보세요 — 생장등이 켜집니다">
+        <p class="field-note">11월 20일 안내판에 그대로 적을 문장입니다. 관람객이 1~2m 밖에서 읽습니다.</p>
+      </div>
+    </div>
+
+    <div class="warn-callout">
+      <i data-lucide="alert-triangle" size="18"></i>
+      <div>
+        <strong>아날로그 센서는 두 개까지만 붙일 수 있습니다.</strong>
+        Pico 2 W에 남은 아날로그 핀은 <code>GP27</code>, <code>GP28</code> 둘뿐입니다
+        (<code>GP26</code>은 CdS 조도가 쓰고 있습니다).
+        토양수분·가변저항·먼지센서(아날로그형)처럼 <strong>0~100으로 값이 변하는 센서가 세 개 이상</strong>이면
+        아래 설계표를 채우기 전에 <strong>팀에서 구성을 다시 정하세요.</strong>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SECTION 0: Hardware IO Specification (Sensors & Actuators) -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">2단계</span>
+          <h2 class="section-title">우리 팀 하드웨어 입·출력(I/O) 설계표</h2>
+        </div>
+        <p class="section-desc">기존 기본 부품 사용 여부와 팀별 추가 부품을 설정하세요. 핀을 잘 모를 땐 <strong>[⚡ 핀 스마트 자동 할당]</strong>을 누르세요!</p>
+      </div>
+    </div>
+
+    <!-- Base Components Usage Toggle Area -->
+    <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;">
+      <div style="font-size: 14px; font-weight: 700; color: var(--meta-navy); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="layers" size="16" style="color: var(--meta-blue);"></i> 기존 기본 부품 (8~10주차 베이스) 사용 여부 설정
+        <span style="font-size: 12px; font-weight: normal; color: var(--text-secondary);">(체크 해제 시 해당 핀이 가용 핀으로 반환되며, 프롬프트에서 제거를 지시합니다)</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+        <label class="check-item" style="padding: 10px 14px; background: #fff;">
+          <input type="checkbox" id="base_dht11" checked onchange="toggleBaseComponent()">
+          <div class="check-label-wrap">
+            <h5 style="font-size: 13px;">DHT11 온습도 센서</h5>
+            <p style="font-size: 12px; color: var(--text-muted);">GP16 (디지털)</p>
+          </div>
+        </label>
+        <label class="check-item" style="padding: 10px 14px; background: #fff;">
+          <input type="checkbox" id="base_cds" checked onchange="toggleBaseComponent()">
+          <div class="check-label-wrap">
+            <h5 style="font-size: 13px;">CdS 조도 센서</h5>
+            <p style="font-size: 12px; color: var(--text-muted);">GP26 (아날로그 ADC)</p>
+          </div>
+        </label>
+        <label class="check-item" style="padding: 10px 14px; background: #fff;">
+          <input type="checkbox" id="base_rgb" checked onchange="toggleBaseComponent()">
+          <div class="check-label-wrap">
+            <h5 style="font-size: 13px;">RGB LED</h5>
+            <p style="font-size: 12px; color: var(--text-muted);">GP17, 18, 19 (PWM)</p>
+          </div>
+        </label>
+        <label class="check-item" style="padding: 10px 14px; background: #fff;">
+          <input type="checkbox" id="base_servo" checked onchange="toggleBaseComponent()">
+          <div class="check-label-wrap">
+            <h5 style="font-size: 13px;">SG-90 서보모터</h5>
+            <p style="font-size: 12px; color: var(--text-muted);">GP15 (PWM 50Hz)</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Toolbar for adding rows and auto-allocating pins -->
+    <div class="hw-toolbar">
+      <div class="hw-toolbar-left">
+        <button class="btn-tool" onclick="addRow('sensor')">
+          <i data-lucide="plus-circle" size="14" style="color: var(--badge-sensor);"></i> + 새 센서 추가
+        </button>
+        <button class="btn-tool" onclick="addRow('actuator')">
+          <i data-lucide="plus-circle" size="14" style="color: var(--badge-actuator);"></i> + 새 액추에이터 추가
+        </button>
+      </div>
+      <div>
+        <button class="btn-tool btn-accent" onclick="autoAllocatePins()">
+          <i data-lucide="zap" size="14"></i> ⚡ 핀 스마트 자동 할당 (안전 핀 추천)
+        </button>
+      </div>
+    </div>
+
+    <div class="hw-table-wrap">
+    <table class="hw-table">
+      <thead>
+        <tr>
+          <th style="width: 12%;">구분</th>
+          <th style="width: 17%;">부품명</th>
+          <th style="width: 15%;">신호 종류</th>
+          <th style="width: 14%;">Pico 연결 핀</th>
+          <th style="width: 13%;">전원</th>
+          <th style="width: 14%;">측정/제어 방식</th>
+          <th style="width: 11%;">JSON 키</th>
+          <th style="width: 4%;">삭제</th>
+        </tr>
+      </thead>
+      <tbody id="hwTableBody">
+        <!-- Dynamically rendered rows -->
+      </tbody>
+    </table>
+    </div>
+
+    <div class="pin-info-box">
+      <i data-lucide="shield-alert" size="18" style="color: #0866ff; flex-shrink: 0;"></i>
+      <span>
+        <strong>Pico 2 W 핀 가이드:</strong> 
+        Wi-Fi 전용 핀(<code>GP23, GP24, GP25, GP29</code>) 및 기존 사용 핀(<code>GP15:서보, GP16:DHT11, GP17~19:RGB, GP26:CdS</code>)은 자동 제외되며,
+        아날로그 센서는 <strong>GP27, GP28</strong>에, 디지털 센서 및 액추에이터는 <strong>GP0~GP14, GP20~GP22</strong>에 안전하게 자동 배정됩니다.
+      </span>
+    </div>
+  </div>
+
+
+  <!-- SECTION B: 안전 -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">3단계</span>
+          <h2 class="section-title">센서를 붙이기 전 &mdash; 전압 확인이 먼저입니다</h2>
+        </div>
+        <p class="section-desc">11주차 교재 4-1절과 같은 내용입니다. <strong>이 절은 코드 이야기가 아니라 보드가 죽는 이야기입니다.</strong></p>
+      </div>
+    </div>
+
+    <div class="danger-callout">
+      <i data-lucide="zap-off" size="18"></i>
+      <div>
+        <strong>AI는 배선을 볼 수 없습니다.</strong>
+        5V 센서를 물어보면 &ldquo;GP27에 연결하세요&rdquo;라고 태연히 답합니다. 그대로 꽂으면 Pico가 망가집니다.
+        <strong>Pico의 GPIO는 3.3V까지입니다.</strong> 센서가 Pico로 <strong>내보내는 신호</strong>가 5V면 그 핀이 망가집니다.
+        전원이 5V인 것과 신호가 5V인 것은 <strong>다릅니다.</strong>
+      </div>
+    </div>
+
+    <table class="info-table">
+      <thead>
+        <tr>
+          <th style="width:26%;">센서</th>
+          <th style="width:18%;">전원</th>
+          <th style="width:26%;">Pico로 나가는 신호</th>
+          <th>조치</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>토양수분 (정전용량식 v1.2)</td><td>3.3~5.5V</td><td>전원과 같은 범위</td><td><strong>3V3(오른쪽 빨강 레일)에 연결하면 안전</strong></td></tr>
+        <tr><td><strong>HC-SR04 초음파</strong></td><td>5V</td><td><strong>ECHO가 5V</strong></td><td><strong>분압(1kΩ+2kΩ) 필수</strong> 또는 HC-SR04<strong>P</strong> 사용</td></tr>
+        <tr><td>HC-SR501 PIR 인체감지</td><td>외부 5V</td><td>OUT은 3.3V</td><td>그냥 연결 가능</td></tr>
+        <tr><td>PMS7003 미세먼지</td><td><strong>외부 5V</strong></td><td>TX는 3.3V</td><td>데이터선 직결, 전원만 외부 5V</td></tr>
+        <tr><td>릴레이 모듈</td><td><strong>외부 5V</strong></td><td>신호를 받기만 함</td><td>안전. 단 <strong>펌프·모터는 또 다른 전원</strong>. 대부분 active-low</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn-callout">
+      <i data-lucide="battery-warning" size="18"></i>
+      <div>
+        <strong>전원과 GND</strong> &mdash;
+        <strong>3V3(OUT, 36번 핀)은 다 합쳐서 약 300mA까지</strong>입니다. 서보·모터·펌프를 여기서 먹이면 <strong>Pico가 꺼졌다 켜집니다.</strong>
+        5V가 필요하면 <strong>브레드보드 왼쪽 빨강 레일(외부 5V 어댑터)</strong>에서 받습니다 &mdash; <strong>Pico의 VBUS 핀은 쓰지 않습니다.</strong>
+        그리고 <strong>왼쪽 파랑 레일과 오른쪽 파랑 레일이 점퍼로 이어져 있어야</strong> 합니다. <strong>가장 자주 빠뜨리는 선입니다.</strong>
+      </div>
+    </div>
+
+    <div class="checklist-title"><i data-lucide="list-checks" size="16"></i> 배선 순서 &mdash; 이 순서를 지키면 안 망가집니다</div>
+    <div class="checklist-container">
+      <label class="check-item"><input type="checkbox" id="chk_w1" class="auto-save"><div class="check-label-wrap">
+        <h5>① USB를 뽑았다</h5><p>전원이 들어간 상태에서 선을 옮기다 태우는 경우가 제일 많습니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_w2" class="auto-save"><div class="check-label-wrap">
+        <h5>② 위 표에서 전원(3V3 / 외부 5V)을 확인하고 연결했다</h5><p>아래 설계표의 &lsquo;전원&rsquo; 칸에 적은 것과 같은지 보세요.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_w3" class="auto-save"><div class="check-label-wrap">
+        <h5>③ GND를 연결했다 (양쪽 파랑 레일도 이었다)</h5><p>GND가 안 이어지면 값이 튀거나 서보가 제멋대로 돕니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_w4" class="auto-save"><div class="check-label-wrap">
+        <h5>④ 신호선을 연결했다 &mdash; 5V 신호면 분압부터</h5><p>ECHO처럼 5V를 내보내는 신호는 1kΩ+2kΩ 분압을 먼저 답니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_w5" class="auto-save"><div class="check-label-wrap">
+        <h5>⑤ 눈으로 한 번 더 확인한 뒤 USB를 꽂았다</h5><p>Pico가 뜨겁거나 컴퓨터가 장치를 못 찾으면 <strong>즉시 뽑으세요.</strong></p></div></label>
+    </div>
+
+    <div class="checklist-title" style="margin-top:22px;"><i data-lucide="terminal" size="16"></i> 센서 하나만 따로 시험하기 &mdash; <code>code.py</code></div>
+    <p style="font-size:13.5px; color:var(--text-secondary);">
+      대시보드에 바로 붙이면 값이 안 나올 때 의심할 곳이 <strong>다섯 군데</strong>(센서·배선·Pico 코드·화면 코드·키 이름)나 됩니다.
+      센서 하나만 먼저 시험하면 <strong>두 군데</strong>로 줄어듭니다.
+      CircuitPython은 <code>code.py</code> 가 있으면 <code>main.py</code> 대신 그것을 실행하므로, <strong>잘 돌던 <code>main.py</code> 를 건드리지 않고</strong> 시험할 수 있습니다.
+    </p>
+    <div class="code-block"># code.py — 센서 하나만 시험 (아날로그 센서용)
+import time
+import board
+import analogio
+
+sensor = analogio.AnalogIn(board.GP27)   # 실제로 연결한 핀으로 바꾸세요
+
+while True:
+    raw = sensor.value                   # 0 ~ 65535
+    print("raw:", raw, " 백분율:", round(raw / 65535 * 100, 1))
+    time.sleep(0.5)</div>
+
+    <table class="info-table">
+      <thead><tr><th style="width:34%;">시리얼에 나온 것</th><th>뜻</th></tr></thead>
+      <tbody>
+        <tr><td>숫자가 변한다</td><td>✅ 성공 &mdash; 다음 단계로</td></tr>
+        <tr><td>계속 <strong>0</strong> 이다</td><td>전원(3V3) 또는 신호선이 안 닿았다</td></tr>
+        <tr><td>계속 <strong>65535</strong> 이다</td><td>GND가 안 이어졌다</td></tr>
+        <tr><td>아무 숫자나 마구 튄다</td><td>GND를 확인하고, 선을 짧게 하세요</td></tr>
+        <tr><td><code>No pulldown</code> 같은 오류</td><td>그 핀은 아날로그가 아닙니다. <strong>GP27 또는 GP28</strong>로</td></tr>
+      </tbody>
+    </table>
+
+    <div class="danger-callout">
+      <i data-lucide="trash-2" size="18"></i>
+      <div>
+        <strong>시험이 끝나면 <code>code.py</code> 를 지우거나 <code>code.py.bak</code> 으로 이름을 바꾸세요.</strong>
+        안 지우면 <code>main.py</code> 가 실행되지 않아서, 코드는 다 맞는데도 <strong>대시보드가 연결조차 안 됩니다.</strong>
+        이 실수가 정말 많습니다.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SECTION C: 소스 묶기 -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">4단계</span>
+          <h2 class="section-title">AI에게 올릴 파일 만들기 &mdash; 비밀번호가 안 올라가는지 확인</h2>
+        </div>
+        <p class="section-desc">프로젝트 폴더를 그냥 압축해서 올리면 <strong>공유기 비밀번호와 MySQL 접속 정보가 같이 갑니다.</strong></p>
+      </div>
+    </div>
+
+    <p style="font-size:13.5px; color:var(--text-secondary);">
+      Next.js 프로젝트 폴더에서 아래를 실행하면 <code>우리팀-소스.md</code> 가 만들어집니다.
+      <strong>프롬프트 0에 이 파일과 <code>프로젝트-규칙.md</code> 두 개를 첨부</strong>합니다.
+    </p>
+    <div class="code-block">node bundle-source.js              # 화면 코드만
+node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이브)</div>
+
+    <p style="font-size:13.5px; color:var(--text-secondary); margin-top:14px;">실행 결과 화면에서 <strong>이 세 줄을 눈으로 확인</strong>하세요.</p>
+    <div class="code-block">🔒 비밀번호가 들어있어 뺀 파일:
+   .env.local
+   CIRCUITPY/settings.toml
+
+✅ 비밀번호처럼 보이는 줄은 없습니다.</div>
+
+    <div class="checklist-container" style="margin-top:16px;">
+      <label class="check-item"><input type="checkbox" id="chk_s1" class="auto-save"><div class="check-label-wrap">
+        <h5><code>.env.local</code> 과 <code>settings.toml</code> 이 &lsquo;뺀 파일&rsquo; 목록에 있다</h5>
+        <p>이 두 파일에 공유기 비밀번호와 MySQL 접속 정보가 들어 있습니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_s2" class="auto-save"><div class="check-label-wrap">
+        <h5>마지막 줄이 &ldquo;✅ 비밀번호처럼 보이는 줄은 없습니다&rdquo; 이다</h5>
+        <p>&ldquo;⚠️ 남아 있습니다&rdquo; 로 나오면 <strong>그 줄을 고치기 전까지 올리지 마세요.</strong> 코드 안에 직접 적어둔 비밀번호도 잡아줍니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_s3" class="auto-save"><div class="check-label-wrap">
+        <h5><code>src/lib/db.ts</code> 가 &lsquo;넣은 파일&rsquo; 목록에 있다</h5>
+        <p>2주차에서 만든 DB 연결 파일입니다. 빠지면 AI가 서버 구조를 모르는 채로 답합니다.</p></div></label>
+    </div>
+
+    <div class="danger-callout">
+      <i data-lucide="shield-alert" size="18"></i>
+      <div>
+        <strong>프롬프트에 비밀번호를 안 썼다고 안심하면 안 됩니다.</strong>
+        폴더를 통째로 올리면 본인이 모르는 사이에 같이 올라갑니다.
+        Wi-Fi 비밀번호·API 키·개인정보는 <strong>어떤 경우에도 AI 입력창에 넣지 마세요.</strong>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 0: Plan Prompt -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 0</span>
+          <h2 class="section-title">계획부터 받기 &mdash; &ldquo;아직 코드를 고치지 마세요&rdquo;</h2>
+        </div>
+        <p class="section-desc">AI가 코드를 새로 짜버리지 못하도록, 등록된 부품과 핀 정보에 맞춘 <strong>변경 계획을 먼저</strong> 받습니다. 첨부할 것은 <code>프로젝트-규칙.md</code> 와 <code>우리팀-소스.md</code> 두 개입니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title">
+            <i data-lucide="sparkles" size="14"></i> 자동 생성된 표준 프롬프트
+            <span class="dynamic-badge">실시간 반영됨</span>
+          </span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step0', 'prompt_step0')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step0"></pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step0')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step0" class="prompt-textarea auto-save" placeholder="왼쪽 템플릿을 채워 넣거나 자유롭게 수정하세요..."></textarea>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 1-A: Next.js Sensor UI Prompt -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 1</span>
+          <h2 class="section-title">Next.js 대시보드에 '센서 카드' 추가하기</h2>
+          <span class="tag-sensor"><i data-lucide="monitor" size="12"></i> UI 모니터링</span>
+        </div>
+        <p class="section-desc"><code>page.tsx</code>의 <code>SENSORS</code> 배열에 우리 팀 센서 목록을 추가합니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title">
+            <i data-lucide="sparkles" size="14"></i> 자동 생성된 표준 프롬프트
+            <span class="dynamic-badge">실시간 반영됨</span>
+          </span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step1a', 'prompt_step1a')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step1a"></pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step1a')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step1a" class="prompt-textarea auto-save" placeholder="센서 UI 프롬프트를 확인하고 수정하세요..."></textarea>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 1-B: Next.js Actuator UI Prompt -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 1-B</span>
+          <h2 class="section-title">Next.js 대시보드에 '액추에이터 제어 패널' 추가하기</h2>
+          <span class="tag-actuator"><i data-lucide="sliders" size="12"></i> UI 조작부</span>
+        </div>
+        <p class="section-desc">React-Bootstrap의 스위치, 슬라이더, 버튼으로 등록된 액추에이터들을 조작하는 UI를 추가합니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title">
+            <i data-lucide="sparkles" size="14"></i> 자동 생성된 표준 프롬프트
+            <span class="dynamic-badge">실시간 반영됨</span>
+          </span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step1b', 'prompt_step1b')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step1b"></pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step1b')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step1b" class="prompt-textarea auto-save" placeholder="액추에이터 UI 조작 프롬프트를 확인하고 수정하세요..."></textarea>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 2-A: Pico Sensor Firmware Prompt -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 2</span>
+          <h2 class="section-title">Pico <code>main.py</code> &mdash; 센서 읽기 &amp; WebSocket 전송</h2>
+          <span class="tag-sensor"><i data-lucide="cpu" size="12"></i> 펌웨어 입력</span>
+        </div>
+        <p class="section-desc">CircuitPython으로 할당된 핀에서 센서값을 읽고 1초 주기 WebSocket JSON에 추가합니다. 고치는 파일은 <strong><code>main.py</code></strong> 입니다 &mdash; <code>code.py</code> 는 센서 단독 시험용입니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title">
+            <i data-lucide="sparkles" size="14"></i> 자동 생성된 표준 프롬프트
+            <span class="dynamic-badge">실시간 반영됨</span>
+          </span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step2a', 'prompt_step2a')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step2a"></pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step2a')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step2a" class="prompt-textarea auto-save" placeholder="센서 펌웨어 프롬프트를 확인하고 수정하세요..."></textarea>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 2-B: Pico Actuator Firmware Prompt -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 2-B</span>
+          <h2 class="section-title">Pico <code>main.py</code> &mdash; 액추에이터 핀 초기화 &amp; 구동</h2>
+          <span class="tag-actuator"><i data-lucide="power" size="12"></i> 펌웨어 출력</span>
+        </div>
+        <p class="section-desc">화면이 WebSocket으로 보낸 명령을 받아 실제 핀(<code>digitalio</code>, <code>pwmio</code>)에 출력합니다. 역시 <strong><code>main.py</code></strong> 입니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title">
+            <i data-lucide="sparkles" size="14"></i> 자동 생성된 표준 프롬프트
+            <span class="dynamic-badge">실시간 반영됨</span>
+          </span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step2b', 'prompt_step2b')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step2b"></pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step2b')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step2b" class="prompt-textarea auto-save" placeholder="액추에이터 펌웨어 프롬프트를 확인하고 수정하세요..."></textarea>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STEP 3: Automated Control Logic Prompt -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 3</span>
+          <h2 class="section-title">센서값 기반 '자동 제어' 로직 구현</h2>
+          <span class="tag-sensor"><i data-lucide="zap" size="12"></i> 센서-액추에이터 연계</span>
+        </div>
+        <p class="section-desc">센서 데이터가 기준값을 넘으면 액추에이터를 자동으로 작동시키고, <strong>1초 중복 전송 폭탄 방지</strong>를 적용합니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title">
+            <i data-lucide="sparkles" size="14"></i> 자동 생성된 표준 프롬프트
+            <span class="dynamic-badge">실시간 반영됨</span>
+          </span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step3', 'prompt_step3')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step3"></pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step3')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step3" class="prompt-textarea auto-save" placeholder="우리 팀의 자동 제어 조건(임계값)과 구동할 액추에이터를 적어주세요..."></textarea>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 3-B</span>
+          <h2 class="section-title">경고 띄우기 — <code>ALERTS</code> 배열</h2>
+          <span class="tag-sensor"><i data-lucide="bell" size="12"></i> .filter()</span>
+        </div>
+        <p class="section-desc">센서값이 위험 범위에 들어가면 화면 위쪽에 경고를 띄웁니다. <strong>경고 두 개가 동시에 뜰 수 있어야</strong> 합니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title">
+            <i data-lucide="sparkles" size="14"></i> 자동 생성된 표준 프롬프트
+            <span class="dynamic-badge">실시간 반영됨</span>
+          </span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step3b', 'prompt_step3b')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step3b"></pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step3b')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step3b" class="prompt-textarea auto-save" placeholder="왼쪽 템플릿을 채워 넣거나 자유롭게 수정하세요..."></textarea>
+      </div>
+    </div>
+
+    <div class="warn-callout">
+      <i data-lucide="alert-triangle" size="18"></i>
+      <div>
+        <strong>센서값이 <code>null</code> 이면 경고를 띄우지 마세요.</strong>
+        센서가 고장 났을 때 &ldquo;물 부족&rdquo; 경고가 뜨면, 관람객은 화분이 마른 줄 압니다.
+        <strong>모르는 것과 위험한 것은 다릅니다.</strong>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 4</span>
+          <h2 class="section-title">자동 재연결 — <strong>전시회 필수</strong></h2>
+        </div>
+        <p class="section-desc">전시장에서 Wi-Fi는 <strong>반드시 한 번은 끊깁니다.</strong> 그때 화면이 죽은 채로 남아 있으면 관람객은 작품이 고장 난 줄 압니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title">
+            <i data-lucide="sparkles" size="14"></i> 자동 생성된 표준 프롬프트
+            <span class="dynamic-badge">실시간 반영됨</span>
+          </span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step4', 'prompt_step4')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step4"></pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step4')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step4" class="prompt-textarea auto-save" placeholder="왼쪽 템플릿을 채워 넣거나 자유롭게 수정하세요..."></textarea>
+      </div>
+    </div>
+
+    <div class="checklist-title" style="margin-top:20px;"><i data-lucide="check-circle-2" size="16"></i> 확인 방법 &mdash; 네 줄을 모두 봅니다</div>
+    <table class="info-table">
+      <thead><tr><th style="width:46%;">무엇을 한다</th><th>어떻게 되어야 한다</th></tr></thead>
+      <tbody>
+        <tr><td>연결한다</td><td><strong>ONLINE</strong> (초록)</td></tr>
+        <tr><td>Pico의 USB를 뽑는다 <span style="color:var(--text-muted);">(가상 Pico는 창에서 <code>x</code>)</span></td><td><strong>재연결 중…</strong> (노랑)</td></tr>
+        <tr><td>아무것도 안 누르고 다시 꽂는다</td><td><strong>몇 초 뒤 저절로 ONLINE</strong></td></tr>
+        <tr><td>&ldquo;연결 끊기&rdquo; 를 누른다</td><td><strong>OFFLINE 그대로</strong> (다시 붙지 않는다)</td></tr>
+      </tbody>
+    </table>
+    <div class="warn-callout">
+      <i data-lucide="alert-triangle" size="18"></i>
+      <div>
+        <strong>네 번째 줄을 빠뜨리기 쉽습니다.</strong> 사람이 일부러 끊었는데 3초 뒤에 다시 붙으면 <strong>연결을 끊을 방법이 없어집니다.</strong>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:16px;">
+      <label class="form-label" for="retryVarName">
+        <i data-lucide="variable" size="14"></i> AI가 만들어 준 <strong>재연결 상태 변수 이름</strong> &mdash; 12주차에 필요합니다
+      </label>
+      <input type="text" id="retryVarName" class="form-control auto-save" placeholder="예: retrying (isReconnecting 등 다른 이름일 수도 있습니다)">
+      <p class="field-note">12주차 사이드바 레이아웃 코드에 이 이름이 그대로 들어갑니다. 지금 적어 두지 않으면 다음 시간에 헤맵니다.</p>
+    </div>
+  </div>
+
+
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 5</span>
+          <h2 class="section-title">전시 모드 — 화면 꺼짐 방지와 전체화면</h2>
+        </div>
+        <p class="section-desc">시간이 남으면 하는 <strong>선택 과제</strong>입니다. 다만 전시장에서 노트북 화면이 꺼지면 작품이 멈춘 것처럼 보입니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title">
+            <i data-lucide="sparkles" size="14"></i> 자동 생성된 표준 프롬프트
+            <span class="dynamic-badge">실시간 반영됨</span>
+          </span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step5', 'prompt_step5')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step5"></pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step5')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step5" class="prompt-textarea auto-save" placeholder="왼쪽 템플릿을 채워 넣거나 자유롭게 수정하세요..."></textarea>
+      </div>
+    </div>
+
+    <div class="warn-callout">
+      <i data-lucide="eye-off" size="18"></i>
+      <div>
+        <strong><code>visibilitychange</code> 부분을 빠뜨리기 쉽습니다.</strong>
+        다른 탭에 갔다 오면 Wake Lock이 <strong>자동으로 풀립니다.</strong>
+        전시 도중에 누가 탭을 한 번 바꾸면 그 뒤로 화면이 꺼집니다.
+      </div>
+    </div>
+  </div>
+
+
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 6</span>
+          <h2 class="section-title">오류가 났을 때 되돌리기</h2>
+        </div>
+        <p class="section-desc">&ldquo;안 돼요&rdquo;라고만 쓰면 AI도 못 고칩니다. <strong>오류 메시지를 그대로 복사</strong>하세요.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="sparkles" size="14"></i> 표준 예시 프롬프트</span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step6', 'prompt_step6')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step6">붙여넣었더니 오류가 납니다. 고쳐 주세요.
+
+[오류 메시지를 그대로 복사해서 붙여넣기]
+
+[어느 화면에서 / 무엇을 눌렀을 때 났는지]
+
+고친 파일을 전체 완성본으로 다시 주세요.</pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step6')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step6" class="prompt-textarea auto-save" placeholder="오류 메시지를 그대로 붙여넣으세요..."></textarea>
+      </div>
+    </div>
+
+    <table class="info-table">
+      <thead><tr><th style="width:42%;">증상</th><th>어디를 먼저 보나</th></tr></thead>
+      <tbody>
+        <tr><td>붙여넣었더니 <strong>화면이 하얗게</strong> 됨</td><td><code>F12</code> → Console 탭의 빨간 오류를 그대로 복사. 급하면 <code>.bak</code> 으로 되돌리기</td></tr>
+        <tr><td>카드는 생겼는데 값이 계속 <code>--</code></td><td>시리얼의 <code>[WS] 송신 메시지</code> 에 그 키가 있는지 &mdash; 없으면 Pico 쪽(프롬프트 2), 있으면 <code>key</code> 오타</td></tr>
+        <tr><td>스위치를 눌러도 <strong>아무 반응이 없음</strong></td><td><code>[WS] 수신 메시지</code> 가 뜨는지 &mdash; 안 뜨면 화면 쪽, 뜨는데 안 움직이면 배선·핀</td></tr>
+        <tr><td><strong>센서를 붙였는데 연결조차 안 됨</strong></td><td><code>code.py</code> 를 안 지웠을 가능성이 가장 큽니다 &mdash; 지우거나 <code>.bak</code> 으로</td></tr>
+        <tr><td>코드가 <strong>중간에 잘려서</strong> 나옴</td><td>&ldquo;이어서 주세요&rdquo; 보다 <strong>&ldquo;그 파일을 처음부터 끝까지 다시 주세요&rdquo;</strong> 가 낫습니다</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">프롬프트 7</span>
+          <h2 class="section-title">AI가 규칙을 어겼을 때 되돌리기</h2>
+        </div>
+        <p class="section-desc">AI는 대화가 길어지면 처음에 준 규칙을 <strong>잊어버립니다.</strong> 고장이 아니라 원래 그렇습니다. 다시 알려주면 됩니다.</p>
+      </div>
+    </div>
+
+    <div class="prompt-container">
+      <div class="prompt-box example-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="sparkles" size="14"></i> 표준 예시 프롬프트</span>
+          <button class="btn-action btn-copy-template" onclick="copyTemplate('template_step7', 'prompt_step7')">
+            <i data-lucide="arrow-right" size="12"></i> 내 입력창에 채우기
+          </button>
+        </div>
+        <pre class="prompt-code-view" id="template_step7">방금 주신 코드는 규칙에 어긋납니다.
+
+[무엇이 문제인지]
+
+프로젝트-규칙.md 를 다시 확인하고, 규칙에 맞게 고쳐서
+파일 전체 완성본으로 다시 주세요.</pre>
+      </div>
+
+      <div class="prompt-box my-box">
+        <div class="box-header">
+          <span class="box-title"><i data-lucide="edit-3" size="14"></i> 우리 팀 맞춤 프롬프트</span>
+          <button class="btn-action" onclick="copyToClipboard('prompt_step7')">
+            <i data-lucide="copy" size="12"></i> AI로 복사
+          </button>
+        </div>
+        <textarea id="prompt_step7" class="prompt-textarea auto-save" placeholder="무엇이 규칙에 어긋나는지 한 줄로 적으세요..."></textarea>
+      </div>
+    </div>
+
+    <table class="info-table">
+      <thead><tr><th style="width:40%;">AI가 준 것</th><th>&ldquo;무엇이 문제인지&rdquo; 에 그대로 쓸 말</th></tr></thead>
+      <tbody>
+        <tr><td><code>from machine import Pin</code></td><td>Pico 코드에 machine 모듈이 들어 있습니다. 우리는 CircuitPython을 씁니다.</td></tr>
+        <tr><td><code>className="flex gap-4 bg-gray-800"</code></td><td>className 에 Tailwind 클래스가 들어 있습니다. 우리는 Bootstrap만 씁니다.</td></tr>
+        <tr><td><code>&lt;Badge variant="success"&gt;</code></td><td>Bootstrap 4 문법입니다. 우리는 Bootstrap 5라서 <code>bg=</code> 를 씁니다.</td></tr>
+        <tr><td>액추에이터에 <code>true</code> / <code>false</code></td><td>규칙 문서 5번대로 켜짐 <code>255</code>, 꺼짐 <code>0</code> 으로 보내 주세요.</td></tr>
+        <tr><td><code>code.py</code> 를 고치라고 함</td><td>code.py 는 센서 단독 시험용입니다. 실제로 도는 것은 main.py 입니다.</td></tr>
+        <tr><td>&ldquo;이렇게 구조를 바꾸면 더 좋습니다&rdquo;</td><td>수업에서 배운 배열 구조를 유지해 주세요. 더 좋은 구조를 제안하지 마세요.</td></tr>
+        <tr><td><code>npm install ...</code></td><td>새 라이브러리를 추가하지 마세요. 이미 있는 것만으로 해결해 주세요.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="guide-callout" style="margin-top:14px;">
+      <i data-lucide="refresh-cw" size="18"></i>
+      <div>
+        <strong>너무 자주 어기면 새 대화를 시작</strong>하고 <code>프로젝트-규칙.md</code> 와 <code>우리팀-소스.md</code> 두 개를 다시 올리세요. 이게 제일 빠릅니다.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- 검수 체크리스트 -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title-wrap">
+          <span class="step-badge">검수</span>
+          <h2 class="section-title">붙여넣기 전 5분 검수</h2>
+        </div>
+        <p class="section-desc">받은 코드를 <strong>바로 붙여넣지 마세요.</strong> 아래를 눈으로 훑는 데 5분이면 됩니다. 되돌리는 데는 한 시간이 걸립니다.</p>
+      </div>
+    </div>
+
+    <div class="checklist-title"><i data-lucide="file-check" size="16"></i> 공통</div>
+    <div class="checklist-container">
+      <label class="check-item"><input type="checkbox" id="chk_c1" class="auto-save"><div class="check-label-wrap">
+        <h5>코드의 <strong>마지막 줄이 <code>}</code> 또는 <code>)</code> 로 제대로 끝나는가</strong></h5><p>AI 답변이 중간에 잘리는 일이 자주 있습니다. 잘린 코드를 붙여넣으면 화면이 통째로 하얘집니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_c2" class="auto-save"><div class="check-label-wrap">
+        <h5>파일 맨 위에 <strong>경로 주석</strong>이 있고, 내가 고치려는 파일과 같은가</h5><p><code>// src/app/dashboard/page.tsx</code> 처럼 적혀 있어야 합니다. 엉뚱한 파일에 붙여넣는 사고를 막습니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_c3" class="auto-save"><div class="check-label-wrap">
+        <h5><code>npm install</code> 이나 <code>pip install</code> 을 하라는 말이 없는가</h5><p>규칙 문서 3-5번 위반입니다. 이미 있는 것만으로 해결하도록 <strong>프롬프트 7</strong>로 되돌리세요.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_c4" class="auto-save"><div class="check-label-wrap">
+        <h5>고치기 전에 <strong><code>page.tsx</code> 를 <code>page.tsx.bak</code> 으로 복사</strong>해 뒀는가</h5><p>잘못됐을 때 <strong>1초 만에</strong> 돌아갈 수 있습니다. <code>.bak</code> 은 Next.js가 무시합니다.</p></div></label>
+    </div>
+
+    <div class="checklist-title"><i data-lucide="monitor" size="16"></i> 화면 코드 (<code>page.tsx</code>)</div>
+    <div class="checklist-container">
+      <label class="check-item"><input type="checkbox" id="chk_f1" class="auto-save"><div class="check-label-wrap">
+        <h5>첫 줄이 <strong><code>"use client";</code></strong> 인가</h5><p>없으면 <code>useState</code>·<code>useEffect</code>·WebSocket 에서 서버 컴포넌트 오류가 납니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_f2" class="auto-save"><div class="check-label-wrap">
+        <h5><strong>Tailwind 클래스가 없는가</strong> — <code>flex</code>, <code>grid-cols-</code>, <code>bg-gray-</code>, <code>text-xl</code>, <code>p-4</code></h5><p>Bootstrap은 <code>d-flex</code>, <code>g-3</code>, <code>text-body-secondary</code> 처럼 생겼습니다. 섞이면 레이아웃이 깨집니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_f3" class="auto-save"><div class="check-label-wrap">
+        <h5><code>&lt;Badge variant=</code> 가 아니라 <strong><code>&lt;Badge bg=</code></strong> 인가</h5><p>Bootstrap 4 문법입니다. 우리는 5를 씁니다 — 색이 아예 안 먹습니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_f4" class="auto-save"><div class="check-label-wrap">
+        <h5><code>SENSORS</code> / <code>SWITCHES</code> / <code>ALERTS</code> <strong>배열 구조가 그대로</strong>인가</h5><p>AI가 &ldquo;더 좋은 구조&rdquo;로 바꿔 놓으면 나중에 여러분이 고칠 수 없게 됩니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_f5" class="auto-save"><div class="check-label-wrap">
+        <h5>액추에이터 명령이 <strong><code>255</code> / <code>0</code></strong> 인가 (<code>true</code>/<code>false</code> 가 아니라)</h5><p>규칙 문서 5번입니다. LED도 펌프도 같은 방식으로 받아야 Pico 코드가 단순해집니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_f6" class="auto-save"><div class="check-label-wrap">
+        <h5>자동 제어에서 <strong>센서값이 <code>null</code> 이면 아무것도 하지 않는가</strong></h5><p><code>?? 0</code> 으로 0 처리하면, 센서가 고장 났을 때 &ldquo;0이다&rdquo;로 판단해 엉뚱한 동작을 계속합니다. (9주차 6단계)</p></div></label>
+    </div>
+
+    <div class="checklist-title"><i data-lucide="cpu" size="16"></i> Pico 코드 (<code>main.py</code>)</div>
+    <div class="checklist-container">
+      <label class="check-item"><input type="checkbox" id="chk_p1" class="auto-save"><div class="check-label-wrap">
+        <h5><strong><code>machine</code>, <code>utime</code>, <code>network</code></strong> 가 없는가</h5><p>있으면 MicroPython입니다. 우리는 CircuitPython이라 아예 실행되지 않습니다 → <strong>프롬프트 7</strong></p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_p2" class="auto-save"><div class="check-label-wrap">
+        <h5><code>import board</code>, <code>digitalio</code>, <code>analogio</code>, <code>pwmio</code> 를 쓰는가</h5><p>CircuitPython의 올바른 모듈입니다. <code>pin.value = True</code> 형태인지도 함께 보세요 (<code>pin.value(1)</code> 이면 MicroPython).</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_p3" class="auto-save"><div class="check-label-wrap">
+        <h5>센서 읽기에 실패하면 <strong><code>None</code></strong> 을 돌려주는가</h5><p>없는 값을 지어내면 안 됩니다. 화면에서 &ldquo;값 없음&rdquo;으로 보여야 고장을 알아챌 수 있습니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_p4" class="auto-save"><div class="check-label-wrap">
+        <h5>명령을 <strong><code>command.get("키", 0)</code></strong> 으로 받는가</h5><p><code>command["키"]</code> 로 받으면 키가 하나 빠졌을 때 Pico가 멈춥니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_p5" class="auto-save"><div class="check-label-wrap">
+        <h5><strong>기존 온도·습도·조도·RGB·서보 코드가 지워지지 않았는가</strong></h5><p>AI가 새 기능만 남기고 기존 코드를 통째로 날려버리는 일이 자주 있습니다.</p></div></label>
+    </div>
+
+    <div class="checklist-title"><i data-lucide="plug-zap" size="16"></i> 배선 (실물 부품을 붙인 팀)</div>
+    <div class="checklist-container">
+      <label class="check-item"><input type="checkbox" id="chk_h1" class="auto-save"><div class="check-label-wrap">
+        <h5>AI가 알려준 <strong>전원이 3V3(오른쪽 레일)인가 외부 5V(왼쪽 레일)인가</strong>를 확인했다</h5><p>위 설계표의 &lsquo;전원&rsquo; 칸과 같은지 보세요. 릴레이·모터를 3V3에서 먹이면 Pico가 재부팅됩니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_h2" class="auto-save"><div class="check-label-wrap">
+        <h5><strong>센서가 Pico로 내보내는 신호가 5V가 아닌가</strong> — 5V면 분압 저항을 먼저 달았다</h5><p>HC-SR04의 ECHO가 대표적입니다. 1kΩ+2kΩ 분압 또는 HC-SR04<strong>P</strong>.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_h3" class="auto-save"><div class="check-label-wrap">
+        <h5>AI가 지정한 핀이 <strong>GP23 · GP24 · GP25 · GP29 가 아닌가</strong></h5><p>무선 칩 전용 핀입니다. 쓰면 Wi-Fi가 죽습니다. 아날로그는 <strong>GP27 또는 GP28</strong>인지도 확인.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_h4" class="auto-save"><div class="check-label-wrap">
+        <h5><strong>왼쪽 파랑 레일과 오른쪽 파랑 레일이 점퍼로 이어져</strong> 있다</h5><p>전원이 둘(외부 5V / Pico 3V3)이라 공통 GND가 필요합니다. <strong>가장 자주 빠뜨리는 선입니다.</strong></p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_h5" class="auto-save"><div class="check-label-wrap">
+        <h5>시험용 <strong><code>code.py</code> 를 지우거나 <code>.bak</code> 으로 바꿨다</strong></h5><p>안 지우면 <code>main.py</code> 가 실행되지 않습니다. <strong>가장 흔한 함정입니다.</strong></p></div></label>
+    </div>
+
+    <div class="checklist-title"><i data-lucide="play-circle" size="16"></i> 붙여넣은 뒤</div>
+    <div class="checklist-container">
+      <label class="check-item"><input type="checkbox" id="chk_a1" class="auto-save"><div class="check-label-wrap">
+        <h5><strong>딱 한 가지만 확인</strong> — 이번에 요청한 것이 되는가</h5><p>한 번에 여러 개를 확인하려 들면, 안 될 때 어느 쪽이 문제인지 알 수 없습니다.</p></div></label>
+      <label class="check-item"><input type="checkbox" id="chk_a2" class="auto-save"><div class="check-label-wrap">
+        <h5>안 되면 <strong>바로 되돌릴 수 있는가</strong></h5><p><code>.bak</code> 파일이 있는지 다시 확인하세요. 없으면 지금 만드세요.</p></div></label>
+    </div>
+  </div>
+
+</div>
+
+<!-- Fixed Bottom Action Bar -->
+<div class="bottom-bar">
+  <div class="bottom-bar-left">
+    <button class="btn-main btn-primary" onclick="exportMarkdown()">
+      <i data-lucide="download" size="16"></i> PROJECT-PROMPTS.md 다운로드
+    </button>
+    <button class="btn-main btn-outline" onclick="exportJSON()">
+      <i data-lucide="file-json" size="16"></i> 워크시트 백업 (JSON)
+    </button>
+    <label class="btn-main btn-outline" style="cursor: pointer;">
+      <i data-lucide="upload" size="16"></i> 백업 불러오기
+      <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importJSON(event)">
+    </label>
+  </div>
+  <div>
+    <button class="btn-main btn-outline" onclick="window.print()">
+      <i data-lucide="printer" size="16"></i> 인쇄 / PDF 저장
+    </button>
+  </div>
+</div>
+
+<script>
+  // ── Base Components State ──
+  let baseComponents = {
+    dht11: true,  // GP16
+    cds: true,    // GP26 (Analog)
+    rgb: true,    // GP17, 18, 19
+    servo: true   // GP15
+  };
+
+  // ── Additional Hardware Items State ──
+  // 11주차 수업에서 다 같이 만든 「교실 스마트팜」과 같은 핀·키로 시작합니다.
+  // 우리 팀 주제에 맞게 이름·핀·키를 바꾸세요.
+  let hwItems = [
+    { id: 'hw_1', type: 'sensor',   name: '토양수분 센서', signal: 'analog',     pin: 'GP27', power: '3v3',  behavior: '0~100 % 수분 측정', key: 'soil' },
+    { id: 'hw_2', type: 'actuator', name: '물펌프 릴레이', signal: 'digital_out', pin: 'GP20', power: 'ext5v', behavior: 'ON / OFF (255 / 0)', key: 'pump' }
+  ];
+
+  const POWER_LABEL = {
+    '3v3':   '3V3 (오른쪽 레일)',
+    'ext5v': '외부 5V (왼쪽 레일)'
+  };
+
+  function getAvailablePins() {
+    const pins = [
+      { pin: 'GP27', label: 'GP27 · 아날로그', isAnalog: true },
+      { pin: 'GP28', label: 'GP28 · 아날로그', isAnalog: true },
+      { pin: 'GP14', label: 'GP14 · 디지털', isAnalog: false },
+      { pin: 'GP13', label: 'GP13 · 디지털', isAnalog: false },
+      { pin: 'GP12', label: 'GP12 · 디지털', isAnalog: false },
+      { pin: 'GP11', label: 'GP11 · 디지털', isAnalog: false },
+      { pin: 'GP10', label: 'GP10 · 디지털', isAnalog: false },
+      { pin: 'GP9', label: 'GP9 · 디지털', isAnalog: false },
+      { pin: 'GP8', label: 'GP8 · 디지털', isAnalog: false },
+      { pin: 'GP7', label: 'GP7 · 디지털', isAnalog: false },
+      { pin: 'GP6', label: 'GP6 · 디지털', isAnalog: false },
+      { pin: 'GP5', label: 'GP5 · 디지털', isAnalog: false },
+      { pin: 'GP4', label: 'GP4 · 디지털', isAnalog: false },
+      { pin: 'GP3', label: 'GP3 · 디지털', isAnalog: false },
+      { pin: 'GP2', label: 'GP2 · 디지털', isAnalog: false },
+      { pin: 'GP1', label: 'GP1 · 디지털', isAnalog: false },
+      { pin: 'GP0', label: 'GP0 · 디지털', isAnalog: false },
+      { pin: 'GP20', label: 'GP20 · 디지털', isAnalog: false },
+      { pin: 'GP21', label: 'GP21 · 디지털', isAnalog: false },
+      { pin: 'GP22', label: 'GP22 · 디지털', isAnalog: false }
+    ];
+
+    // 기본 부품 미사용 시 핀 반환
+    if (!baseComponents.cds) {
+      pins.unshift({ pin: 'GP26', label: 'GP26 · 아날로그 (CdS 뺌)', isAnalog: true });
+    }
+    if (!baseComponents.dht11) {
+      pins.push({ pin: 'GP16', label: 'GP16 · 디지털 (DHT11 뺌)', isAnalog: false });
+    }
+    if (!baseComponents.servo) {
+      pins.push({ pin: 'GP15', label: 'GP15 · PWM (서보 뺌)', isAnalog: false });
+    }
+    if (!baseComponents.rgb) {
+      pins.push({ pin: 'GP17', label: 'GP17 · PWM (RGB 뺌)', isAnalog: false });
+      pins.push({ pin: 'GP18', label: 'GP18 · PWM (RGB 뺌)', isAnalog: false });
+      pins.push({ pin: 'GP19', label: 'GP19 · PWM (RGB 뺌)', isAnalog: false });
+    }
+
+    return pins;
+  }
+
+  function toggleBaseComponent() {
+    baseComponents.dht11 = document.getElementById('base_dht11').checked;
+    baseComponents.cds = document.getElementById('base_cds').checked;
+    baseComponents.rgb = document.getElementById('base_rgb').checked;
+    baseComponents.servo = document.getElementById('base_servo').checked;
+
+    renderTable();
+    showToast("기본 부품 사용 설정이 변경되었습니다. 프롬프트에 자동 반영됩니다.");
+  }
+
+  // 아이콘은 인터넷에서 받아옵니다. 학교 망이나 오프라인에서 못 받아도
+  // 워크시트 본문은 그대로 동작해야 하므로 여기서 막아 둡니다.
+  function drawIcons() {
+    try {
+      if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+    } catch (e) {
+      console.warn("아이콘을 불러오지 못했습니다 (동작에는 지장 없음):", e);
+    }
+  }
+
+  // Render Table Rows
+  function renderTable() {
+    const tbody = document.getElementById('hwTableBody');
+    tbody.innerHTML = '';
+    const pinOptions = getAvailablePins();
+
+    hwItems.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      const isSensor = item.type === 'sensor';
+
+      tr.innerHTML = `
+        <td>
+          <span class="${isSensor ? 'tag-sensor' : 'tag-actuator'}">
+            <i data-lucide="${isSensor ? 'arrow-down-left' : 'arrow-up-right'}" size="12"></i>
+            ${isSensor ? '센서' : '액추에이터'}
+          </span>
+        </td>
+        <td>
+          <input type="text" class="form-control" value="${escapeHtml(item.name)}" 
+            placeholder="${isSensor ? '예: 조도/수분 센서' : '예: 릴레이/서보모터'}"
+            onchange="updateItem(${index}, 'name', this.value)">
+        </td>
+        <td>
+          <select class="form-control" onchange="updateItem(${index}, 'signal', this.value)">
+            ${isSensor ? `
+              <option value="analog" ${item.signal === 'analog' ? 'selected' : ''}>아날로그 입력 (ADC)</option>
+              <option value="digital_in" ${item.signal === 'digital_in' ? 'selected' : ''}>디지털 입력 (ON/OFF)</option>
+            ` : `
+              <option value="digital_out" ${item.signal === 'digital_out' ? 'selected' : ''}>디지털 출력 (스위치/릴레이)</option>
+              <option value="pwm_out" ${item.signal === 'pwm_out' ? 'selected' : ''}>PWM 출력 (모터속도/서보/밝기)</option>
+            `}
+          </select>
+        </td>
+        <td>
+          <select class="form-control" onchange="updateItem(${index}, 'pin', this.value)">
+            ${pinOptions.map(p => `
+              <option value="${p.pin}" ${item.pin === p.pin ? 'selected' : ''}>${p.label}</option>
+            `).join('')}
+          </select>
+        </td>
+        <td>
+          <select class="form-control" onchange="updateItem(${index}, 'power', this.value)">
+            <option value="3v3" ${item.power !== 'ext5v' ? 'selected' : ''}>3V3 · 오른쪽</option>
+            <option value="ext5v" ${item.power === 'ext5v' ? 'selected' : ''}>외부 5V · 왼쪽</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" class="form-control" value="${escapeHtml(item.behavior)}" 
+            placeholder="${isSensor ? '예: 0~100 %' : '예: ON/OFF or 0~180도'}"
+            onchange="updateItem(${index}, 'behavior', this.value)">
+        </td>
+        <td>
+          <input type="text" class="form-control" value="${escapeHtml(item.key)}" 
+            placeholder="예: ${isSensor ? 'soil_val' : 'pump_on'}"
+            onchange="updateItem(${index}, 'key', this.value)">
+        </td>
+        <td style="text-align: center;">
+          <button class="btn-delete-row" title="삭제" onclick="deleteRow(${index})">
+            <i data-lucide="trash-2" size="14"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    drawIcons();
+    updateAllPromptTemplates();
+    saveAllData();
+  }
+
+  function addRow(type) {
+    const isSensor = type === 'sensor';
+    const newIndex = hwItems.length + 1;
+    hwItems.push({
+      id: 'hw_' + Date.now(),
+      type: type,
+      name: isSensor ? `새 센서 ${newIndex}` : `새 액추에이터 ${newIndex}`,
+      signal: isSensor ? 'analog' : 'digital_out',
+      pin: isSensor ? 'GP27' : 'GP14',
+      power: isSensor ? '3v3' : 'ext5v',
+      behavior: isSensor ? '0~100 % 수치' : 'ON / OFF (255 / 0)',
+      key: isSensor ? `sensor_${newIndex}` : `actuator_${newIndex}`
+    });
+    renderTable();
+    showToast(`${isSensor ? '센서' : '액추에이터'} 항목이 추가되었습니다.`);
+  }
+
+  function deleteRow(index) {
+    if (hwItems.length <= 1) {
+      alert("최소 1개 이상의 하드웨어 항목이 필요합니다.");
+      return;
+    }
+    hwItems.splice(index, 1);
+    renderTable();
+    showToast("항목이 삭제되었습니다.");
+  }
+
+  function updateItem(index, field, value) {
+    hwItems[index][field] = value;
+    updateAllPromptTemplates();
+    saveAllData();
+  }
+
+  // Smart Auto-allocation of Pins
+  function autoAllocatePins() {
+    const pinOptions = getAvailablePins();
+    const analogPins = pinOptions.filter(p => p.isAnalog).map(p => p.pin);
+    const digitalPins = pinOptions.filter(p => !p.isAnalog).map(p => p.pin);
+
+    let aIdx = 0;
+    let dIdx = 0;
+
+    hwItems.forEach(item => {
+      if (item.signal === 'analog') {
+        if (aIdx < analogPins.length) {
+          item.pin = analogPins[aIdx++];
+        } else if (dIdx < digitalPins.length) {
+          item.pin = digitalPins[dIdx++];
+        }
+      } else {
+        if (dIdx < digitalPins.length) {
+          item.pin = digitalPins[dIdx++];
+        } else if (aIdx < analogPins.length) {
+          item.pin = analogPins[aIdx++];
+        }
+      }
+    });
+
+    renderTable();
+    showToast("⚡ 핀 충돌 없는 안전한 GPIO 핀이 자동 할당되었습니다!");
+  }
+
+  function escapeHtml(str) {
+    return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // ── Real-time Prompt Template Dynamic Generator ──
+  // 11주차 교재의 프롬프트 0~7 과 같은 순서·같은 규칙으로 만듭니다.
+  function updateAllPromptTemplates() {
+    const sensors = hwItems.filter(i => i.type === 'sensor');
+    const actuators = hwItems.filter(i => i.type === 'actuator');
+    const v = id => (document.getElementById(id)?.value || '').trim();
+
+    const sensorNames = sensors.map(s => s.name || '센서').join(', ') || '(없음)';
+    const actuatorNames = actuators.map(a => a.name || '액추에이터').join(', ') || '(없음)';
+
+    // 기존 기본 부품 상태
+    const baseUsed = [], baseUnused = [];
+    if (baseComponents.dht11) baseUsed.push("DHT11 온습도(temperature, humidity)"); else baseUnused.push("DHT11 온습도(GP16)");
+    if (baseComponents.cds)   baseUsed.push("CdS 조도(light_percent)");             else baseUnused.push("CdS 조도(GP26)");
+    if (baseComponents.rgb)   baseUsed.push("RGB LED(led_r, led_g, led_b)");        else baseUnused.push("RGB LED(GP17~19)");
+    if (baseComponents.servo) baseUsed.push("SG-90 서보(servo_angle)");             else baseUnused.push("SG-90 서보(GP15)");
+
+    let baseInst = `[기존 부품]\n- 그대로 둘 것: ${baseUsed.length ? baseUsed.join(', ') : '없음'}\n`;
+    if (baseUnused.length) {
+      baseInst += `- 빼기로 한 것: ${baseUnused.join(', ')}\n  (화면과 Pico 코드 양쪽에서 지워 주세요)\n`;
+    }
+
+    // ── 프롬프트 0 · 계획부터 받기 ──
+    let p0 = `첨부한 파일 두 개를 먼저 읽어 주세요.\n`;
+    p0 += `- 프로젝트-규칙.md : 이 프로젝트에서 반드시 지켜야 할 규칙입니다.\n`;
+    p0 += `- 우리팀-소스.md   : 지금 동작하고 있는 소스 전체입니다.\n\n`;
+    p0 += `우리 팀 작품은 이렇습니다.\n\n`;
+    p0 += `[ 주제 ]\n${v('topicOneLine') || '(워크시트 1단계에 한 줄 설명을 먼저 적으세요)'}\n`;
+    if (v('topicWhy')) p0 += `왜 필요한가: ${v('topicWhy')}\n`;
+    p0 += `\n${baseInst}\n`;
+    p0 += `[ 추가할 센서 ]\n`;
+    if (sensors.length) {
+      sensors.forEach(s => {
+        p0 += `- ${s.name} / ${s.pin} (${s.signal === 'analog' ? '아날로그 ADC' : '디지털 입력'}) / ${s.behavior} / JSON 키 "${s.key}" / 전원 ${POWER_LABEL[s.power] || '3V3 (오른쪽 레일)'}\n`;
+      });
+    } else { p0 += `- 없음\n`; }
+    p0 += `\n[ 추가할 액추에이터 ]\n`;
+    if (actuators.length) {
+      actuators.forEach(a => {
+        p0 += `- ${a.name} / ${a.pin} (${a.signal === 'pwm_out' ? 'PWM 값조절' : '켜고끄기'}) / JSON 키 "${a.key}" / 전원 ${POWER_LABEL[a.power] || '외부 5V (왼쪽 레일)'}\n`;
+      });
+    } else { p0 += `- 없음\n`; }
+    p0 += `\n[ 자동으로 하고 싶은 일 ]\n(프롬프트 3에 적을 내용입니다. 여기에도 한 줄로 적어 주세요)\n\n`;
+    p0 += `[ 경고를 띄우고 싶은 것 ]\n(프롬프트 3-B에 적을 내용입니다)\n\n`;
+    p0 += `──────────────────────────────\n`;
+    p0 += `아직 코드를 고치지 마세요.\n`;
+    p0 += `먼저 아래 세 가지만 답해 주세요.\n\n`;
+    p0 += `1. 위 구성대로 하려면 어떤 파일의 어느 부분을 고쳐야 하는지 목록\n`;
+    p0 += `2. 제가 알려드린 정보 중 빠진 것이 있으면 무엇인지\n`;
+    p0 += `3. 어떤 순서로 하면 좋을지\n\n`;
+    p0 += `참고: 화면은 src/app/dashboard/page.tsx, Pico 는 main.py 입니다.\n`;
+    p0 += `(code.py 는 센서 하나만 시험할 때 쓰는 파일이라 여기서는 고치지 않습니다)`;
+    setTpl('template_step0', p0);
+
+    // ── 프롬프트 1 · 화면에 센서 추가 ──
+    let p1a = `좋습니다. 그 순서대로 진행해 주세요.\n\n`;
+    p1a += `먼저 화면부터 하겠습니다.\n`;
+    p1a += `src/app/dashboard/page.tsx 에 우리 팀 센서를 추가해 주세요.\n\n`;
+    p1a += `- SENSORS 배열에 줄을 추가하는 방식으로 해 주세요 (구조는 바꾸지 마세요)\n`;
+    sensors.forEach(s => {
+      const unit = (s.behavior || '').includes('%') ? '%' : '단위를 알려드린 대로';
+      p1a += `- 센서: ${s.name}  →  key "${s.key}", label "${s.name}", unit "${unit}", max 100\n`;
+    });
+    if (!sensors.length) p1a += `- (설계표에 센서를 먼저 등록하세요)\n`;
+    if (baseUnused.length) {
+      p1a += `- 빼기로 한 ${baseUnused.join(', ')} 는 SENSORS 배열에서도 지워 주세요\n`;
+    } else {
+      p1a += `- 지금 있는 센서 카드는 하나도 지우지 마세요\n`;
+    }
+    p1a += `- 파일 전체 완성본으로 주세요\n`;
+    p1a += `- 바뀐 줄에 // ★ 주석을 달아 주세요`;
+    setTpl('template_step1a', p1a);
+
+    // ── 프롬프트 1-B · 화면에 액추에이터 조작부 추가 ──
+    let p1b = `이제 액추에이터를 조작하는 UI를 추가해 주세요.\n\n`;
+    actuators.forEach(a => {
+      const isPwm = (a.signal || '').includes('pwm');
+      p1b += `- ${a.name} (key "${a.key}")\n`;
+      if (isPwm) {
+        p1b += `  · Form.Range 슬라이더로 값을 조절합니다\n`;
+        p1b += `  · 조작하면 WebSocket 으로 {"${a.key}": 값} 을 보냅니다\n`;
+      } else {
+        p1b += `  · SWITCHES 배열에 줄을 추가하는 방식으로 해 주세요 (구조는 바꾸지 마세요)\n`;
+        p1b += `  · 켜면 {"${a.key}": 255}, 끄면 {"${a.key}": 0} 을 보냅니다\n`;
+        p1b += `    (지금 RGB LED 스위치가 255 / 0 을 보내는 것과 같은 방식입니다)\n`;
+      }
+    });
+    if (!actuators.length) p1b += `- (설계표에 액추에이터를 먼저 등록하세요)\n`;
+    if (!baseComponents.rgb || !baseComponents.servo) {
+      const rm = [];
+      if (!baseComponents.rgb) rm.push("RGB LED 스위치");
+      if (!baseComponents.servo) rm.push("서보 슬라이더");
+      p1b += `- 빼기로 한 ${rm.join(', ')} 는 UI 와 전송 JSON 에서 지워 주세요\n`;
+    } else {
+      p1b += `- 지금 있는 RGB LED 스위치와 서보 슬라이더는 그대로 두세요\n`;
+    }
+    p1b += `\nBootstrap 만 쓰세요 (Tailwind 금지).\n`;
+    p1b += `src/app/dashboard/page.tsx 전체 완성본으로 주세요.\n`;
+    p1b += `바뀐 줄에 // ★ 주석을 달아 주세요.`;
+    setTpl('template_step1b', p1b);
+
+    // ── 프롬프트 2 · Pico 에 센서 추가 ──
+    let p2a = `이제 Pico 쪽입니다.\n`;
+    p2a += `main.py 에 센서를 추가해 주세요. (code.py 가 아니라 main.py 입니다)\n\n`;
+    sensors.forEach(s => {
+      p2a += `- ${s.name}\n`;
+      p2a += `  · 핀: ${s.pin}\n`;
+      p2a += `  · 연결 방식: ${s.signal === 'analog' ? '아날로그 (analogio.AnalogIn)' : '디지털 (digitalio.DigitalInOut)'}\n`;
+      p2a += `  · 라이브러리: 없음 (필요하면 알려 주세요)\n`;
+      p2a += `  · JSON 키: "${s.key}"   (화면의 SENSORS key 와 같아야 합니다)\n`;
+      p2a += `  · 값 범위: ${s.behavior}\n`;
+      if (s.signal === 'analog') {
+        p2a += `  · raw(0~65535) 를 위 범위로 바꾸고, 범위 밖이면 가둬 주세요\n`;
+      }
+      p2a += `  · 읽기에 실패하면 None 을 돌려주세요\n`;
+    });
+    if (!sensors.length) p2a += `- (설계표에 센서를 먼저 등록하세요)\n`;
+    if (baseUnused.length) p2a += `\n빼기로 한 ${baseUnused.join(', ')} 의 초기화와 전송 코드도 지워 주세요.\n`;
+    p2a += `\n1초마다 보내는 주기와 지금 있는 센서들은 그대로 두세요.\n`;
+    p2a += `파일 전체 완성본으로 주세요.\n`;
+    p2a += `CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 쓰지 마세요.`;
+    setTpl('template_step2a', p2a);
+
+    // ── 프롬프트 2-B · Pico 에 액추에이터 추가 ──
+    let p2b = `main.py 에 액추에이터를 추가해 주세요.\n\n`;
+    actuators.forEach(a => {
+      const isPwm = (a.signal || '').includes('pwm');
+      p2b += `- ${a.name} (핀 ${a.pin}, 전원 ${POWER_LABEL[a.power] || '외부 5V (왼쪽 레일)'})\n`;
+      if (isPwm) {
+        p2b += `  · pwmio.PWMOut(board.${a.pin}, frequency=1000) 으로 초기화\n`;
+        p2b += `  · command.get("${a.key}", 0) 으로 받아 duty_cycle 로 바꿔 주세요\n`;
+      } else {
+        p2b += `  · digitalio.DigitalInOut(board.${a.pin}) 으로 초기화하고 OUTPUT 으로\n`;
+        p2b += `  · command.get("${a.key}", 0) 으로 받아 0보다 크면 켜고 아니면 끕니다\n`;
+        if ((a.name || '').includes('릴레이') || (a.name || '').includes('펌프')) {
+          p2b += `  · 이 릴레이 모듈은 active-low 입니다. LOW일 때 켜집니다.\n`;
+          p2b += `    켜고 끄는 함수를 따로 만들어 코드를 읽을 때 헷갈리지 않게 해 주세요.\n`;
+        }
+        p2b += `  · 프로그램이 시작할 때는 반드시 꺼진 상태로 초기화해 주세요\n`;
+      }
+    });
+    if (!actuators.length) p2b += `- (설계표에 액추에이터를 먼저 등록하세요)\n`;
+    if (!baseComponents.rgb || !baseComponents.servo) {
+      const rm = [];
+      if (!baseComponents.rgb) rm.push("RGB LED PWM 과 set_color()");
+      if (!baseComponents.servo) rm.push("서보 PWM 과 각도 제어");
+      p2b += `\n빼기로 한 ${rm.join(', ')} 도 지워 주세요.\n`;
+    } else {
+      p2b += `\n지금 있는 RGB LED 와 서보 처리는 그대로 두세요.\n`;
+    }
+    p2b += `\n파일 전체 완성본으로 주세요.\n`;
+    p2b += `CircuitPython 문법만 쓰세요.`;
+    setTpl('template_step2b', p2b);
+
+    // ── 프롬프트 3 · 자동 제어 ──
+    const mainSensor = sensors[0] || (baseComponents.cds ? { name: '조도', key: 'light_percent' } : { name: '센서', key: '센서키' });
+    const mainActuator = actuators[0] || (baseComponents.rgb ? { name: 'RGB LED', key: 'led_r' } : { name: '액추에이터', key: '액추에이터키' });
+
+    let p3 = `자동 제어를 넣어 주세요.\n\n`;
+    p3 += `${mainSensor.name}(${mainSensor.key}) 가 [    ] 보다 [크면 / 작으면] `;
+    p3 += `${mainActuator.name}(${mainActuator.key}) 를 켜고, 반대면 끕니다.\n`;
+    p3 += `  ← 기준이 되는 숫자와 크다/작다를 우리 팀 것으로 채워서 보내세요\n\n`;
+    p3 += `- 지금 있는 자동 모드(AUTO_KEYS) 구조를 그대로 쓰세요\n`;
+    p3 += `- 센서값이 null 이면 아무것도 하지 않아야 합니다\n`;
+    p3 += `  (?? 0 으로 0 처리하면 안 됩니다. 센서가 고장 났을 때 엉뚱한 동작을 계속하게 됩니다)\n`;
+    p3 += `- 지금 상태와 같으면 명령을 다시 보내지 마세요\n`;
+    p3 += `  (센서값이 1초마다 들어오므로, 그대로 두면 1초마다 같은 명령을 보냅니다)\n`;
+    p3 += `- 자동 모드를 끄면 사람이 스위치로 직접 켜고 끌 수 있어야 합니다\n\n`;
+    p3 += `src/app/dashboard/page.tsx 전체 완성본으로 주세요.`;
+    setTpl('template_step3', p3);
+
+    // ── 프롬프트 3-B · 경고 ──
+    let p3b = `ALERTS 배열에 경고를 추가해 주세요.\n\n`;
+    p3b += `- ${mainSensor.name}(${mainSensor.key}) 가 [    ] 보다 [크면 / 작으면] "[경고 문구]" — variant 는 danger\n`;
+    p3b += `- (필요하면 한 줄 더 추가하세요 — variant 는 warning)\n`;
+    p3b += `  ← 기준 숫자와 문구를 우리 팀 것으로 채워서 보내세요\n\n`;
+    p3b += `- 지금 있는 ALERTS 배열과 .filter() 구조를 그대로 쓰세요\n`;
+    p3b += `- 센서값이 null 이면 경고를 띄우지 마세요\n`;
+    p3b += `- 경고 두 개가 동시에 뜰 수 있어야 합니다\n\n`;
+    p3b += `src/app/dashboard/page.tsx 전체 완성본으로 주세요.`;
+    setTpl('template_step3b', p3b);
+
+    // ── 프롬프트 4 · 자동 재연결 ──
+    let p4 = `전시회에서 몇 시간 동안 무인으로 켜 둘 예정입니다.\n`;
+    p4 += `Wi-Fi가 한 번 끊기면 화면이 죽은 채로 남습니다.\n\n`;
+    p4 += `WebSocket 연결이 끊기면 자동으로 다시 연결을 시도하게 해 주세요.\n\n`;
+    p4 += `- 3초마다 다시 시도해 주세요\n`;
+    p4 += `- "연결 끊기" 버튼을 눌러서 끊은 경우에는 다시 연결하지 마세요\n`;
+    p4 += `- 다시 연결을 시도하는 중임을 화면에 보여 주세요\n`;
+    p4 += `  (ONLINE 초록 / 재연결 중… 노랑 / OFFLINE 회색)\n`;
+    p4 += `- 페이지를 벗어날 때 타이머가 남지 않게 정리해 주세요\n\n`;
+    p4 += `src/app/dashboard/page.tsx 전체 완성본으로 주세요.`;
+    setTpl('template_step4', p4);
+
+    // ── 프롬프트 5 · 전시 모드 ──
+    let p5 = `전시장에서 쓸 화면을 다듬어 주세요.\n\n`;
+    p5 += `1. 노트북 화면이 꺼지지 않게 해 주세요 (Wake Lock)\n`;
+    p5 += `2. "전시 모드" 버튼을 눌러 전체화면으로 바꿀 수 있게 해 주세요\n`;
+    p5 += `3. 전시 모드에서는 설정 버튼들을 숨기고 센서 카드만 크게 보여 주세요\n\n`;
+    p5 += `다른 탭에 갔다 오면 Wake Lock 이 자동으로 풀립니다.\n`;
+    p5 += `visibilitychange 로 돌아왔을 때 다시 걸어 주세요.\n\n`;
+    p5 += `src/app/dashboard/page.tsx 전체 완성본으로 주세요.\n`;
+    p5 += `Wake Lock 이 지원되지 않는 브라우저에서도 오류가 나지 않게 해 주세요.`;
+    setTpl('template_step5', p5);
+  }
+
+  function setTpl(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = text;
+  }
+
+  // ── Helper Actions ──
+  function copyTemplate(templateId, targetId) {
+    const text = document.getElementById(templateId).innerText;
+    const target = document.getElementById(targetId);
+    target.value = text;
+    saveAllData();
+    showToast("자동 생성된 맞춤 예시가 입력창에 복사되었습니다!");
+  }
+
+  function copyToClipboard(elementId) {
+    const textarea = document.getElementById(elementId);
+    if (!textarea.value.trim()) {
+      alert("내용이 비어 있습니다. 프롬프트를 먼저 작성하거나 왼쪽 템플릿을 채워 넣으세요!");
+      return;
+    }
+    navigator.clipboard.writeText(textarea.value).then(() => {
+      showToast("📋 클립보드에 복사되었습니다! AI 채팅창에 붙여넣으세요.");
+    }).catch(err => {
+      console.error("클립보드 복사 실패:", err);
+    });
+  }
+
+  // ── LocalStorage Auto-save & Restore ──
+  // v4: 주제 입력칸 · 전원 칸 · 프롬프트 3-B/5/6/7 · 검수 항목 확장으로 구조가 바뀜
+  const STORAGE_KEY = "iot_vibe_coding_worksheet_v4";
+
+  // 저장 대상을 일일이 적지 않고 .auto-save 가 붙은 것을 전부 모읍니다.
+  // (항목을 더 넣어도 저장 코드를 고칠 필요가 없습니다)
+  function collectFields() {
+    const fields = {}, checks = {};
+    document.querySelectorAll('.auto-save').forEach(el => {
+      if (!el.id) return;
+      if (el.type === 'checkbox') checks[el.id] = el.checked;
+      else fields[el.id] = el.value;
+    });
+    return { fields, checks };
+  }
+
+  function saveAllData() {
+    const { fields, checks } = collectFields();
+    const data = { version: 4, baseComponents, hwItems, fields, checks };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      flashSaveDot();
+    } catch (e) {
+      console.error("저장 실패:", e);
+    }
+  }
+
+  function applyData(data) {
+    if (!data) return;
+
+    if (data.baseComponents) {
+      baseComponents = Object.assign(baseComponents, data.baseComponents);
+      ['dht11', 'cds', 'rgb', 'servo'].forEach(k => {
+        const el = document.getElementById('base_' + k);
+        if (el) el.checked = !!baseComponents[k];
+      });
+    }
+
+    if (Array.isArray(data.hwItems) && data.hwItems.length > 0) {
+      // 예전 버전(v3)에는 전원 칸이 없었으므로 기본값을 채워 둡니다
+      hwItems = data.hwItems.map(it => Object.assign(
+        { power: it.type === 'sensor' ? '3v3' : 'ext5v' }, it
+      ));
+    }
+
+    const fields = data.fields || data.prompts || {};
+    Object.keys(fields).forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.type !== 'checkbox') el.value = fields[id];
+    });
+
+    Object.keys(data.checks || {}).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.checked = data.checks[id];
+    });
+  }
+
+  function loadAllData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) { renderTable(); return; }
+    try {
+      applyData(JSON.parse(saved));
+    } catch (e) {
+      console.error("데이터 로드 오류:", e);
+    }
+    renderTable();
+  }
+
+  function flashSaveDot() {
+    const dot = document.getElementById('saveDot');
+    const text = document.getElementById('saveText');
+    dot.style.backgroundColor = '#0866ff';
+    text.textContent = '방금 저장됨';
+    setTimeout(() => {
+      dot.style.backgroundColor = '#10b981';
+      text.textContent = '자동 저장 활성화 (LocalStorage)';
+    }, 1200);
+  }
+
+  // ── Export to Markdown ──
+  function exportMarkdown() {
+    const val = id => (document.getElementById(id)?.value || '').trim();
+    const team = val('teamName') || "우리팀";
+    const title = val('projectTitle') || "IoT 작품";
+    const members = val('teamMembers') || "-";
+
+    let md = `# [${team}] ${title} — 바이브 코딩 프롬프트 모음\n\n`;
+    md += `**작성일시:** ${new Date().toLocaleString()}\n`;
+    md += `**팀원:** ${members}\n`;
+    md += `**첨부할 파일:** \`프로젝트-규칙.md\`, \`우리팀-소스.md\` (프롬프트 0에 두 개 같이)\n\n`;
+    md += `---\n\n`;
+
+    md += `## 1. 우리 팀 주제\n\n`;
+    md += `- **한 줄 설명:** ${val('topicOneLine') || '(미작성)'}\n`;
+    md += `- **왜 필요한가:** ${val('topicWhy') || '(미작성)'}\n`;
+    md += `- **관람객이 해볼 것:** ${val('topicVisitor') || '(미작성)'}\n\n`;
+
+    md += `## 2. 하드웨어 입출력(I/O) 구성\n\n`;
+    md += `### 기존 부품\n\n`;
+    md += `| 부품 | 핀 | 사용 여부 |\n| :--- | :--- | :--- |\n`;
+    md += `| DHT11 온습도 | GP16 | ${baseComponents.dht11 ? '✅ 그대로' : '❌ 뺌 (코드에서 제거)'} |\n`;
+    md += `| CdS 조도 | GP26 | ${baseComponents.cds ? '✅ 그대로' : '❌ 뺌 (코드에서 제거)'} |\n`;
+    md += `| RGB LED | GP17~19 | ${baseComponents.rgb ? '✅ 그대로' : '❌ 뺌 (코드에서 제거)'} |\n`;
+    md += `| SG-90 서보 | GP15 | ${baseComponents.servo ? '✅ 그대로' : '❌ 뺌 (코드에서 제거)'} |\n\n`;
+
+    md += `### 새로 붙이는 부품\n\n`;
+    md += `| 구분 | 부품명 | 신호 | 핀 | 전원 | 동작/범위 | JSON 키 |\n`;
+    md += `| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n`;
+    hwItems.forEach(item => {
+      const t = item.type === 'sensor' ? '센서 (입력)' : '액추에이터 (출력)';
+      const pw = POWER_LABEL[item.power] || (item.type === 'sensor' ? '3V3 (오른쪽 레일)' : '외부 5V (왼쪽 레일)');
+      md += `| ${t} | ${item.name} | ${item.signal} | **${item.pin}** | ${pw} | ${item.behavior} | \`${item.key}\` |\n`;
+    });
+    md += `\n> ⚠️ 외부 5V는 브레드보드 **왼쪽 빨강 레일**입니다. Pico의 VBUS는 쓰지 않습니다.\n`;
+    md += `> 왼쪽 파랑 레일과 오른쪽 파랑 레일이 **점퍼로 이어져 있어야** 합니다.\n\n`;
+    md += `---\n\n`;
+
+    const steps = [
+      { num: "프롬프트 0",   title: "계획부터 받기",                  id: "prompt_step0" },
+      { num: "프롬프트 1",   title: "화면에 센서 추가 (SENSORS)",      id: "prompt_step1a" },
+      { num: "프롬프트 1-B", title: "화면에 액추에이터 조작부 추가",    id: "prompt_step1b" },
+      { num: "프롬프트 2",   title: "Pico main.py 에 센서 추가",       id: "prompt_step2a" },
+      { num: "프롬프트 2-B", title: "Pico main.py 에 액추에이터 추가", id: "prompt_step2b" },
+      { num: "프롬프트 3",   title: "자동 제어",                      id: "prompt_step3" },
+      { num: "프롬프트 3-B", title: "경고 (ALERTS)",                  id: "prompt_step3b" },
+      { num: "프롬프트 4",   title: "자동 재연결 (전시회 필수)",       id: "prompt_step4" },
+      { num: "프롬프트 5",   title: "전시 모드 (선택)",                id: "prompt_step5" },
+      { num: "프롬프트 6",   title: "오류가 났을 때",                  id: "prompt_step6" },
+      { num: "프롬프트 7",   title: "AI가 규칙을 어겼을 때",           id: "prompt_step7" },
+    ];
+
+    md += `## 3. 프롬프트 — 위에서부터 순서대로, 하나씩\n\n`;
+    md += `> 하나 받으면 **붙여넣고 돌려본 뒤** 다음으로 갑니다.\n`;
+    md += `> 한 번에 여러 개를 요청하면, 안 될 때 어느 쪽이 문제인지 알 수 없습니다.\n\n`;
+    steps.forEach(st => {
+      const content = (document.getElementById(st.id)?.value || '').trim() || "(작성된 내용 없음)";
+      md += `### ${st.num} · ${st.title}\n\n`;
+      md += `\`\`\`text\n${content}\n\`\`\`\n\n`;
+    });
+
+    const retryVar = val('retryVarName');
+    md += `---\n\n## 4. 다음 주에 필요한 것\n\n`;
+    md += `- **재연결 상태 변수 이름:** ${retryVar ? '`' + retryVar + '`' : '(프롬프트 4를 한 뒤 적으세요)'} — 12주차 사이드바 레이아웃에 씁니다\n`;
+
+    downloadBlob(md, `PROJECT-PROMPTS-${team.replace(/\s+/g, '_')}.md`, 'text/markdown');
+  }
+
+  // ── Export / Import JSON ──
+  function exportJSON() {
+    const saved = localStorage.getItem(STORAGE_KEY) || "{}";
+    downloadBlob(saved, `worksheet-backup-${Date.now()}.json`, 'application/json');
+  }
+
+  function importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        loadAllData();
+        showToast("백업 파일을 성공적으로 불러왔습니다!");
+      } catch (err) {
+        alert("유효하지 않은 JSON 파일입니다.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function downloadBlob(content, filename, contentType) {
+    const blob = new Blob([content], { type: contentType + ';charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  // Toast UI
+  function showToast(msg) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.style.position = 'fixed';
+      toast.style.bottom = '90px';
+      toast.style.left = '50%';
+      toast.style.transform = 'translateX(-50%)';
+      toast.style.background = '#0e1e38';
+      toast.style.color = '#fff';
+      toast.style.padding = '12px 24px';
+      toast.style.borderRadius = '30px';
+      toast.style.fontSize = '14px';
+      toast.style.fontWeight = '600';
+      toast.style.zIndex = '9999';
+      toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+      toast.style.transition = 'opacity 0.3s ease';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    setTimeout(() => {
+      toast.style.opacity = '0';
+    }, 2400);
+  }
+
+  // Initialize
+  window.addEventListener('DOMContentLoaded', () => {
+    loadAllData();
+    drawIcons();
+
+    document.querySelectorAll('.auto-save').forEach(el => {
+      el.addEventListener('input', saveAllData);
+      el.addEventListener('change', saveAllData);
+    });
+  });
+</script>
+
+</body>
+</html>
