@@ -16,6 +16,7 @@
 | `page_week13_step2.tsx` | **2단계 Typography** — 글자 위계 5단 |
 | `page_week13_step3.tsx` | **3단계 Color** — 의미 색 토큰 (13주차 완성본) |
 | `프로젝트-규칙-tailwind.md` | **소스와 함께 제미나이에 업로드** — 13주차부터 쓰는 컨텍스트 문서 |
+| `../worksheets/13주차_학생워크시트.docx` | 학생 워크시트 (생성기: `../worksheets/scripts/gen_week13.js`) |
 
 각 `.tsx` 는 **통째로 복사해 붙이는 완성본**입니다. 전부 `src/app/dashboard/page.tsx` 로 들어갑니다.
 

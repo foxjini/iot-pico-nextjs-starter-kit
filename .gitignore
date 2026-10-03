@@ -1,0 +1,11 @@
+# 워크시트 생성기용 (worksheets/scripts 에서 npm install docx)
+node_modules/
+
+# 학생이 만드는 Next.js 프로젝트는 이 저장소에 들어오지 않습니다
+.next/
+out/
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
