@@ -58,6 +58,24 @@ Bootstrap 쪽은 3000 번, Tailwind 쪽은 3001 번으로 띄워 두 화면을 �
 `week13-tailwind-ui` 폴더의 `.tsx` 파일들은 **속이 채워져 있습니다.** 통째로 복사해
 새 프로젝트의 `src/app/dashboard/page.tsx` 에 붙여넣으면 됩니다.
 
+## 14주차 — 화면을 AI 와 함께 고칩니다 (완성본을 주지 않습니다)
+
+13주차까지는 완성본을 붙여넣었습니다. 14주차부터는 **학생이 제미나이에게 부탁해서 직접 고칩니다.**
+11주차 바이브 코딩과 같은 방법이고, 대상이 기능에서 **화면**으로 바뀝니다.
+
+```bash
+cd iot-tailwind
+node bundle-ui.js        # → 우리팀-UI.md
+```
+
+`우리팀-UI.md` 와 `프로젝트-규칙-tailwind.md` 두 개를 제미나이에 올리고,
+`week14-tailwind-vibe/프롬프트-모음-14주차.md` 의 프롬프트를 순서대로 씁니다.
+
+> `bundle-ui.js` 는 **화면 코드만** 묶습니다 — 통신(`src/app/api/`)·DB(`src/lib/`)·Pico 코드는
+> 일부러 뺍니다. **안 올라간 코드는 AI 가 망가뜨릴 수 없습니다.**
+> 11주차 `bundle-source.js`(프로젝트 전체)와 역할이 다르니 둘 다 두고 씁니다.
+> 자세한 것은 [`week14-tailwind-vibe/README.md`](week14-tailwind-vibe/README.md) 에 있습니다.
+
 ## 실물 Pico 가 없을 때 — `mock-pico` 폴더
 
 Pico 2 W 가 모자라거나 아직 도착하지 않았을 때, 윈도우 PC 의 파이썬으로
