@@ -19,6 +19,7 @@ node gen_week13.js   # → ../13주차_학생워크시트.docx
 | `gen_week1.js` ~ `gen_week4.js` | 1~4주차 (4주차는 압축 운영에서 빼는 주차) |
 | `gen_week8.js` `gen_week9.js` `gen_week11.js` `gen_week12.js` | 8·9·11·12주차 |
 | `gen_week13.js` | **13주차 — Tailwind ① 구조와 글자** |
+| `gen_week14.js` | **14주차 — 바이브 코딩으로 화면 다듬기 (아이콘·휴대폰·반응)** |
 
 > `docx` 는 **9.8.1** 로 확인했습니다. 더 낮은 버전에서는 `new Document({ sections: [...] })` 형태가
 > 달라질 수 있습니다. `package.json` 에 적어 두었으니 `npm install` 만 하면 같은 버전이 깔립니다.
