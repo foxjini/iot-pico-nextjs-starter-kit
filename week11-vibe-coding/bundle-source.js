@@ -57,7 +57,13 @@ function walk(dir, base = "") {
       continue;
     }
     if (!OK_EXT.includes(path.extname(name))) continue;
-    if (["package-lock.json", "우리팀-소스.md", "bundle-source.js"].includes(name)) continue;
+    // 묶기 도구와 그 결과물은 "우리 팀 소스" 가 아니므로 넣지 않습니다.
+    // (14주차 이후에는 bundle-ui.js 도 같은 폴더에 있게 됩니다)
+    if ([
+      "package-lock.json",
+      "우리팀-소스.md", "bundle-source.js",
+      "우리팀-UI.md", "bundle-ui.js",
+    ].includes(name)) continue;
 
     const text = fs.readFileSync(full, "utf8");
     included.push({ rel, text, ext: path.extname(name) });

@@ -1183,7 +1183,7 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
           <h2 class="section-title">Next.js 대시보드에 '액추에이터 제어 패널' 추가하기</h2>
           <span class="tag-actuator"><i data-lucide="sliders" size="12"></i> UI 조작부</span>
         </div>
-        <p class="section-desc">React-Bootstrap의 스위치, 슬라이더, 버튼으로 등록된 액추에이터들을 조작하는 UI를 추가합니다.</p>
+        <p class="section-desc">버튼과 슬라이더로 등록된 액추에이터들을 조작하는 UI를 추가합니다. 지금 RGB LED 버튼·서보 슬라이더가 쓰는 방식을 그대로 따릅니다.</p>
       </div>
     </div>
 
@@ -1436,10 +1436,10 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
     </div>
     <div class="form-group" style="margin-top:16px;">
       <label class="form-label" for="retryVarName">
-        <i data-lucide="variable" size="14"></i> AI가 만들어 준 <strong>재연결 상태 변수 이름</strong> &mdash; 12주차에 필요합니다
+        <i data-lucide="variable" size="14"></i> AI가 만들어 준 <strong>재연결 상태 변수 이름</strong> &mdash; 14주차에 필요합니다
       </label>
       <input type="text" id="retryVarName" class="form-control auto-save" placeholder="예: retrying (isReconnecting 등 다른 이름일 수도 있습니다)">
-      <p class="field-note">12주차 사이드바 레이아웃 코드에 이 이름이 그대로 들어갑니다. 지금 적어 두지 않으면 다음 시간에 헤맵니다.</p>
+      <p class="field-note">14주차 전시 모드에서 이 이름을 그대로 씁니다. 지금 적어 두지 않으면 다음 시간에 헤맵니다.</p>
     </div>
   </div>
 
@@ -1585,8 +1585,10 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
       <thead><tr><th style="width:40%;">AI가 준 것</th><th>&ldquo;무엇이 문제인지&rdquo; 에 그대로 쓸 말</th></tr></thead>
       <tbody>
         <tr><td><code>from machine import Pin</code></td><td>Pico 코드에 machine 모듈이 들어 있습니다. 우리는 CircuitPython을 씁니다.</td></tr>
-        <tr><td><code>className="flex gap-4 bg-gray-800"</code></td><td>className 에 Tailwind 클래스가 들어 있습니다. 우리는 Bootstrap만 씁니다.</td></tr>
-        <tr><td><code>&lt;Badge variant="success"&gt;</code></td><td>Bootstrap 4 문법입니다. 우리는 Bootstrap 5라서 <code>bg=</code> 를 씁니다.</td></tr>
+        <tr><td><code>className="d-flex g-3 card"</code></td><td>className 에 Bootstrap 클래스가 들어 있습니다. 우리는 Tailwind만 씁니다.</td></tr>
+        <tr><td><code>import { Badge } from "react-bootstrap"</code></td><td>react-bootstrap 은 우리 프로젝트에 없습니다. 보통의 <code>&lt;span&gt;</code> 과 Tailwind 클래스로 만듭니다.</td></tr>
+        <tr><td><code>globals.css 에 @theme 블록을 만드세요</code></td><td>우리 토큰은 <code>page.tsx</code> 의 <code>const UI</code> 객체입니다. 13주차 자료를 보고 하는 말입니다.</td></tr>
+        <tr><td><code>className="bg-base text-ink"</code></td><td>우리 코드에 없는 토큰 이름입니다. 없는 색을 쓰면 그 자리가 투명해집니다.</td></tr>
         <tr><td>액추에이터에 <code>true</code> / <code>false</code></td><td>규칙 문서 5번대로 켜짐 <code>255</code>, 꺼짐 <code>0</code> 으로 보내 주세요.</td></tr>
         <tr><td><code>code.py</code> 를 고치라고 함</td><td>code.py 는 센서 단독 시험용입니다. 실제로 도는 것은 main.py 입니다.</td></tr>
         <tr><td>&ldquo;이렇게 구조를 바꾸면 더 좋습니다&rdquo;</td><td>수업에서 배운 배열 구조를 유지해 주세요. 더 좋은 구조를 제안하지 마세요.</td></tr>
@@ -1632,9 +1634,9 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
       <label class="check-item"><input type="checkbox" id="chk_f1" class="auto-save"><div class="check-label-wrap">
         <h5>첫 줄이 <strong><code>"use client";</code></strong> 인가</h5><p>없으면 <code>useState</code>·<code>useEffect</code>·WebSocket 에서 서버 컴포넌트 오류가 납니다.</p></div></label>
       <label class="check-item"><input type="checkbox" id="chk_f2" class="auto-save"><div class="check-label-wrap">
-        <h5><strong>Tailwind 클래스가 없는가</strong> — <code>flex</code>, <code>grid-cols-</code>, <code>bg-gray-</code>, <code>text-xl</code>, <code>p-4</code></h5><p>Bootstrap은 <code>d-flex</code>, <code>g-3</code>, <code>text-body-secondary</code> 처럼 생겼습니다. 섞이면 레이아웃이 깨집니다.</p></div></label>
+        <h5><strong>Bootstrap 클래스가 없는가</strong> — <code>btn btn-primary</code>, <code>card</code>, <code>row g-3</code>, <code>col-md-4</code>, <code>d-flex</code></h5><p>Tailwind는 <code>flex</code>, <code>grid-cols-2</code>, <code>rounded-xl</code>, <code>p-4</code> 처럼 생겼습니다. 섞이면 레이아웃이 깨집니다.</p></div></label>
       <label class="check-item"><input type="checkbox" id="chk_f3" class="auto-save"><div class="check-label-wrap">
-        <h5><code>&lt;Badge variant=</code> 가 아니라 <strong><code>&lt;Badge bg=</code></strong> 인가</h5><p>Bootstrap 4 문법입니다. 우리는 5를 씁니다 — 색이 아예 안 먹습니다.</p></div></label>
+        <h5><strong>없는 토큰 이름을 쓰지 않았는가</strong> — <code>bg-base</code>, <code>text-ink</code>, <code>border-line</code>, <code>text-ok</code></h5><p>우리 코드에 없는 이름입니다. 색은 <code>const UI</code> 객체와 <code>slate</code>/<code>emerald</code>/<code>amber</code>/<code>rose</code> 를 씁니다 — 없는 색을 쓰면 그 자리가 투명해집니다.</p></div></label>
       <label class="check-item"><input type="checkbox" id="chk_f4" class="auto-save"><div class="check-label-wrap">
         <h5><code>SENSORS</code> / <code>SWITCHES</code> / <code>ALERTS</code> <strong>배열 구조가 그대로</strong>인가</h5><p>AI가 &ldquo;더 좋은 구조&rdquo;로 바꿔 놓으면 나중에 여러분이 고칠 수 없게 됩니다.</p></div></label>
       <label class="check-item"><input type="checkbox" id="chk_f5" class="auto-save"><div class="check-label-wrap">
@@ -2047,6 +2049,20 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
     } else {
       p1a += `- 지금 있는 센서 카드는 하나도 지우지 마세요\n`;
     }
+    p1a += `\n★ 우리 코드는 센서 이름이 타입으로 닫혀 있습니다.\n`;
+    p1a += `  type SensorKey = "temperature" | "humidity" | ... 처럼 되어 있어서,\n`;
+    p1a += `  SENSORS 배열에 줄만 추가하면 타입 오류가 납니다.\n`;
+    p1a += `  올려드린 소스에서 아래에 해당하는 자리를 전부 찾아 같이 고쳐 주세요.\n`;
+    p1a += `    1) type SensorKey 유니온에 새 키 추가\n`;
+    p1a += `    2) SENSORS 배열에 항목 추가\n`;
+    p1a += `    3) 센서값을 담는 타입 (SensorValue 또는 SensorData)\n`;
+    p1a += `    4) 처음 값을 넣어두는 곳 (sensorValues 같은 useState 초기값)\n`;
+    p1a += `    5) 상태를 판정하는 함수 (getSensorStatus 등)\n`;
+    p1a += `  제 소스에 없는 항목은 만들지 마세요. 고치기 전에 "어디어디를 고치면 됩니다" 를\n`;
+    p1a += `  먼저 목록으로 알려 주세요.\n`;
+    p1a += `\n- CSS 는 Tailwind 만 씁니다. Bootstrap 클래스(d-flex, row g-3, card)를 쓰지 마세요\n`;
+    p1a += `- 색과 간격은 page.tsx 맨 위의 const UI 객체에 모여 있습니다.\n`;
+    p1a += `  globals.css 에 @theme 블록을 만들지 말고, bg-base / text-ink 처럼 없는 토큰 이름도 쓰지 마세요\n`;
     p1a += `- 파일 전체 완성본으로 주세요\n`;
     p1a += `- 바뀐 줄에 // ★ 주석을 달아 주세요`;
     setTpl('template_step1a', p1a);
@@ -2057,12 +2073,15 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
       const isPwm = (a.signal || '').includes('pwm');
       p1b += `- ${a.name} (key "${a.key}")\n`;
       if (isPwm) {
-        p1b += `  · Form.Range 슬라이더로 값을 조절합니다\n`;
+        p1b += `  · 슬라이더(<input type="range">)로 값을 조절합니다\n`;
+        p1b += `    지금 서보 슬라이더가 쓰는 것과 같은 방식으로 해 주세요\n`;
         p1b += `  · 조작하면 WebSocket 으로 {"${a.key}": 값} 을 보냅니다\n`;
       } else {
-        p1b += `  · SWITCHES 배열에 줄을 추가하는 방식으로 해 주세요 (구조는 바꾸지 마세요)\n`;
+        p1b += `  · 켜고 끄는 버튼을 추가합니다 (구조는 바꾸지 마세요)\n`;
         p1b += `  · 켜면 {"${a.key}": 255}, 끄면 {"${a.key}": 0} 을 보냅니다\n`;
-        p1b += `    (지금 RGB LED 스위치가 255 / 0 을 보내는 것과 같은 방식입니다)\n`;
+        p1b += `    (지금 RGB LED 버튼이 255 / 0 을 보내는 것과 같은 방식입니다)\n`;
+        p1b += `  · ★ 이것은 RGB LED 가 아니므로, RGB LED 버튼 격자 안에 끼워 넣지 말고\n`;
+        p1b += `    새 카드로 만들어 주세요. (항목에 group: "led" / "device" 를 붙여 구분하면 됩니다)\n`;
       }
     });
     if (!actuators.length) p1b += `- (설계표에 액추에이터를 먼저 등록하세요)\n`;
@@ -2072,9 +2091,11 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
       if (!baseComponents.servo) rm.push("서보 슬라이더");
       p1b += `- 빼기로 한 ${rm.join(', ')} 는 UI 와 전송 JSON 에서 지워 주세요\n`;
     } else {
-      p1b += `- 지금 있는 RGB LED 스위치와 서보 슬라이더는 그대로 두세요\n`;
+      p1b += `- 지금 있는 RGB LED 버튼과 서보 슬라이더는 그대로 두세요\n`;
     }
-    p1b += `\nBootstrap 만 쓰세요 (Tailwind 금지).\n`;
+    p1b += `\nTailwind 만 쓰세요 (Bootstrap 과 react-bootstrap 금지).\n`;
+    p1b += `색과 간격은 const UI 객체를 쓰고, globals.css 에 @theme 블록을 만들지 마세요.\n`;
+    p1b += `연결 상태 표시와 오류/데이터 없음 화면은 지우지 마세요.\n`;
     p1b += `src/app/dashboard/page.tsx 전체 완성본으로 주세요.\n`;
     p1b += `바뀐 줄에 // ★ 주석을 달아 주세요.`;
     setTpl('template_step1b', p1b);
@@ -2367,14 +2388,22 @@ node bundle-source.js D:\          # Pico 코드도 같이 (CIRCUITPY 드라이�
     md += `> 하나 받으면 **붙여넣고 돌려본 뒤** 다음으로 갑니다.\n`;
     md += `> 한 번에 여러 개를 요청하면, 안 될 때 어느 쪽이 문제인지 알 수 없습니다.\n\n`;
     steps.forEach(st => {
-      const content = (document.getElementById(st.id)?.value || '').trim() || "(작성된 내용 없음)";
-      md += `### ${st.num} · ${st.title}\n\n`;
+      // 학생이 작업칸에 적은 것을 먼저 쓰고, 비어 있으면 자동으로 채워진 템플릿을 씁니다.
+      // (「내 작업칸으로 가져오기」를 누르지 않고 내려받아도 빈 파일이 되지 않게)
+      const typed = (document.getElementById(st.id)?.value || '').trim();
+      const tplId = st.id.replace(/^prompt_/, 'template_');
+      // setTpl / copyTemplate 과 같이 innerText 로 읽습니다.
+      // textContent 로 읽으면 줄바꿈이 사라져 프롬프트가 한 줄로 붙습니다.
+      const tpl = (document.getElementById(tplId)?.innerText || '').trim();
+      const content = typed || tpl || "(작성된 내용 없음)";
+      const mark = (!typed && tpl) ? " _(자동 생성된 그대로)_" : "";
+      md += `### ${st.num} · ${st.title}${mark}\n\n`;
       md += `\`\`\`text\n${content}\n\`\`\`\n\n`;
     });
 
     const retryVar = val('retryVarName');
     md += `---\n\n## 4. 다음 주에 필요한 것\n\n`;
-    md += `- **재연결 상태 변수 이름:** ${retryVar ? '`' + retryVar + '`' : '(프롬프트 4를 한 뒤 적으세요)'} — 12주차 사이드바 레이아웃에 씁니다\n`;
+    md += `- **재연결 상태 변수 이름:** ${retryVar ? '`' + retryVar + '`' : '(프롬프트 4를 한 뒤 적으세요)'} — 14주차 전시 모드에 씁니다\n`;
 
     downloadBlob(md, `PROJECT-PROMPTS-${team.replace(/\s+/g, '_')}.md`, 'text/markdown');
   }
