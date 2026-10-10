@@ -142,14 +142,15 @@ md += `## 이 파일을 읽는 AI 에게\n\n`;
 md += `- 이것은 **Next.js + Tailwind CSS v4** 프로젝트의 **화면 코드만** 모은 것입니다.\n`;
 md += `- 통신(WebSocket) 코드와 Pico 코드, 데이터베이스 코드는 **일부러 뺐습니다.**\n`;
 md += `- 오늘 고치는 파일은 \`src/app/dashboard/page.tsx\` 입니다.\n`;
-md += `- \`SENSORS\` / \`SWITCHES\` / \`ALERTS\` 배열 구조와 통신 함수\n`;
-md += `  (\`openSocket\` · \`scheduleRetry\` · \`sendCommand\`), 자동 제어 \`useEffect\` 는\n`;
+md += `- \`SENSORS\` / \`SWITCHES\` 배열 구조와 통신 함수\n`;
+md += `  (\`connect\` · \`disconnect\` · \`sendCommand\` 등 이 소스에 있는 이름), 자동 제어 \`useEffect\` 는\n`;
 md += `  **한 글자도 바꾸지 마세요.** 바꿀 것은 보이는 부분뿐입니다.\n`;
-md += `- 색은 \`globals.css\` 의 \`@theme\` 에 있는 **토큰 이름만** 쓰세요\n`;
-md += `  (\`bg-surface\` · \`text-ink-dim\` · \`border-bad\` 처럼). \`bg-slate-800\` 같은 직접 색은 쓰지 않습니다.\n`;
+md += `- 색과 간격은 파일 맨 위 **\`const UI = { ... }\` 객체**에 모여 있습니다.\n`;
+md += `  반복되는 스타일이 생기면 그 객체에 항목을 더하세요. \`globals.css\` 에 \`@theme\` 을 만들지 마세요.\n`;
 md += `- \`package.json\` 을 같이 넣었습니다. **버전을 보고** 답해 주세요.\n`;
 md += `  단, 새 라이브러리를 추가하자고 하지는 마세요.\n`;
-md += `- 같이 올린 \`프로젝트-규칙-tailwind.md\` 의 규칙을 **모두** 지켜 주세요.\n\n`;
+md += `- 같이 올린 \`프로젝트-규칙.md\` 의 규칙을 **모두** 지켜 주세요.\n`;
+md += `- 학생마다 소스가 조금씩 다릅니다. **여기 실제로 있는 것**을 기준으로 답해 주세요.\n\n`;
 
 md += `## 들어있는 파일\n\n`;
 included.forEach((f) => (md += `- \`${f.rel}\` (${f.text.split("\n").length}줄)\n`));
@@ -170,7 +171,8 @@ included.forEach((f) => console.log(`   ${f.rel}`));
 if (missing.length) {
   console.log("\n(!) 못 찾은 화면 파일:");
   missing.forEach((f) => console.log(`   ${f}`));
-  console.log("    13주차 파일을 아직 안 넣었다면 먼저 넣으세요.");
+  console.log("    대시보드 파일이 다른 곳에 있을 수 있습니다.");
+  console.log("    src/app 아래에서 \"use client\" 로 시작하는 page.tsx 를 찾아보세요.");
 }
 if (notes.length) {
   console.log("\n— 일부러 뺀 것:");
@@ -187,4 +189,4 @@ if (warnings.length) {
   console.log("\n✅ 비밀번호처럼 보이는 줄은 없습니다.");
 }
 console.log(`\n이 파일을 제미나이에 올리세요: ${OUT}`);
-console.log(`같이 올릴 것: 프로젝트-규칙-tailwind.md\n`);
+console.log(`같이 올릴 것: 프로젝트-규칙.md\n`);

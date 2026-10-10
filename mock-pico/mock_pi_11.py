@@ -352,6 +352,14 @@ def _drop_client(conn):
         if _client is conn:
             _client = None
     try:
+        # ★ close() 만으로는 상대가 끊긴 것을 모릅니다.
+        #    다른 스레드가 이 소켓에서 recv() 로 멈춰 있으면, 그 recv 가 끝날 때까지
+        #    FIN 이 나가지 않아 브라우저는 계속 "연결됨" 으로 남습니다.
+        #    shutdown() 은 지금 바로 FIN 을 보내고 멈춰 있던 recv 도 깨웁니다.
+        conn.shutdown(socket.SHUT_RDWR)
+    except Exception:
+        pass
+    try:
         conn.close()
     except Exception:
         pass
