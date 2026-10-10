@@ -38,43 +38,72 @@
 - `node_modules`, `package.json` 등 `create-next-app`이 만든 나머지 파일들은 이 스타터 킷에 없습니다 — 정상입니다. 그 파일들은 안 건드립니다.
 - 파일을 다 채운 후에는 교재의 "실행 및 확인" 절차대로 진행하면 됩니다.
 
-## 13주차부터 — Tailwind 프로젝트는 **따로** 만듭니다
+## 🚩 실제 수업은 **1 → 2 → 3 → 8 → 9 → 11 → 14주차** 7차시입니다 (2026-10-10 확정)
 
-12주차까지 쓰던 Bootstrap 프로젝트(`iot-week2-api`)는 그대로 두고, 옆에 새 프로젝트를 만듭니다.
+**11월 20일 작품 전시회**까지 남은 시수에 맞춰 줄였습니다. 나머지 주차는 **참고 자료**입니다.
 
-```bash
-npx create-next-app@latest iot-tailwind --typescript --app --eslint --tailwind --src-dir --import-alias "@/*"
-cd iot-tailwind
-npm run dev -- -p 3001
-```
+| | 내용 |
+|---|---|
+| **1 · 2 · 3주차** | 하드웨어와 통신 — 센서 읽기 → REST + MySQL → WebSocket 대시보드 |
+| **8 · 9주차** | 부품 10개를 하나씩 · 배열과 `.map()` 으로 센서 개수 자유롭게 |
+| **[참고] Tailwind 기본 · 심화과정** | **여기서 Tailwind 를 익혔고, 화면이 Tailwind 로 전환됐습니다** |
+| **11주차** | 바이브 코딩으로 우리 팀 작품에 이식 + **자동 재연결** |
+| **14주차 (마지막)** | **전시장에 내놓기** — 전시 모드 · 가독성 · 작품 설명 + 무인 리허설 |
 
-Bootstrap 쪽은 3000 번, Tailwind 쪽은 3001 번으로 띄워 두 화면을 나란히 비교합니다.
+**13주차 · 12주차는 참고 자료**이고, **15주차는 만들지 않았습니다.**
 
-> 한 프로젝트에 둘을 같이 넣으면 **같은 이름의 클래스 687개가 부딪칩니다.**
-> Bootstrap 쪽에 `!important` 가 붙어 있어 `p-4` 가 16px 이 아니라 24px 이 됩니다 — 에러도 없이.
-> 8주차에서 Tailwind 를 껐던 이유가 그대로 유효해서, 섞지 않고 옆에 새로 짓습니다.
-> 자세한 것은 [`week13-tailwind-ui/README.md`](week13-tailwind-ui/README.md) 에 있습니다.
+> 🚨 **11 · 14주차에 제미나이에 올릴 규칙 문서는 [`week11-vibe-coding/프로젝트-규칙.md`](week11-vibe-coding/프로젝트-규칙.md) 하나뿐입니다.**
+> 13주차 교재의 `프로젝트-규칙-tailwind.md` 는 토큰을 `globals.css` 의 `@theme` 으로 만드는 것을
+> 전제합니다. 학생 코드의 토큰은 **`page.tsx` 안의 `const UI` 객체**라서, 그 문서를 올리면
+> 제미나이가 **없는 토큰 이름**(`bg-base` · `text-ink`)을 쓴 코드를 내놓습니다.
 
-`week13-tailwind-ui` 폴더의 `.tsx` 파일들은 **속이 채워져 있습니다.** 통째로 복사해
-새 프로젝트의 `src/app/dashboard/page.tsx` 에 붙여넣으면 됩니다.
-
-## 14주차 — 화면을 AI 와 함께 고칩니다 (완성본을 주지 않습니다)
-
-13주차까지는 완성본을 붙여넣었습니다. 14주차부터는 **학생이 제미나이에게 부탁해서 직접 고칩니다.**
-11주차 바이브 코딩과 같은 방법이고, 대상이 기능에서 **화면**으로 바뀝니다.
+### 11주차 — 기능을 AI 와 함께 붙입니다
 
 ```bash
-cd iot-tailwind
-node bundle-ui.js        # → 우리팀-UI.md
+node bundle-source.js            # → 우리팀-소스.md (화면 + Pico 코드)
+node bundle-source.js D:\        # Pico(CIRCUITPY) 코드도 같이
 ```
 
-`우리팀-UI.md` 와 `프로젝트-규칙-tailwind.md` 두 개를 제미나이에 올리고,
-`week14-tailwind-vibe/프롬프트-모음-14주차.md` 의 프롬프트를 순서대로 씁니다.
+`우리팀-소스.md` 와 `프로젝트-규칙.md` 를 제미나이에 올리고,
+[`week11-vibe-coding/프롬프트-모음-우리팀.md`](week11-vibe-coding/프롬프트-모음-우리팀.md) 를
+**0(계획) → 1 · 2(화면+Pico) → 4(자동 재연결) → 3(자동 제어)** 순서로 씁니다.
+
+> ⏱️ **시간이 모자라면 3을 버리고 4를 하세요.** 자동 제어는 없어도 작품이 돌아가지만,
+> **자동 재연결이 없으면 전시 중에 한 번 끊기는 순간 그대로 멈춘 화면**이 걸려 있게 됩니다.
+> 📐 센서를 하나 늘릴 때 고칠 자리가 **네 곳**입니다 (규칙 §3-7). 배열만 고치면 타입 오류가 나고,
+> **반대로 `SENSORS` 배열만 빼먹으면 오류가 0건인데 카드도 안 생깁니다** — 실측해서 적어 두었습니다.
+
+### 14주차 — 전시장에 내놓습니다 (마지막 수업)
+
+```bash
+node bundle-ui.js        # → 우리팀-UI.md (화면 코드만)
+```
+
+`우리팀-UI.md` 와 **같은 `프로젝트-규칙.md`** 를 올리고,
+[`week14-tailwind-vibe/프롬프트-모음-전시.md`](week14-tailwind-vibe/프롬프트-모음-전시.md) 의
+미션 1 → 2 → 3 을 하고, **마지막 30분은 무인 리허설**입니다.
 
 > `bundle-ui.js` 는 **화면 코드만** 묶습니다 — 통신(`src/app/api/`)·DB(`src/lib/`)·Pico 코드는
 > 일부러 뺍니다. **안 올라간 코드는 AI 가 망가뜨릴 수 없습니다.**
 > 11주차 `bundle-source.js`(프로젝트 전체)와 역할이 다르니 둘 다 두고 씁니다.
+> 선생님용 모범답안은 [`week14-tailwind-vibe/page_exhibit_reference.tsx`](week14-tailwind-vibe/page_exhibit_reference.tsx)
+> — 자동 재연결(`★ 11주차`)과 전시 모드(`★ 14주차`)가 학생 코드 관용구로 들어 있고, 19가지 실측을 통과했습니다.
 > 자세한 것은 [`week14-tailwind-vibe/README.md`](week14-tailwind-vibe/README.md) 에 있습니다.
+
+### [참고] 13주차 — Tailwind 프로젝트를 따로 만드는 경로
+
+> 📎 **이번 운영에서는 쓰지 않습니다.** 학생들은 기본·심화과정으로 Tailwind 를 익혔습니다.
+
+12주차까지 쓰던 Bootstrap 프로젝트(`iot-week2-api`)를 그대로 두고 옆에 새 프로젝트를 만드는 방식입니다.
+
+```bash
+npx create-next-app@latest iot-tailwind --typescript --app --eslint --tailwind --src-dir --import-alias "@/*"
+```
+
+> 한 프로젝트에 Bootstrap 과 Tailwind 를 같이 넣으면 **같은 이름의 클래스 687개가 부딪칩니다.**
+> Bootstrap 쪽에 `!important` 가 붙어 있어 `p-4` 가 16px 이 아니라 24px 이 됩니다 — 에러도 없이.
+> **그래서 둘 중 하나로 정한 뒤 그 하나만 씁니다.**
+> 자세한 것은 [`week13-tailwind-ui/README.md`](week13-tailwind-ui/README.md) 에 있습니다.
 
 ## 실물 Pico 가 없을 때 — `mock-pico` 폴더
 
