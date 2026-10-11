@@ -336,16 +336,31 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
   </div>
 
   <div class="step">
-    <div class="step-hd"><span class="step-no">0-1</span><span class="step-title">저장소를 최신으로 받습니다</span><span class="step-time">2분</span></div>
+    <div class="step-hd"><span class="step-no">0-1</span><span class="step-title">선생님이 준 파일을 받았는지 확인합니다</span><span class="step-time">2분</span></div>
     <div class="step-body">
-      <p>가상 Pico가 <b>2026-10-10에 고쳐졌습니다.</b> 안 받으면 11주차 자동 재연결을 확인할 수 없습니다.</p>
-      <pre class="term">git pull</pre>
-      <div class="note danger"><span class="hd">이걸 건너뛰면 무슨 일이 나는가</span>
+      <p>선생님이 나눠 준 파일을 한 폴더에 모아 두세요. <b>아래 다섯 개가 11주차에 꼭 필요합니다.</b></p>
+      <table>
+        <thead><tr><th style="width:40%">파일</th><th>무엇에 쓰나</th></tr></thead>
+        <tbody>
+          <tr><td>🧭 <b>이 매뉴얼</b> (<code>프로젝트-완성-매뉴얼.html</code>)</td><td>지금 보고 있는 파일 — <b>11 · 14주차를 이 하나로</b> 따라갑니다</td></tr>
+          <tr><td><b><code>프로젝트-규칙.md</code></b></td><td><b>제미나이에 올립니다</b> (소스와 함께 매번)</td></tr>
+          <tr><td><code>bundle-source.js</code></td><td>11주차 — 소스 묶기</td></tr>
+          <tr><td><code>bundle-ui.js</code></td><td>14주차 — 화면 코드만 묶기</td></tr>
+          <tr><td><code>mock_pi_11.py</code></td><td>가상 Pico <span class="muted">(실물 Pico 가 없는 팀)</span></td></tr>
+        </tbody>
+      </table>
+      <div class="note warn"><span class="hd">가상 Pico 가 최신판인지 한 번만 확인하세요</span>
+        <code>py mock_pi_11.py</code> 로 띄우면 <code>[명령]</code> 줄이 찍힙니다.
+        그 안에 <b><code>act &lt;키&gt;</code></b> 가 보이면 최신판입니다.
+        <b>안 보이면 옛 파일이니 선생님께 다시 받으세요.</b>
+      </div>
+      <div class="note danger"><span class="hd">옛 파일이면 무슨 일이 나는가</span>
         고치기 전 가상 Pico는 <code>x</code>(USB 뽑기)를 눌러도 <b>연결을 실제로 끊지 않았습니다.</b>
         그래서 자동 재연결 코드를 <b>맞게 고쳐도 화면이 계속 「연결됨」</b> 으로 남아,
-        멀쩡한 코드를 틀린 줄 알고 몇 시간 뜯어고치게 됩니다.
+        멀쩡한 코드를 틀린 줄 알고 몇 시간 뜯어고치게 됩니다.<br>
+        그리고 <b>우리 팀 액추에이터 키를 적용하지 않습니다</b> — 단계 E3 의 확인이 불가능해집니다.
       </div>
-      <label class="chk"><input type="checkbox" data-c="c01"><span><code>git pull</code> 을 했다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c01"><span>선생님이 준 파일을 <b>전부 받았고</b>, 가상 Pico 메뉴에 <code>act</code> 가 보인다</span></label>
     </div>
   </div>
 
@@ -354,19 +369,19 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
     <div class="step-body">
       <p><b>프로젝트 폴더</b>란 <code>package.json</code> 이 있는 폴더입니다. 거기에 아래 세 개를 넣으세요.</p>
       <table>
-        <thead><tr><th style="width:38%">파일</th><th>어디에 있나</th><th style="width:26%">쓰는 때</th></tr></thead>
+        <thead><tr><th style="width:38%">파일</th><th>어디서 찾나</th><th style="width:26%">쓰는 때</th></tr></thead>
         <tbody>
-          <tr><td><code>bundle-source.js</code></td><td><code>week11-vibe-coding/</code></td><td>11주차</td></tr>
-          <tr><td><code>bundle-ui.js</code></td><td><code>week14-tailwind-vibe/</code></td><td>14주차</td></tr>
-          <tr><td><b><code>프로젝트-규칙.md</code></b></td><td><b><code>week11-vibe-coding/</code></b></td><td><b>11주차 · 14주차 둘 다</b></td></tr>
+          <tr><td><code>bundle-source.js</code></td><td>선생님이 준 파일 중</td><td>11주차</td></tr>
+          <tr><td><code>bundle-ui.js</code></td><td>선생님이 준 파일 중</td><td>14주차</td></tr>
+          <tr><td><b><code>프로젝트-규칙.md</code></b></td><td><b>선생님이 준 파일 중</b></td><td><b>11주차 · 14주차 둘 다</b></td></tr>
         </tbody>
       </table>
       <div class="note danger"><span class="hd">규칙 파일을 잘못 가져오면 몇 주 작업이 날아갑니다</span>
-        13주차 폴더에 있는 <code>프로젝트-규칙-tailwind.md</code> 는 <b>쓰지 마세요.</b>
+        이름이 <code>프로젝트-규칙-<b>tailwind</b>.md</code> 인 파일은 <b>쓰지 마세요.</b>
         그 문서는 색을 <code>globals.css</code> 의 <code>@theme</code> 으로 만드는 것을 전제합니다.
         우리 코드의 색은 <code>page.tsx</code> 안의 <b><code>const UI</code> 객체</b>라서,
         그 문서를 올리면 제미나이가 <b>우리 코드에 없는 색 이름</b>(<code>bg-base</code>, <code>text-ink</code>)을 쓴 코드를 내놓습니다.
-        <br><b>쓸 것은 <code>week11-vibe-coding/프로젝트-규칙.md</code> 하나뿐입니다.</b>
+        <br><b>쓸 것은 <code>프로젝트-규칙.md</code>(<code>-tailwind</code> 가 안 붙은 것) 하나뿐입니다.</b>
       </div>
       <label class="chk"><input type="checkbox" data-c="c02"><span>세 파일을 <code>package.json</code> 이 있는 폴더에 복사했다</span></label>
       <label class="chk"><input type="checkbox" data-c="c03"><span>규칙 파일이 <b><code>프로젝트-규칙.md</code></b> 인 것을 확인했다 (<code>-tailwind</code> 가 안 붙은 것)</span></label>
@@ -499,7 +514,7 @@ node bundle-source.js D:\</pre>
 
 ──────────────────────────────
 아직 코드를 고치지 마세요.
-먼저 아래 네 가지만 답해 주세요.
+먼저 아래 여섯 가지만 답해 주세요.
 
 1. 위 구성대로 하려면 어떤 파일의 어느 부분을 고쳐야 하는지 목록
 2. 제 소스에서 센서를 하나 늘리려면 정확히 어디어디를 같이 고쳐야 하는지
@@ -714,7 +729,7 @@ CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 �
         가상 Pico 창에 <code>-&gt; 우리 팀 액추에이터 <span class="f-inline" data-f="actKey"></span>: 255 (켜짐)</code> 까지 찍히면
         <b>화면 쪽은 끝났습니다.</b> <b>실물이 움직이는 것은 다음 단계</b>입니다.
       </div>
-      <div class="note danger"><span class="hd">🐞 가상 Pico 를 <code>git pull</code> 로 새로 받으세요 (2026-10-11 수정)</span>
+      <div class="note danger"><span class="hd">🐞 가상 Pico 가 최신판인지 확인하세요 — 메뉴에 <code>act</code> 가 보여야 합니다</span>
         그 전의 가상 Pico 는 <b>적용하는 키가 박혀 있어서</b>, 팀 액추에이터 이름이
         <code>valve</code> 가 아니면 <b>명령은 받아 찍으면서 적용은 하나도 안 했습니다.</b>
         <code>[WS] 명령 적용 완료</code> 가 찍히니 된 것처럼 보이는데 <b>아무 일도 안 일어납니다.</b>
@@ -1584,7 +1599,7 @@ E. 안정성     — 콘솔 오류 · 몇 시간 켜 두기 · 끊고 다시 붙
       <tr><td>전시 모드에서 화면이 하얗게 된다</td><td>Wake Lock 을 <code>try/catch</code> 없이 쓴 것입니다</td></tr>
       <tr><td>색을 쟀는데 이상한 값이 나온다</td><td><code>transition</code> 때문에 <b>바뀌는 중</b>일 수 있습니다. 0.5초쯤 기다렸다 보세요</td></tr>
       <tr><td><code>우리팀-UI.md</code> 가 안 만들어진다</td><td><code>package.json</code> 이 있는 폴더에서 실행했는지 확인하세요</td></tr>
-      <tr><td><b><code>x</code> 를 쳤는데 계속 연결됨으로 남는다</b></td><td><b><code>git pull</code> 을 안 받은 것입니다.</b> 가상 Pico 가 2026-10-10 에 고쳐졌습니다 (0단계)</td></tr>
+      <tr><td><b><code>x</code> 를 쳤는데 계속 연결됨으로 남는다</b></td><td><b>옛 가상 Pico 입니다.</b> 메뉴에 <code>act</code> 가 보이는지 확인하고, 없으면 <b>선생님께 최신 <code>mock_pi_11.py</code> 를 받으세요</b> (<a href="#s0">0-1단계</a>)</td></tr>
     </tbody>
   </table>
 </section>
@@ -1768,8 +1783,12 @@ E. 안정성     — 콘솔 오류 · 몇 시간 켜 두기 · 끊고 다시 붙
     }).join("\n") : "- 없음";
 
     d.sensorSpecLines = ss.length ? ss.map(function(s){
+      // 학생 코드의 SENSORS 항목은 { key, label, unit, icon, max } 입니다.
+      // 범위 "0~100" 의 윗값을 떼어 max 로 함께 알려 줍니다 (제미나이가 옮겨 적지 않아도 되게)
+      var mx = String(s.range || "").split(/[~\-]/).pop().replace(/[^0-9.]/g, "");
       return '- ' + (s.name || "(이름)") + ' → key "' + (s.key || "(키)") + '", label "' +
-             (s.name || "(이름)") + '", unit "' + (s.unit || "") + '", 값 범위 ' + (s.range || "(범위)");
+             (s.name || "(이름)") + '", unit "' + (s.unit || "") + '", 값 범위 ' + (s.range || "(범위)") +
+             (mx ? ', max ' + mx : "");
     }).join("\n") : "";
 
     d.picoSensorLines = ss.length ? ss.map(function(s){
