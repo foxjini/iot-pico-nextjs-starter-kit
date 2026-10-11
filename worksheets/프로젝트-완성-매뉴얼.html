@@ -133,6 +133,7 @@ pre.prompt{
 }
 pre.prompt .f{color:#ffd56b;font-weight:700}
 pre.prompt .f.empty{color:#ff9d9d;background:rgba(255,120,120,.12);border-radius:3px;padding:0 3px}
+pre.prompt .f-opt.empty{color:inherit;background:none;padding:0}
 pre.code{
   background:#f6f8fb;border:1px solid var(--line);border-radius:10px;padding:14px;
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -309,6 +310,13 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <label class="chk-inline"><input type="checkbox" data-b="servo" checked><span>SG-90 서보 <code>GP15</code></span></label>
     </div>
     <p class="hint" style="margin-top:6px">체크를 풀면 그 핀을 새 부품에 쓸 수 있게 됩니다. <b><code>GP23 · GP24 · GP25 · GP29</code> 는 무선 칩 전용</b>이라 자동 할당에서 항상 빠집니다.</p>
+    <div class="note warn"><span class="hd">체크를 풀면 프롬프트에 「지워 주세요」로 들어갑니다</span>
+      안 쓰는 부품은 <b>핀만 비는 것이 아니라 화면에서도 없어져야</b> 합니다.
+      체크를 풀면 아래 <b>프롬프트 0 · 1 · 2 에 「지워 주세요」 목록이 저절로 생깁니다.</b>
+      <b>DHT11 체크를 풀면 「불쾌지수」까지 같이 들어갑니다</b> — 온도·습도로 계산하는 값이라
+      둘을 지우고 불쾌지수를 남기면 <b>그 카드가 영영 「데이터 없음」</b> 으로 남습니다.
+      <span class="muted">「칩 온도」는 칩 안에 있는 온도계라 부품이 없어도 늘 나옵니다 — 지우지 않습니다.</span>
+    </div>
 
     <h4>자동으로 하고 싶은 일</h4>
     <div class="grid">
@@ -389,15 +397,24 @@ py mock_pi_11.py        (실물 Pico 가 있으면 생략)</pre>
 
 <!-- ══════════ 11주차 ══════════ -->
 <section id="w11">
-  <h2>11주차 · 우리 팀 기능을 끝냅니다 (100분)</h2>
+  <h2>11주차 · 우리 팀 기능을 끝냅니다</h2>
   <p class="muted">순서를 꼭 지키세요. <b>화면 → Pico → 자동 재연결 → 자동 제어</b> 입니다.</p>
 
   <div class="flow">
     <span class="n">0 · 계획 받기</span><span class="a">→</span>
     <span class="n">1 · 화면에 센서</span><span class="a">→</span>
     <span class="n">2 · Pico에 센서</span><span class="a">→</span>
-    <span class="n hot">4 · 자동 재연결 (전시 필수)</span><span class="a">→</span>
-    <span class="n">3 · 자동 제어</span>
+    <span class="n">1-B · 화면 액추에이터</span><span class="a">→</span>
+    <span class="n">2-B · Pico 액추에이터</span><span class="a">→</span>
+    <span class="n hot">4 · 자동 재연결 (전시 필수)</span>
+    <span class="a">→</span><span class="n" style="opacity:.62">[방과후] 3 · 자동 제어</span>
+  </div>
+  <div class="note tip"><span class="hd">시간 — 단계 A~F 를 더하면 126분입니다 (수업은 120분)</span>
+    <b>액추에이터가 없는 팀은 E2 · E3 를 건너뛰어 102분</b>입니다.
+    액추에이터가 있는 팀은 <b>단계 A(소스 묶기 8분)를 수업 전에</b> 해 두면 맞습니다 —
+    묶기는 제미나이 없이 혼자 할 수 있습니다.
+    <b>모자라면 버리는 순서는 G(자동 제어) → E2 · E3 입니다.</b>
+    <b>F(자동 재연결)는 절대 버리지 마세요</b> — 전시 중에 멈춘 화면이 걸립니다.
   </div>
 
   <div class="note danger"><span class="hd">시간이 모자라면 3번을 버리고 4번을 하세요</span>
@@ -469,6 +486,9 @@ node bundle-source.js D:\</pre>
 [ 추가할 액추에이터 ]
 <span class="f" data-f="actuatorLines"></span>
 
+[ 안 쓰기로 한 기본 부품 — 화면에서 지워야 합니다 ]
+<span class="f f-opt" data-f="dropLines">- 없음 (전부 그대로 씁니다)</span>
+
 [ 자동으로 하고 싶은 일 ]
 <span class="f" data-f="autoRule"></span>
 
@@ -479,8 +499,11 @@ node bundle-source.js D:\</pre>
 1. 위 구성대로 하려면 어떤 파일의 어느 부분을 고쳐야 하는지 목록
 2. 제 소스에서 센서를 하나 늘리려면 정확히 어디어디를 같이 고쳐야 하는지
    (타입 · 배열 · 값 모으는 곳 · 상태 판정 — 제 소스에 실제로 있는 것만)
-3. 제가 알려드린 정보 중 빠진 것이 있으면 무엇인지
-4. 어떤 순서로 하면 좋을지</pre>
+3. 안 쓰기로 한 부품이 있으면, 그것을 지울 때도 같은 자리를 전부 같이 고쳐야 하는지
+4. 액추에이터는 화면에서 어떻게 켜고 끄게 되는지, 그 명령이 Pico 까지
+   어떤 경로로 전달되는지 (제 소스에 있는 함수 이름으로 알려 주세요)
+5. 제가 알려드린 정보 중 빠진 것이 있으면 무엇인지
+6. 어떤 순서로 하면 좋을지</pre>
       </div>
       <div class="note tip"><span class="hd">「아직 코드를 고치지 마세요」가 핵심 문장입니다</span>
         계획을 먼저 보면, AI 가 엉뚱하게 이해했을 때 <b>코드를 받기 전에</b> 바로잡을 수 있습니다.
@@ -507,7 +530,7 @@ node bundle-source.js D:\</pre>
 
 <span class="f" data-f="sensorSpecLines"></span>
 
-- 지금 있는 센서들은 하나도 지우지 마세요
+<span class="f" data-f="dropBlock"></span>
 
 ★ 센서 이름이 타입으로 못박혀 있습니다. 배열에 줄만 추가하면 타입 오류가 납니다.
   제 소스에서 아래에 해당하는 자리를 전부 찾아 같이 고쳐 주세요.
@@ -530,6 +553,12 @@ node bundle-source.js D:\</pre>
       <h4>확인 — 두 가지를 <b>모두</b> 보세요</h4>
       <label class="chk"><input type="checkbox" data-c="c16"><span><b>빨간 줄(타입 오류)이 없다</b> — 에디터와 <span class="kbd">F12</span> → Console 둘 다</span></label>
       <label class="chk"><input type="checkbox" data-c="c17"><span><b>화면에 센서 카드가 새로 생겼다</b> — 값이 「데이터 없음」인 것은 정상입니다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c17b"><span>0단계에서 <b>체크를 푼 부품의 카드가 화면에서 사라졌다</b> <span class="muted">(푼 것이 없으면 그냥 체크)</span></span></label>
+      <div class="note tip"><span class="hd">가상 Pico 는 안 쓰는 키도 계속 보냅니다 — 정상입니다</span>
+        화면에서 온습도를 지워도 <b>가상 Pico 는 늘 다섯 개를 보냅니다.</b> 고정된 프로그램이라
+        그렇습니다. <b>화면이 안 쓰는 키는 그냥 무시하므로 아무 문제가 없습니다.</b>
+        실물 Pico 에서는 <a href="#w11">프롬프트 2</a> 가 그 키를 안 보내게 해 줍니다.
+      </div>
 
       <div class="note danger"><span class="hd">🚨 두 번째 확인을 절대 건너뛰지 마세요 — 실제로 측정한 함정입니다</span>
         타입 오류는 <b>빨간 줄로 바로 보입니다.</b> 그런데 <b><code>SENSORS</code> 배열만 빼먹으면
@@ -621,6 +650,7 @@ main.py 에 아래 센서를 추가해 주세요.
 - 읽기에 실패하면 None 을 돌려주세요
 - JSON 키는 화면의 SENSORS key 와 글자 하나까지 같아야 합니다
 
+<span class="f f-opt" data-f="dropPicoBlock"></span>
 1초마다 보내는 주기와 지금 있는 센서들은 그대로 두세요.
 파일 전체 완성본으로 주세요.
 CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 쓰지 마세요.</pre>
@@ -637,6 +667,97 @@ CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 �
         센서 하나만 따로 시험하려고 <code>code.py</code> 를 만들었다면 <b>반드시 지우거나
         <code>code.py.bak</code> 으로 이름을 바꾸세요.</b> CircuitPython 은 <code>code.py</code> 가 있으면
         <code>main.py</code> 를 <b>아예 실행하지 않습니다.</b> 코드는 다 맞는데 연결조차 안 됩니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="step" id="w11-act">
+    <div class="step-hd"><span class="step-no">E2</span><span class="step-title">프롬프트 1-B — 화면에서 <b>손으로</b> 켜고 끕니다</span><span class="step-time">12분</span></div>
+    <div class="step-body">
+      <p><b>액추에이터가 있는 팀만 합니다.</b> 0단계에 액추에이터를 안 넣은 팀은 단계 F 로 건너뛰세요.</p>
+      <div class="note danger"><span class="hd">자동 제어보다 이것이 먼저입니다</span>
+        <b>손으로 켜지지 않는 것을 자동으로 켤 수는 없습니다.</b> 자동 제어(단계 G)는
+        <b>여기와 다음 단계를 끝낸 뒤에만</b> 의미가 있습니다. 순서를 바꾸면
+        「자동 제어를 넣었는데 아무 일도 안 일어난다」로 한 시간을 씁니다.
+      </div>
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 1-B · 손으로 켜고 끄는 버튼</span><button class="copy">복사</button></div>
+<pre class="prompt">이제 우리 팀 액추에이터를 화면에서 손으로 켜고 끌 수 있게 해 주세요.
+
+<span class="f" data-f="actuatorLines"></span>
+
+- 켜짐은 255, 꺼짐은 0 으로 보냅니다 (지금 RGB LED 와 같은 방식)
+- 화면을 처음 열었을 때는 꺼진 상태로 보여 주세요
+
+★ 명령을 Pico 로 보내는 함수가 제 소스에 이미 있으면 그것을 그대로 쓰세요.
+  없으면 새로 만들어 주세요. 함수 이름을 알려 주세요.
+★ 지금 있는 RGB LED 버튼과 서보 슬라이더는 그대로 두세요.
+  이것은 RGB LED 가 아니므로 그 버튼 격자 안에 끼워 넣지 말고 새 카드로 만들어 주세요.
+★ 상태가 바뀔 때만 보내 주세요. 같은 명령을 1초마다 되풀이하면
+  진짜 펌프나 모터는 계속 돕니다.
+
+- 통신 코드(연결 · 끊기 · 자동 재연결)는 건드리지 마세요
+- CSS 는 Tailwind 만 씁니다. 색과 간격은 맨 위의 const UI 객체를 쓰세요
+- 대시보드 page.tsx 전체 완성본으로 주세요
+- 바뀐 줄에 // ★ 주석을 달아 주세요</pre>
+      </div>
+      <h4>확인</h4>
+      <label class="chk"><input type="checkbox" data-c="a01"><span>화면에 <b class="f-inline" data-f="actLabel"></b> 를 켜고 끄는 <b>새 카드</b>가 생겼다 (RGB 버튼 격자 안이 아니다)</span></label>
+      <label class="chk"><input type="checkbox" data-c="a02"><span>버튼을 누르면 <b>가상 Pico 창에 <code>[WS] 수신 메시지</code></b> 가 찍힌다</span></label>
+      <label class="chk"><input type="checkbox" data-c="a03"><span>같은 버튼을 <b>연달아 눌러도</b> 「이미 그 상태인데 또 명령이 왔습니다」 경고가 <b>안 뜬다</b></span></label>
+      <div class="note tip"><span class="hd">여기까지는 「명령이 가는 것」까지만 확인합니다</span>
+        가상 Pico 창에 <code>-&gt; 우리 팀 액추에이터 <span class="f-inline" data-f="actKey"></span>: 255 (켜짐)</code> 까지 찍히면
+        <b>화면 쪽은 끝났습니다.</b> <b>실물이 움직이는 것은 다음 단계</b>입니다.
+      </div>
+      <div class="note danger"><span class="hd">🐞 가상 Pico 를 <code>git pull</code> 로 새로 받으세요 (2026-10-11 수정)</span>
+        그 전의 가상 Pico 는 <b>적용하는 키가 박혀 있어서</b>, 팀 액추에이터 이름이
+        <code>valve</code> 가 아니면 <b>명령은 받아 찍으면서 적용은 하나도 안 했습니다.</b>
+        <code>[WS] 명령 적용 완료</code> 가 찍히니 된 것처럼 보이는데 <b>아무 일도 안 일어납니다.</b>
+        지금은 <b>어떤 이름이든 적용하고 한 줄씩 찍습니다.</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">E3</span><span class="step-title">프롬프트 2-B — <b>Pico 가</b> 그 명령을 실제로 적용하게 합니다</span><span class="step-time">12분</span></div>
+    <div class="step-body">
+      <div class="note danger"><span class="hd">여기를 빠뜨리면 「명령은 가는데 아무 일도 안 일어납니다」</span>
+        단계 E2 까지는 <b>화면이 명령을 보내는 것</b>까지입니다. Pico 쪽 <code>main.py</code> 에
+        <b>그 키를 받아 핀을 움직이는 코드가 없으면</b>, Pico 는 메시지를 받아 찍기만 하고
+        <b>아무것도 하지 않습니다.</b>
+      </div>
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 2-B · Pico 에 액추에이터 추가</span><button class="copy">복사</button></div>
+<pre class="prompt">이제 Pico 쪽입니다.
+main.py 가 화면에서 보낸 명령으로 우리 팀 액추에이터를 실제로 움직이게 해 주세요.
+
+<span class="f" data-f="actuatorLines"></span>
+
+- 켜짐은 255, 꺼짐은 0 으로 받습니다 (지금 RGB LED 와 같은 방식)
+- 명령을 받는 곳에서 적용해 주세요
+- command.get("키", 0) 으로 받아서, 그 키가 안 와도 나머지가 동작하게 해 주세요
+- 시작할 때 꺼진 상태로 초기화해 주세요.
+  안 그러면 전원을 넣자마자 움직입니다
+- 지금 있는 RGB LED 와 서보 처리는 그대로 두세요
+- 1초마다 센서를 보내는 주기도 그대로 두세요
+
+main.py 전체 완성본으로 주세요.
+CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 쓰지 마세요.</pre>
+      </div>
+      <h4>확인</h4>
+      <label class="chk"><input type="checkbox" data-c="a04"><span>시리얼에 <code>[WS] 수신 메시지</code> 와 <b>명령을 적용했다는 줄</b>이 같이 찍힌다</span></label>
+      <label class="chk"><input type="checkbox" data-c="a05"><span><b>실물이 실제로 움직인다</b> <span class="muted">(아직 가상 Pico 로만 하는 팀은 시리얼 줄까지 확인하고 체크)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="a06"><span><b>Pico 전원을 다시 넣었을 때 꺼진 상태로 시작한다</b> — 켜진 채로 시작하면 초기화가 빠진 것</span></label>
+      <div class="note danger"><span class="hd">🚨 모터와 펌프를 <code>3V3</code> 에서 먹이지 마세요</span>
+        <code>3V3</code>(36번 핀)은 다 합쳐 <b>약 300mA</b> 입니다. 넘으면
+        <b>Pico 가 꺼졌다 켜집니다</b> — 대시보드가 자꾸 끊기는 1순위 원인입니다.
+        <b>외부 5V</b>(브레드보드 왼쪽 빨강 레일)에서 받고, <b>GND 는 Pico 와 공통</b>으로 이으세요.
+        <b>Pico 의 VBUS 는 쓰지 않습니다.</b>
+      </div>
+      <div class="note warn"><span class="hd">스텝모터를 쓰는 팀은 한 번에 다 돌리면 안 됩니다</span>
+        <code>time.sleep()</code> 으로 1024스텝을 한 번에 돌리면 <b>그 몇 초 동안 WebSocket 이
+        멈춰 대시보드가 끊어집니다.</b> 프롬프트에
+        <i>"루프가 한 번 돌 때마다 몇 스텝씩만 움직이게 해 주세요"</i> 를 넣으세요.
       </div>
     </div>
   </div>
@@ -708,8 +829,14 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
   </div>
 
   <div class="step opt">
-    <div class="step-hd"><span class="step-no">G</span><span class="step-title">프롬프트 3 — 자동 제어 <span class="muted">(시간이 남으면)</span></span><span class="step-time">18분</span></div>
+    <div class="step-hd"><span class="step-no">G</span><span class="step-title">프롬프트 3 — 자동 제어 <span class="muted">(방과후에 합니다)</span></span><span class="step-time">방과후</span></div>
     <div class="step-body">
+      <div class="note warn"><span class="hd">수업 시간에는 여기까지 안 옵니다 — 방과후 작품 제작 시간에 하세요</span>
+        <b>단계 E2 · E3 를 끝낸 뒤에만 의미가 있습니다.</b> 손으로 켜지지 않는 것을
+        자동으로 켤 수는 없습니다. 수업에서는 <b>단계 F(자동 재연결)까지가 목표</b>입니다 —
+        자동 제어는 <b>없어도 작품이 돌아가지만</b>(관람객이 버튼을 누르면 됩니다),
+        자동 재연결이 없으면 <b>전시 중에 멈춘 화면</b>이 몇 시간 걸려 있게 됩니다.
+      </div>
       <div class="pbox">
         <div class="pbox-hd"><span>프롬프트 3 · 자동 제어</span><button class="copy">복사</button></div>
 <pre class="prompt">자동 제어를 넣어 주세요.
@@ -720,8 +847,8 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
 - 센서값이 null 이면 아무것도 하지 않아야 합니다
 - 지금 상태와 같으면 명령을 다시 보내지 마세요
 
-★ 이것은 RGB LED 가 아니므로, RGB LED 버튼 격자 안에 끼워 넣지 말고
-  새 카드로 만들어 주세요.
+★ 손으로 켜고 끄는 버튼은 그대로 두세요. 자동 모드를 켜고 끄는 스위치를 따로 만들고,
+  자동 모드가 꺼져 있으면 손으로 누른 것이 그대로 유지되어야 합니다.
 
 대시보드 page.tsx 전체 완성본으로 주세요.</pre>
       </div>
@@ -1252,7 +1379,11 @@ main.py 전체 완성본으로 주세요.</pre>
     sensorSpecLines:"- (0단계 설계표에 센서를 먼저 추가하세요)",
     picoSensorLines:"- (0단계 설계표에 센서를 먼저 추가하세요)",
     autoRule:"(센서와 액추에이터를 추가하고 기준 숫자를 적으면 채워집니다)",
-    sensorKey:"(JSON 키)", sensorLabel:"(센서 이름)", actLabel:"(액추에이터 이름)"
+    sensorKey:"(JSON 키)", sensorLabel:"(센서 이름)", actLabel:"(액추에이터 이름)",
+    actKey:"(액추에이터 JSON 키)",
+    // 체크를 푼 기본 부품이 없으면 dropBlock 이 「지우지 마세요」 한 줄이 되므로
+    // 자리표시자는 비워 둡니다 (빈 값이 아니라 늘 실제 문장이 들어갑니다)
+    dropLines:"", dropBlock:"", dropPicoBlock:""
   };
   for (var _p in PH_DERIVED) PH[_p] = PH_DERIVED[_p];
 
@@ -1301,6 +1432,34 @@ main.py 전체 완성본으로 주세요.</pre>
   function sensors(){ return data.items.filter(function(i){ return i.type === "sensor"; }); }
   function actuators(){ return data.items.filter(function(i){ return i.type === "actuator"; }); }
 
+  // 0단계에서 체크를 풀면 화면에서 어떤 키가 없어져야 하는가.
+  // ★ dht11 을 빼면 불쾌지수도 같이 빠집니다 — 온도·습도로 계산하는 값이라서,
+  //   둘을 지우고 discomfort 를 남기면 그 카드가 영영 「데이터 없음」 으로 남습니다.
+  var BASE_SENSOR_KEYS = {
+    dht11: [
+      { key:"temperature", label:"온도" },
+      { key:"humidity",    label:"습도" },
+      { key:"discomfort",  label:"불쾌지수", note:"온도·습도로 계산하는 값이라 같이 빠집니다" }
+    ],
+    cds: [ { key:"light_percent", label:"조도" } ]
+  };
+  var BASE_ACT_KEYS = {
+    rgb:   [ { key:"led_r", label:"RGB LED 빨강" }, { key:"led_g", label:"RGB LED 초록" },
+             { key:"led_b", label:"RGB LED 파랑" } ],
+    servo: [ { key:"servo_angle", label:"SG-90 서보" } ]
+  };
+
+  function droppedEntries(){
+    var out = [];
+    for (var k in BASE_SENSOR_KEYS){
+      if (data.base[k] === false) out = out.concat(BASE_SENSOR_KEYS[k]);
+    }
+    for (var a in BASE_ACT_KEYS){
+      if (data.base[a] === false) out = out.concat(BASE_ACT_KEYS[a]);
+    }
+    return out;
+  }
+
   function computeDerived(){
     var ss = sensors(), aa = actuators();
     var d = {};
@@ -1338,6 +1497,31 @@ main.py 전체 완성본으로 주세요.</pre>
     d.sensorKey   = s0 ? (s0.key  || "") : "";
     d.sensorLabel = s0 ? (s0.name || "") : "";
     d.actLabel    = a0 ? (a0.name || "") : "";
+    d.actKey      = a0 ? (a0.key  || "") : "";
+
+    // ── 0단계에서 체크를 푼 기본 부품 → 「지워 주세요」 블록
+    var drops = droppedEntries();
+    d.dropLines = drops.map(function(e){
+      return '- ' + e.label + ' (키 "' + e.key + '")' + (e.note ? "  ← " + e.note : "");
+    }).join("\n");
+
+    if (drops.length){
+      // 체크를 푼 것이 있으면, 「지우지 마세요」 대신 「이것만 지워 주세요」 로 바뀝니다
+      d.dropBlock =
+        "우리 팀은 아래 부품을 쓰지 않습니다. 화면에서 지워 주세요.\n" +
+        d.dropLines + "\n" +
+        "- 위 목록에 없는 센서는 하나도 지우지 마세요\n" +
+        "- 지울 때도 추가할 때와 같은 자리를 전부 같이 고쳐 주세요\n" +
+        "  (SensorKey 유니온 · SENSORS 배열 · 수신 데이터 타입 · 값 모으는 객체 ·\n" +
+        "   상태 판정 함수 — 제 소스에 실제로 있는 것만)";
+      d.dropPicoBlock =
+        "그리고 아래 키는 이제 안 씁니다. main.py 에서 보내지 않아도 됩니다.\n" + d.dropLines;
+    } else {
+      d.dropBlock = "- 지금 있는 센서들은 하나도 지우지 마세요";
+      d.dropPicoBlock = "";
+      // 프롬프트 0 의 「안 쓰기로 한 기본 부품」 칸이 빈 채로 남지 않게 합니다
+      d.dropLines = "- 없음 (전부 그대로 씁니다)";
+    }
     derived = d;
   }
 
@@ -1348,7 +1532,9 @@ main.py 전체 완성본으로 주세요.</pre>
     var nodes = document.querySelectorAll('[data-f="' + k + '"]');
     for (var i=0;i<nodes.length;i++){
       var n = nodes[i];
-      n.textContent = v || (PH[k] || "(입력하세요)");
+      // f-opt 는 「있으면 넣고 없으면 아무것도 안 넣는」 칸입니다.
+      // 자리표시자를 넣으면 프롬프트에 "(입력하세요)" 가 그대로 붙어 버립니다.
+      n.textContent = v || (n.classList.contains("f-opt") ? "" : (PH[k] || "(입력하세요)"));
       if (n.classList.contains("f")) {
         if (v) n.classList.remove("empty"); else n.classList.add("empty");
       }

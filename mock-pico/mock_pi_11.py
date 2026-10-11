@@ -17,6 +17,11 @@
   del soil           -> 그 키를 빼기
   fail soil          -> 그 센서만 고장 (null) 내기
 
+우리 팀 액추에이터(펌프 · 팬 · 릴레이 등)는 등록하지 않아도 그냥 동작합니다.
+화면이 보내는 키를 그대로 적용하고, 시리얼에 한 줄씩 찍습니다.
+
+  act pump           -> 첫 명령 전에도 상태(s)에 보이게 미리 등록
+
 프롬프트 4(자동 재연결) 확인은 x 를 쓰세요.
   x 를 누르면 5초 동안 서버가 내려갑니다. 진짜로 USB 를 뽑았다 꽂는 것과 같습니다.
   대시보드가 '재연결 중...' 으로 바뀌었다가, 아무것도 누르지 않아도 ONLINE 으로
@@ -144,6 +149,17 @@ STATE = {"dark": False, "hot": False, "dht_broken": False, "cds_broken": False}
 # 브라우저가 보낸 마지막 제어 명령 (진짜 Pico 의 LED/서보 자리)
 ACTUATOR = {"led_r": 0, "led_g": 0, "led_b": 0, "servo_angle": 90, "valve": 0}
 
+# 기본 부품 네 가지. 이 네 개는 아래 요약 줄에 고정으로 찍는다.
+BASE_ACTUATOR_KEYS = ("led_r", "led_g", "led_b", "servo_angle")
+
+# 팀이 새로 붙인 액추에이터 이름. 콘솔의 act 로 미리 등록할 수 있고,
+# 등록하지 않아도 브라우저가 그 키를 보내는 순간 여기에 들어간다.
+# (예전에는 적용할 키가 ("led_r", ..., "valve") 로 박혀 있어서,
+#  팀 키가 pump 면 명령은 받아 찍으면서 적용은 안 되는 모양이었다.)
+# valve 는 스마트팜 공통 예제에서 쓰던 키다. 쓰는 팀의 화면이 보내는 순간 들어온다 —
+# 미리 넣어두면 쓰지 않는 팀의 시리얼에 쓸데없는 줄이 한 줄 더 찍힌다.
+TEAM_ACTUATOR = set()
+
 
 def _temperature(n):
     if STATE["dht_broken"]:
@@ -169,20 +185,46 @@ def _light_percent(n):
     return round(60 + math.sin(n / 3.0) * 20, 1)
 
 
+def _on_off(value):
+    """0 이 아니면 켜짐. 진짜 Pico 의 pin.value = (값 > 0) 과 같게 본다."""
+    try:
+        return "켜짐" if float(value) > 0 else "꺼짐"
+    except (TypeError, ValueError):
+        return "켜짐" if value else "꺼짐"
+
+
 def apply_command(command):
-    """브라우저가 보낸 JSON 을 진짜 Pico 처럼 적용한다."""
-    before_valve = ACTUATOR["valve"]
-    for key in ("led_r", "led_g", "led_b", "servo_angle", "valve"):
-        if key in command:
-            ACTUATOR[key] = command[key]
+    """브라우저가 보낸 JSON 을 진짜 Pico 처럼 적용한다.
+
+    팀이 어떤 키를 쓰든 적용한다. 키 목록을 박아두면, 팀 키가 pump 일 때
+    명령은 받아 찍으면서 아무것도 적용되지 않아 "수신은 되는데 동작은 안 되는"
+    모양이 된다. 그래서 받은 키를 전부 반영하고, 기본 네 개가 아닌 키는
+    적용됐다는 것이 보이게 한 줄씩 따로 찍는다.
+    """
+    before = dict(ACTUATOR)
+    for key, value in command.items():
+        ACTUATOR[key] = value
+        if key not in BASE_ACTUATOR_KEYS:
+            TEAM_ACTUATOR.add(key)
+
     print("[WS] 명령 적용 완료:", json.dumps(command, ensure_ascii=False))
-    print("      -> LED:({}, {}, {})  서보:{}도  밸브:{}".format(
-        ACTUATOR["led_r"], ACTUATOR["led_g"], ACTUATOR["led_b"], ACTUATOR["servo_angle"],
-        "열림" if ACTUATOR["valve"] else "닫힘"))
-    # 같은 명령이 1 초마다 되풀이되면 진짜 스텝모터는 계속 돈다 — 그것을 눈에 보이게 한다
-    if "valve" in command and command["valve"] == before_valve:
-        print("      (!) 밸브가 이미 그 상태인데 또 명령이 왔습니다 "
-              "— \"상태가 바뀔 때만 보내기\" 가 빠졌습니다")
+    print("      -> LED:({}, {}, {})  서보:{}도".format(
+        ACTUATOR["led_r"], ACTUATOR["led_g"], ACTUATOR["led_b"], ACTUATOR["servo_angle"]))
+
+    # 팀이 새로 붙인 액추에이터는 이름을 그대로 보여준다 — 적용된 증거가 눈에 보여야 한다
+    for key in sorted(TEAM_ACTUATOR):
+        if key in ACTUATOR:
+            mark = " <- 방금 적용" if key in command else ""
+            print("      -> 우리 팀 액추에이터 {}: {} ({}){}".format(
+                key, ACTUATOR[key], _on_off(ACTUATOR[key]), mark))
+
+    # 같은 명령이 1 초마다 되풀이되면 진짜 펌프·스텝모터는 계속 돈다 — 그것을 눈에 보이게 한다
+    for key in command:
+        if key in BASE_ACTUATOR_KEYS:
+            continue
+        if key in before and before[key] == command[key]:
+            print("      (!) '{}' 이(가) 이미 그 상태인데 또 명령이 왔습니다 "
+                  "— \"상태가 바뀔 때만 보내기\" 가 빠졌습니다".format(key))
 
 
 def _discomfort(t, h):
@@ -223,7 +265,11 @@ def _status():
         bits.append("DHT11 고장")
     if STATE["cds_broken"]:
         bits.append("조도센서 고장")
-    return " + ".join(bits) if bits else "보통"
+    head = " + ".join(bits) if bits else "보통"
+    acts = ["{}={}".format(k, ACTUATOR[k]) for k in sorted(TEAM_ACTUATOR) if k in ACTUATOR]
+    if acts:
+        head += "  |  우리 팀 액추에이터: " + ", ".join(acts)
+    return head
 
 
 def build_payload(n):
@@ -265,6 +311,7 @@ def print_menu():
     print("        x USB 뽑았다 꽂기(자동 재연결 확인) / s 상태 / q 종료")
     print("        add <키> <최소> <최대>   우리 팀 센서 추가   (예: add soil 0 100)")
     print("        del <키> / fail <키>")
+    print("        act <키>                 우리 팀 액추에이터 등록 (예: act pump)")
 
 
 def handle_key(line):
@@ -277,6 +324,15 @@ def handle_key(line):
         TEAM[name] = {"lo": lo, "hi": hi, "v": (lo + hi) / 2, "broken": False}
         print(">> '{}' 키를 {}~{} 범위로 보내기 시작합니다.".format(name, lo, hi))
         print("   화면의 SENSORS 배열 key 와 글자 하나까지 같은지 확인하세요.")
+        return
+    if key == "act" and len(parts) >= 2:
+        name = parts[1]
+        TEAM_ACTUATOR.add(name)
+        ACTUATOR.setdefault(name, 0)
+        print(">> '{}' 을(를) 우리 팀 액추에이터로 등록했습니다. 지금은 {} 입니다.".format(
+            name, _on_off(ACTUATOR[name])))
+        print("   화면에서 보내는 JSON 키와 글자 하나까지 같은지 확인하세요.")
+        print("   등록하지 않아도, 화면이 그 키를 보내는 순간 적용됩니다.")
         return
     if key == "del" and len(parts) >= 2:
         if TEAM.pop(parts[1], None) is not None:
