@@ -251,6 +251,7 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <a href="#s0">0 · 준비</a>
       <a href="#w11">11주차 · 기능 완성</a>
       <a href="#w14">14주차 · 전시 준비</a>
+      <a href="#w15">실물 Pico 로 옮기기</a>
       <a href="#stuck">막혔을 때</a>
       <a href="#errors">오류 사전</a>
       <a href="#dday-sec">전시 당일</a>
@@ -378,6 +379,10 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
 py mock_pi_11.py        (실물 Pico 가 있으면 생략)</pre>
       <label class="chk"><input type="checkbox" data-c="c05"><span>대시보드가 열리고 <b>ONLINE</b> 이 된다</span></label>
       <label class="chk"><input type="checkbox" data-c="c06"><span>센서 값이 들어오고, 빨간 오류 줄(<span class="kbd">F12</span> → Console)이 없다</span></label>
+      <div class="note warn"><span class="hd">가상 Pico 로 개발해도 됩니다 — 단, <b>전시 전에 실물로 옮겨야</b> 합니다</span>
+        11주차는 가상 Pico 로 해도 됩니다. <b>전시장에는 가상 Pico 가 없으므로</b>,
+        <b>단계 L(무인 리허설)에 들어가기 전에</b> 실물 Pico 로 옮기세요 → <a href="#w15">단계 15</a>.
+      </div>
     </div>
   </div>
 </section>
@@ -896,15 +901,179 @@ useEffect(() =&gt; {
     </div>
   </div>
 
+  <div class="step must" id="w15">
+    <div class="step-hd"><span class="step-no">15</span><span class="step-title">실물 Pico 로 옮기기 — <b>가상 Pico 로만 개발한 팀은 필수</b></span><span class="step-time">별도 시간</span></div>
+    <div class="step-body">
+      <div class="note danger"><span class="hd">전시장에는 가상 Pico 가 없습니다</span>
+        <b>가상 Pico 는 윈도우 PC 에서 돌던 파이썬 프로그램입니다.</b> 전시장에 가져갈 수 없습니다.
+        가상 Pico 로만 개발해 온 팀은 <b>아래 리허설(L)에 들어가기 전에</b> 이 단계를 끝내야 합니다.
+        <b>리허설을 통과해도 실물로 옮기지 않으면 전시가 안 됩니다.</b>
+      </div>
+      <table>
+        <thead><tr><th style="width:46%">우리 팀은</th><th>언제 하나</th></tr></thead>
+        <tbody>
+          <tr><td><b>가상 Pico 로만 개발해 왔다</b> (실물로 한 번도 안 돌려 봄)</td><td>🚨 <b>지금, 단계 L 보다 먼저</b></td></tr>
+          <tr><td>실물 Pico 로 이미 센서가 다 들어온다</td><td>단계 L 뒤에 — <b>우리 팀 센서 추가분만</b></td></tr>
+        </tbody>
+      </table>
+      <div class="note ok"><span class="hd">오늘 하는 일은 한 문장입니다</span>
+        화면은 <b>가상 Pico 가 보내던 JSON</b> 에 맞춰 만들어졌습니다.
+        <b>진짜 Pico 가 똑같은 JSON 을 보내게</b> 하면 <b>화면은 한 글자도 안 고쳐도 됩니다.</b>
+      </div>
+
+      <h4>3주차 <code>main.py</code> 는 키를 <b>두 개 빠뜨리고</b> 있습니다</h4>
+      <table>
+        <thead><tr><th style="width:26%">JSON 키</th><th style="width:16%">가상 Pico</th><th style="width:16%">내 <code>main.py</code></th><th>진짜 Pico 에서 만드는 법</th></tr></thead>
+        <tbody>
+          <tr><td><code>temperature</code> · <code>humidity</code></td><td>✅</td><td>✅</td><td><code>adafruit_dht.DHT11</code> (<b>2초 이상 간격</b>)</td></tr>
+          <tr><td><code>light_percent</code></td><td>✅</td><td>✅</td><td><code>analogio.AnalogIn(board.GP26)</code></td></tr>
+          <tr><td><b><code>cpu_temp</code></b></td><td>✅</td><td><b>❌ 없음</b></td><td><b><code>microcontroller.cpu.temperature</code></b> — <b>부품 없이</b> 읽힙니다</td></tr>
+          <tr><td><b><code>discomfort</code></b></td><td>✅</td><td><b>❌ 없음</b></td><td>온도·습도로 <b>계산</b></td></tr>
+          <tr><td>우리 팀 센서 (<code class="f-inline" data-f="sensorKey"></code>)</td><td>콘솔 <code>add</code></td><td>❌ 없음</td><td>실제 핀에서 읽기</td></tr>
+        </tbody>
+      </table>
+      <div class="note danger"><span class="hd">이 두 키를 빼놓고 전시에 나가면</span>
+        화면의 <b>「칩 온도」와 「불쾌지수」 카드에 「데이터 없음」이 그대로 남습니다.</b>
+        아래 <b>프롬프트 0</b> 이 바로 이것을 제미나이가 찾아내게 하는 질문입니다.
+      </div>
+
+      <h4>시작 전 — 네 가지 확인</h4>
+      <label class="chk"><input type="checkbox" data-c="p01"><span><code>CIRCUITPY/lib</code> 에 <b><code>adafruit_httpserver</code>(폴더) · <code>asyncio</code>(폴더) · <code>adafruit_ticks.mpy</code></b> 가 다 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="p02"><span><code>settings.toml</code> 에 Wi-Fi SSID · 비밀번호가 들어 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="p03"><span><b><code>code.py</code> 를 지웠다</b> — 있으면 <code>main.py</code> 가 <b>아예 안 돕니다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="p04"><span>제미나이에 올릴 파일 <b>세 개</b>를 챙겼다 — <code>mock_pi_11.py</code> · 내 <code>main.py</code> · <code>프로젝트-규칙.md</code></span></label>
+      <div class="note warn"><span class="hd"><code>asyncio</code> 는 CircuitPython 내장이 아닙니다</span>
+        <code>circup install asyncio</code> 를 쓰면 <code>adafruit_ticks</code> 까지 같이 깔립니다.
+        <b><code>adafruit_ticks.mpy</code> 를 가장 많이 빠뜨립니다.</b>
+      </div>
+      <div class="note danger"><span class="hd">🚨 <code>settings.toml</code> 은 절대 올리지 마세요</span>
+        <b>실습실 공유기 비밀번호</b>가 들어 있습니다. <code>main.py</code> 는
+        <code>os.getenv()</code> 로 읽으니 <b>코드 안에 비밀번호가 없습니다</b> — 그래서
+        <code>main.py</code> 는 올려도 됩니다. <b><code>settings.toml</code> 만 빼면 됩니다.</b>
+      </div>
+
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 0 · 무엇이 다른지 표로 받기 (아직 고치지 않습니다)</span><button class="copy">복사</button></div>
+<pre class="prompt">첨부한 파일 세 개를 먼저 읽어 주세요.
+- 프로젝트-규칙.md : 지켜야 할 규칙입니다. §11 을 특히 잘 읽어 주세요.
+- mock_pi_11.py   : 윈도우 PC 에서 진짜 Pico 를 흉내 내던 프로그램입니다.
+- main.py         : 진짜 Pico 에서 도는 지금 코드입니다.
+
+제 화면(대시보드)은 mock_pi_11.py 가 보내던 JSON 에 맞춰 만들어져 있습니다.
+이제 진짜 Pico 가 그와 똑같은 JSON 을 보내게 하려고 합니다.
+
+★ mock_pi_11.py 에서 가져올 것은 "무엇을 보내는가" 하나뿐입니다.
+  그 파일은 PC 용 파이썬(CPython)이라 socket · threading 으로 WebSocket 을 직접 만들었지만,
+  진짜 Pico 는 CircuitPython 이고 adafruit_httpserver + asyncio 를 씁니다.
+  제 main.py 의 통신 구조(server.route · Websocket · async 태스크 세 개 · run(main()))는
+  그대로 두세요.
+
+──────────────────────────────
+아직 코드를 고치지 마세요.
+먼저 아래 네 가지만 답해 주세요.
+
+1. mock_pi_11.py 의 build_payload() 가 보내는 JSON 키를 전부 적어 주세요.
+2. 그중에서 제 main.py 가 아직 안 보내고 있는 키는 무엇인지
+3. 그 키를 진짜 Pico 에서는 무엇으로 만들 수 있는지 (부품이 필요한지, 계산인지)
+4. 어떤 순서로 고치면 좋을지</pre>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="p05"><span>제미나이가 <b><code>cpu_temp</code> 와 <code>discomfort</code> 를 스스로 찾아냈다</b> — 못 찾으면 규칙 문서를 같이 올렸는지 확인</span></label>
+      <div class="note danger"><span class="hd">제미나이가 <code>socket</code> · <code>threading</code> 을 쓰겠다고 하면 멈추세요</span>
+        <b>가상 Pico 의 구조를 베끼려는 것입니다.</b> 그건 PC 용 파이썬 방식이고,
+        우리 Pico 는 CircuitPython 입니다. <b>이것을 알아채는 것이 이 단계에서 배우는 것입니다</b> —
+        아래 <a href="#stuck">되돌리는 프롬프트</a>로 바로잡으세요.
+      </div>
+
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 1 · 빠진 공통 키 두 개 채우기</span><button class="copy">복사</button></div>
+<pre class="prompt">좋습니다. 먼저 빠진 공통 키부터 채우겠습니다.
+
+main.py 의 send_sensor_messages() 가 보내는 payload 에
+cpu_temp 와 discomfort 를 추가해 주세요.
+
+- cpu_temp : 칩에 들어 있는 온도계를 쓰세요. 부품을 새로 붙이지 않습니다.
+- discomfort : mock_pi_11.py 의 _discomfort() 와 같은 식을 쓰세요.
+  온도나 습도가 None 이면 계산하지 말고 None 을 넣어 주세요.
+
+- 지금 보내고 있는 temperature · humidity · light_percent 는 그대로 두세요
+- 읽기에 실패하면 None 을 돌려주세요. 0 으로 때우지 마세요
+- 통신 구조(server.route · Websocket · async 태스크)는 건드리지 마세요
+
+main.py 전체 완성본으로 주세요.
+CircuitPython 문법만 쓰세요. machine, utime, socket, threading 은 쓰지 마세요.</pre>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="p06"><span>시리얼의 <code>[WS] 송신 메시지</code> 에 <b><code>cpu_temp</code> · <code>discomfort</code> 가 들어 있고</b>, 화면의 그 두 카드에 <b>값이 들어온다</b></span></label>
+
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 2 · 우리 팀 센서를 <b>진짜로</b> 읽기</span><button class="copy">복사</button></div>
+<pre class="prompt">이제 우리 팀 센서를 진짜 핀에서 읽게 해 주세요.
+
+<span class="f" data-f="picoSensorLines"></span>
+
+가상 Pico 는 이 값을 지어내고 있었습니다. 진짜 핀에서 읽어서
+같은 범위의 숫자가 나오도록 바꿔 주세요.
+
+- 읽기에 실패하면 None 을 돌려주세요
+- 지금 보내고 있는 다섯 개 키는 그대로 두세요
+- JSON 키는 화면의 SENSORS key 와 글자 하나까지 같아야 합니다
+
+main.py 전체 완성본으로 주세요.</pre>
+      </div>
+      <div class="note danger"><span class="hd">🚨 코드보다 전압이 먼저입니다</span>
+        Pico 의 핀은 <b>3.3V 까지</b>입니다. 센서가 Pico 로 <b>내보내는 신호</b>가 5V 면
+        그 핀이 망가집니다 (HC-SR04 의 ECHO 가 대표적 — <b>분압 필수</b>).
+        <b>배선은 USB 를 뽑은 상태에서</b> 하고, <b>GND 를 반드시</b> 이으세요.
+      </div>
+      <label class="chk"><input type="checkbox" data-c="p07"><span><b class="f-inline" data-f="sensorLabel"></b> 를 <b>손으로 건드리면</b> 시리얼의 값과 화면 숫자가 <b>따라 움직인다</b></span></label>
+
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 3 · 우리 팀 액추에이터 움직이기</span><button class="copy">복사</button></div>
+<pre class="prompt">이제 화면에서 보낸 명령으로 우리 팀 액추에이터를 움직이게 해 주세요.
+
+<span class="f" data-f="actuatorLines"></span>
+- 켜짐은 255, 꺼짐은 0 으로 받습니다 (지금 RGB LED 와 같은 방식)
+
+- handle_websocket_requests() 안에서 적용해 주세요
+- command.get("키", 0) 으로 받아서, 그 키가 안 와도 나머지가 동작하게 해 주세요
+- 시작할 때 꺼진 상태로 초기화해 주세요.
+  안 그러면 전원을 넣자마자 움직입니다
+- 지금 있는 RGB LED 와 서보 처리는 그대로 두세요
+
+main.py 전체 완성본으로 주세요.</pre>
+      </div>
+      <div class="note danger"><span class="hd">🚨 모터와 펌프를 <code>3V3</code> 에서 먹이지 마세요</span>
+        <code>3V3</code>(36번 핀)은 다 합쳐 <b>약 300mA</b> 입니다. 넘으면
+        <b>Pico 가 꺼졌다 켜집니다</b> — 대시보드가 자꾸 끊기는 1순위 원인입니다.
+        <b>외부 5V</b>(브레드보드 왼쪽 빨강 레일)에서 받으세요. <b>Pico 의 VBUS 는 쓰지 않습니다.</b>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="p08"><span>화면에서 버튼을 누르면 <b class="f-inline" data-f="actLabel"></b> 가 <b>실제로 움직인다</b></span></label>
+
+      <div class="note warn"><span class="hd">마지막 — 가상 Pico 창을 완전히 닫으세요</span>
+        이제 진짜 Pico 만 남습니다. <b>IP 는 켤 때마다 바뀌니</b> 시리얼 모니터에서 확인해
+        화면에 넣으세요. <b>센서 카드에 「데이터 없음」이 하나도 없어야</b> 합니다 —
+        하나 남아 있으면 <b>그 키를 아직 안 보내고 있는 것</b>입니다.
+      </div>
+      <label class="chk"><input type="checkbox" data-c="p09"><span><b>가상 Pico 를 끈 채로 30분</b> 동안 시리얼에 <b>Traceback 이 한 번도 안 떴다</b></span></label>
+      <div class="note tip"><span class="hd">더 자세한 프롬프트와 오류 사전</span>
+        <code>week15-real-pico/프롬프트-모음-실물Pico.md</code> 에 프롬프트 4(센서가 죽어도 안 멈추게)와
+        시리얼 오류 표가 더 있습니다.
+      </div>
+    </div>
+  </div>
+
   <div class="step must">
     <div class="step-hd"><span class="step-no">L</span><span class="step-title">무인 리허설 — 30분 동안 아무도 손대지 않습니다</span><span class="step-time">30분</span></div>
     <div class="step-body">
+      <div class="note danger"><span class="hd">전시에 실물로 나가는 팀은 이 리허설도 <b>실물 Pico 로</b> 돌리세요</span>
+        <b>가상 Pico 로 통과해도 전시가 안 됩니다.</b> 전시장에는 그 창이 없습니다.
+        아직 실물로 안 옮겼으면 <a href="#w15">단계 15</a> 를 먼저 하세요.
+      </div>
       <div class="note danger"><span class="hd">리허설 없이 전시에 나가면 당일 아침에 발견합니다</span>
         지금부터 30분 동안 <b>코드를 고치지 않습니다.</b> 고쳤으면 <b>30분을 처음부터</b> 다시 셉니다.
         고친 뒤 10분만 보고 괜찮다고 넘긴 것이 당일에 터집니다.
       </div>
       <label class="chk"><input type="checkbox" data-c="c46"><span>전시 모드를 켜 두고 <b>30분 뒤에도 화면이 켜져 있다</b></span></label>
-      <label class="chk"><input type="checkbox" data-c="c47"><span>중간에 가상 Pico 창에 <code>x</code> 를 쳐서 끊었다가 → <b>아무것도 안 누르고 저절로 ONLINE</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c47"><span>중간에 <b>연결을 한 번 끊었다가</b> (실물 Pico 면 <b>USB 를 뽑았다가 꽂기</b>, 가상 Pico 면 <code>x</code>) → <b>아무것도 안 누르고 저절로 ONLINE</b></span></label>
       <label class="chk"><input type="checkbox" data-c="c48"><span>30분 내내 <b>오류 화면이 한 번도 안 떴다</b></span></label>
       <label class="chk"><input type="checkbox" data-c="c49"><span>센서 카드에 <b>「데이터 없음」이 없다</b></span></label>
       <label class="chk"><input type="checkbox" data-c="c50"><span>노트북 <b>전원 어댑터가 꽂혀 있다</b></span></label>
@@ -1034,6 +1203,8 @@ useEffect(() =&gt; {
     <thead><tr><th style="width:44%">하지 말 것</th><th>왜</th></tr></thead>
     <tbody>
       <tr><td><b>프로젝트 폴더를 통째로 압축해서 올리기</b></td><td><code>.env.local</code>(MySQL 접속 정보)과 <code>settings.toml</code>(공유기 비밀번호)이 같이 올라갑니다. <b>반드시 묶기 스크립트를 쓰세요</b></td></tr>
+      <tr><td><b><code>CIRCUITPY/settings.toml</code> 올리기</b></td><td><b>실습실 공유기 비밀번호</b>가 들어 있습니다. <code>main.py</code> 는 <code>os.getenv()</code> 로 읽으니 <b><code>main.py</code> 만 올리면 됩니다</b></td></tr>
+      <tr><td><b>실물로 안 옮기고 전시 나가기</b></td><td><b>전시장에는 가상 Pico 가 없습니다.</b> 리허설을 통과해도 화면에 값이 안 들어옵니다 → <a href="#w15">단계 15</a></td></tr>
       <tr><td><b>프롬프트에 비밀번호 · 개인정보 쓰기</b></td><td>Wi-Fi 비밀번호, DB 비밀번호, 이름 · 학번 · 전화번호를 쓰지 마세요. <b>한 번 올라가면 되돌릴 수 없습니다</b></td></tr>
       <tr><td><b><code>프로젝트-규칙-tailwind.md</code> 올리기</b></td><td>13주차(참고) 전용입니다. 제미나이가 <b>우리 코드에 없는 색 이름</b>을 쓴 코드를 내놓습니다</td></tr>
       <tr><td><b>한 번에 여러 가지 요청하기</b></td><td>안 될 때 <b>어느 쪽이 문제인지 알 수 없습니다.</b> 하나 받으면 붙여넣고 돌려본 뒤 다음으로</td></tr>
@@ -1057,6 +1228,7 @@ useEffect(() =&gt; {
     11주차 + 14주차 작품 완성 매뉴얼 · 2026-10-11<br>
     같이 보는 것 — <code>week11-vibe-coding/프롬프트-모음-우리팀.md</code> ·
     <code>week14-tailwind-vibe/프롬프트-모음-전시.md</code> ·
+    <code>week15-real-pico/프롬프트-모음-실물Pico.md</code> ·
     <code>mock-pico/README.md</code>
   </div>
 </footer>
@@ -1320,6 +1492,19 @@ useEffect(() =&gt; {
       }
       if (found){ item.pin = found[0]; taken = taken.concat(found); }
     });
+    // 연결 방식을 안 고른 센서는 아날로그인지 알 수 없습니다.
+    // 그냥 두면 디지털 핀이 조용히 배정돼, 아날로그 센서인 팀이 핀을 잘못 쓴 채로
+    // 15단계 프롬프트 2 까지 그 핀을 들고 갑니다. 그래서 먼저 고르게 합니다.
+    var noSignal = data.items.filter(function(i){
+      return i.type === "sensor" && !(i.signal || "").trim();
+    });
+    if (noSignal.length){
+      alert("센서의 「연결 방식」을 먼저 고르세요.\n\n" +
+            noSignal.map(function(i){ return "· " + (i.name || "(이름 없는 센서)"); }).join("\n") +
+            "\n\n아날로그인지 디지털인지에 따라 쓸 수 있는 핀이 다릅니다 " +
+            "(아날로그는 GP27 · GP28 두 개뿐입니다).");
+      return;
+    }
     var ai = 0, di = 0;
     data.items.filter(function(i){ return i.signal !== ACT_SIGNALS[2]; }).forEach(function(item){
       var wantAnalog = item.type === "sensor" && /아날로그/.test(item.signal || "");
