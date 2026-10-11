@@ -154,6 +154,32 @@ pre.term{
 }
 .fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(8,102,255,.14)}
 .fld .hint{font-size:11.5px;color:var(--text-3);margin-top:3px}
+.hint{font-size:12px;color:var(--text-3)}
+
+/* I/O 설계표 */
+.io-wrap{overflow-x:auto;margin-top:10px}
+.io-table{width:100%;min-width:780px;border-collapse:collapse;font-size:13px;background:var(--card)}
+.io-table th{background:#f2f5f9;border:1px solid var(--line);padding:7px 8px;font-size:12px;font-weight:700;text-align:left}
+.io-table td{border:1px solid var(--line);padding:5px 6px;vertical-align:middle}
+.io-table input,.io-table select{
+  width:100%;padding:6px 8px;border:1px solid #cfd5df;border-radius:6px;
+  font-family:inherit;font-size:13px;background:#fff;color:var(--text);
+}
+.io-table input:focus,.io-table select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(8,102,255,.14)}
+.io-table input.bad{border-color:var(--bad);background:#fff5f5}
+.tag{display:inline-block;border-radius:6px;padding:3px 8px;font-size:11.5px;font-weight:800;white-space:nowrap}
+.tag.s{background:var(--ok-bg);color:#046c4e}
+.tag.a{background:var(--warn-bg);color:#92400e}
+.del{background:#fff;border:1px solid #e3c6c6;color:var(--bad);border-radius:6px;padding:4px 8px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.del:hover{background:#fff1f1}
+.io-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn-accent{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:7px 14px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.btn-accent:hover{background:#1b3a6b}
+.io-empty{color:var(--text-3);font-size:13px;padding:14px;text-align:center}
+.io-sub{font-size:14px;font-weight:700;margin:18px 0 6px;color:var(--text-2)}
+.base-row{display:flex;flex-wrap:wrap;gap:14px}
+.chk-inline{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.chk-inline input{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
 
 /* 흐름 */
 .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
@@ -249,30 +275,39 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <div class="fld"><label>Pico IP 주소</label><input data-k="picoIp" placeholder="192.168.0.42"><div class="hint">시리얼 모니터에 찍힙니다. 가상 Pico면 localhost</div></div>
     </div>
 
-    <h4>추가할 센서 (대표 1개 — 더 있으면 같은 순서를 반복하면 됩니다)</h4>
-    <div class="grid">
-      <div class="fld"><label>센서 이름</label><input data-k="sensorLabel" placeholder="토양수분"></div>
-      <div class="fld"><label>JSON 키 (영문)</label><input data-k="sensorKey" placeholder="soil"><div class="hint">화면과 Pico가 글자 하나까지 같아야 합니다</div></div>
-      <div class="fld"><label>단위</label><input data-k="sensorUnit" placeholder="%"></div>
-      <div class="fld"><label>핀</label><input data-k="sensorPin" placeholder="GP27"><div class="hint">아날로그는 GP27 · GP28 두 개뿐</div></div>
-      <div class="fld"><label>값의 범위</label><input data-k="sensorRange" placeholder="0~100"></div>
-      <div class="fld"><label>연결 방식</label>
-        <select data-k="sensorSignal">
-          <option value="">고르세요</option>
-          <option>아날로그 (analogio.AnalogIn)</option>
-          <option>디지털 (digitalio.DigitalInOut)</option>
-          <option>I2C</option>
-          <option>UART</option>
-        </select>
-      </div>
+    <h4>새로 붙이는 부품 — 센서와 액추에이터</h4>
+    <p class="muted" style="margin-top:0">몇 개든 추가할 수 있습니다. <b>핀을 모르겠으면 「핀 자동 할당」</b>을 누르세요 — 이미 쓰는 핀과 무선 칩 전용 핀을 피해서 골라 줍니다.</p>
+
+    <div class="io-wrap">
+      <table class="io-table">
+        <thead>
+          <tr>
+            <th style="width:76px">구분</th>
+            <th>이름</th>
+            <th style="width:120px">JSON 키</th>
+            <th style="width:150px">연결 방식</th>
+            <th style="width:96px">핀</th>
+            <th style="width:120px">단위 / 범위</th>
+            <th style="width:44px"></th>
+          </tr>
+        </thead>
+        <tbody id="ioBody"></tbody>
+      </table>
+    </div>
+    <div class="io-btns">
+      <button class="btn-ghost" onclick="addIo('sensor')">+ 센서 추가</button>
+      <button class="btn-ghost" onclick="addIo('actuator')">+ 액추에이터 추가</button>
+      <button class="btn-accent" onclick="autoPins()">⚡ 핀 자동 할당</button>
     </div>
 
-    <h4>추가할 액추에이터 (없으면 비워 두세요)</h4>
-    <div class="grid">
-      <div class="fld"><label>액추에이터 이름</label><input data-k="actLabel" placeholder="급수 펌프"></div>
-      <div class="fld"><label>JSON 키 (영문)</label><input data-k="actKey" placeholder="pump"></div>
-      <div class="fld"><label>핀</label><input data-k="actPin" placeholder="GP14"></div>
+    <h5 class="io-sub">이미 쓰고 있는 부품 — 그대로 두는 것에 체크</h5>
+    <div class="base-row">
+      <label class="chk-inline"><input type="checkbox" data-b="dht11" checked><span>DHT11 온습도 <code>GP16</code></span></label>
+      <label class="chk-inline"><input type="checkbox" data-b="cds" checked><span>CdS 조도 <code>GP26</code></span></label>
+      <label class="chk-inline"><input type="checkbox" data-b="rgb" checked><span>RGB LED <code>GP17~19</code></span></label>
+      <label class="chk-inline"><input type="checkbox" data-b="servo" checked><span>SG-90 서보 <code>GP15</code></span></label>
     </div>
+    <p class="hint" style="margin-top:6px">체크를 풀면 그 핀을 새 부품에 쓸 수 있게 됩니다. <b><code>GP23 · GP24 · GP25 · GP29</code> 는 무선 칩 전용</b>이라 자동 할당에서 항상 빠집니다.</p>
 
     <h4>자동으로 하고 싶은 일</h4>
     <div class="grid">
@@ -424,13 +459,13 @@ node bundle-source.js D:\</pre>
 <span class="f" data-f="topic"></span>
 
 [ 추가할 센서 ]
-- <span class="f" data-f="sensorLabel"></span> / <span class="f" data-f="sensorPin"></span> / <span class="f" data-f="sensorUnit"></span> / <span class="f" data-f="sensorRange"></span> / JSON 키 "<span class="f" data-f="sensorKey"></span>"
+<span class="f" data-f="sensorLines"></span>
 
 [ 추가할 액추에이터 ]
-- <span class="f" data-f="actLabel"></span> / <span class="f" data-f="actPin"></span> / JSON 키 "<span class="f" data-f="actKey"></span>"
+<span class="f" data-f="actuatorLines"></span>
 
 [ 자동으로 하고 싶은 일 ]
-<span class="f" data-f="sensorLabel"></span> 이 <span class="f" data-f="threshold"></span> 보다 <span class="f" data-f="direction"></span> <span class="f" data-f="actLabel"></span> 를 켠다
+<span class="f" data-f="autoRule"></span>
 
 ──────────────────────────────
 아직 코드를 고치지 마세요.
@@ -463,9 +498,10 @@ node bundle-source.js D:\</pre>
 <pre class="prompt">좋습니다. 그 순서대로 진행해 주세요.
 
 먼저 화면부터 하겠습니다.
-대시보드 page.tsx 에 <span class="f" data-f="sensorLabel"></span> 을 추가해 주세요.
+대시보드 page.tsx 에 아래 센서를 추가해 주세요.
 
-- key 는 "<span class="f" data-f="sensorKey"></span>", label 은 "<span class="f" data-f="sensorLabel"></span>", unit 은 "<span class="f" data-f="sensorUnit"></span>", 값 범위는 <span class="f" data-f="sensorRange"></span> 입니다
+<span class="f" data-f="sensorSpecLines"></span>
+
 - 지금 있는 센서들은 하나도 지우지 마세요
 
 ★ 센서 이름이 타입으로 못박혀 있습니다. 배열에 줄만 추가하면 타입 오류가 납니다.
@@ -514,22 +550,71 @@ node bundle-source.js D:\</pre>
   <div class="step">
     <div class="step-hd"><span class="step-no">E</span><span class="step-title">프롬프트 2 — Pico 에 센서를 추가합니다</span><span class="step-time">20분</span></div>
     <div class="step-body">
-      <div class="note warn"><span class="hd">코드보다 전압이 먼저입니다</span>
+      <div class="note danger"><span class="hd">🚨 코드보다 전압이 먼저입니다 — 이건 보드가 죽는 이야기입니다</span>
         Pico 의 핀은 <b>3.3V 까지만</b> 견딥니다. 센서가 Pico 로 <b>내보내는 신호</b>가 5V 면 그 핀이 망가집니다.
-        특히 <b>HC-SR04 초음파의 ECHO 는 5V</b> 라서 <b>분압 저항(1kΩ + 2kΩ)이 필수</b>입니다.
-        배선은 <b>USB 를 뽑은 상태에서</b> 하세요.
+        <b>AI 는 배선을 볼 수 없어서</b> 5V 센서에도 「GP27 에 연결하세요」라고 태연히 답합니다.
+        AI 잘못이 아니라 <b>AI 가 확인할 수 없는 것</b>입니다 — 이 표는 여러분이 봐야 합니다.
       </div>
+
+      <h4>전원과 신호를 <b>따로</b> 봐야 합니다</h4>
+      <p class="muted">5V 로 전원을 먹는 센서라도 Pico 로 <b>나가는 신호</b>는 3.3V 인 경우가 많습니다. 그런 센서는 그냥 연결해도 됩니다.</p>
+      <table>
+        <thead><tr><th style="width:30%">센서</th><th style="width:16%">전원</th><th style="width:24%">Pico 로 나가는 신호</th><th>조치</th></tr></thead>
+        <tbody>
+          <tr><td>토양수분 (정전용량식 v1.2)</td><td>3.3~5.5V</td><td>전원과 같은 범위</td><td><b>3V3 에 연결하면 안전</b></td></tr>
+          <tr style="background:var(--bad-bg)"><td><b>HC-SR04 초음파</b></td><td>5V</td><td><b>ECHO 가 5V</b> ⚠️</td><td><b>분압(1kΩ+2kΩ) 필수</b> 또는 뒤에 <b>P</b> 붙은 HC-SR04<b>P</b></td></tr>
+          <tr><td>HC-SR501 PIR 인체감지</td><td>5V (외부)</td><td>OUT 은 3.3V</td><td>그냥 연결 가능</td></tr>
+          <tr><td>PMS7003 미세먼지</td><td><b>5V (외부)</b></td><td>TX 는 3.3V</td><td>데이터선 직결, 전원만 외부 5V</td></tr>
+          <tr><td>릴레이 모듈</td><td>5V (외부)</td><td>신호를 받기만 함</td><td>안전. 단 펌프 · 모터는 <b>별도 전원</b></td></tr>
+        </tbody>
+      </table>
+
+      <div class="note warn"><span class="hd">전원과 GND — 대시보드가 자꾸 끊기는 원인 1위</span>
+        <b>3V3(36번 핀)은 다 합쳐 약 300mA</b> 입니다. 서보 · 모터 · 펌프를 여기서 먹이면
+        <b>Pico 가 꺼졌다 켜집니다.</b> 5V 가 필요하면 브레드보드 <b>왼쪽 빨강 레일(외부 5V)</b> 에서 받으세요
+        — <b>Pico 의 VBUS 핀은 쓰지 않습니다</b>(노트북 USB 500mA 를 나눠 쓰게 되어 기동 순간 리셋됩니다).<br>
+        그리고 <b>모든 부품의 GND 를 Pico 의 GND 와 이어야</b> 합니다. 전원이 둘이므로
+        <b>왼쪽 파랑 레일과 오른쪽 파랑 레일을 점퍼로</b> 이어 두세요 — <b>가장 자주 빠뜨리는 선입니다.</b>
+      </div>
+
+      <h4>배선 순서 — 이 순서를 지키면 안 망가집니다</h4>
+      <label class="chk"><input type="checkbox" data-c="e01"><span><b>USB 를 뽑는다</b> ← 전원이 들어간 채로 선을 옮기다 태우는 경우가 제일 많습니다</span></label>
+      <label class="chk"><input type="checkbox" data-c="e02"><span>위 표에서 <b>전원(3V3 또는 외부 5V)</b> 을 확인하고 연결</span></label>
+      <label class="chk"><input type="checkbox" data-c="e03"><span><b>GND 를 연결</b> (빠뜨리지 마세요)</span></label>
+      <label class="chk"><input type="checkbox" data-c="e04"><span>신호선 연결. <b>5V 신호면 분압부터</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="e05"><span><b>눈으로 한 번 더 확인한 뒤</b> USB 를 꽂는다</span></label>
+
+      <div class="note tip"><span class="hd">대시보드에 바로 붙이지 말고 <code>code.py</code> 로 센서 하나만 먼저 시험하세요</span>
+        값이 안 나올 때 의심할 곳이 <b>다섯 군데</b>(센서 · 배선 · Pico 코드 · 화면 코드 · 키 이름)에서
+        <b>두 군데</b>로 줄어듭니다. CircuitPython 은 <code>code.py</code> 가 있으면 <code>main.py</code> 대신
+        그것을 실행하므로, <b>잘 돌던 <code>main.py</code> 를 건드리지 않고</b> 새 센서만 시험할 수 있습니다.
+      </div>
+<pre class="code"># code.py — 센서 하나만 시험 (아날로그 센서용)
+import time, board, analogio
+
+sensor = analogio.AnalogIn(board.GP27)   # 실제로 연결한 핀으로
+
+while True:
+    raw = sensor.value                   # 0 ~ 65535
+    print("raw:", raw, " 백분율:", round(raw / 65535 * 100, 1))
+    time.sleep(0.5)</pre>
+      <table>
+        <thead><tr><th style="width:34%">시리얼에 나온 것</th><th>뜻</th></tr></thead>
+        <tbody>
+          <tr><td>숫자가 변한다</td><td>✅ 성공 — 다음 단계로</td></tr>
+          <tr><td>계속 <b>0</b> 이다</td><td>전원(3V3) 또는 신호선이 안 닿았다</td></tr>
+          <tr><td>계속 <b>65535</b> 다</td><td><b>GND 가 안 이어졌다</b></td></tr>
+          <tr><td><code>No pulldown</code> 같은 오류</td><td>그 핀은 아날로그가 아닙니다 — <b>GP27 또는 GP28</b> 로</td></tr>
+        </tbody>
+      </table>
       <div class="pbox">
         <div class="pbox-hd"><span>프롬프트 2 · Pico 에 센서 추가</span><button class="copy">복사</button></div>
 <pre class="prompt">이제 Pico 쪽입니다.
-main.py 에 <span class="f" data-f="sensorLabel"></span> 을 추가해 주세요.
+main.py 에 아래 센서를 추가해 주세요.
 
-- 핀: <span class="f" data-f="sensorPin"></span>
-- 연결 방식: <span class="f" data-f="sensorSignal"></span>
-- 라이브러리: 없음 (필요하면 알려 주세요)
-- JSON 키: "<span class="f" data-f="sensorKey"></span>"   (화면의 SENSORS key 와 글자 하나까지 같아야 합니다)
-- 값 범위: <span class="f" data-f="sensorRange"></span> 로 바꿔 주세요. 범위 밖이면 가둬 주세요
+<span class="f" data-f="picoSensorLines"></span>
 - 읽기에 실패하면 None 을 돌려주세요
+- JSON 키는 화면의 SENSORS key 와 글자 하나까지 같아야 합니다
 
 1초마다 보내는 주기와 지금 있는 센서들은 그대로 두세요.
 파일 전체 완성본으로 주세요.
@@ -982,14 +1067,32 @@ useEffect(() =&gt; {
 (function(){
   "use strict";
   var KEY = "iot_project_manual_v1";
+  // 직접 입력하는 칸
   var PH = {
     teamName:"우리팀", topic:"(0단계에 작품 한 줄 설명을 적으세요)",
-    sensorLabel:"(센서 이름)", sensorKey:"(JSON 키)", sensorUnit:"(단위)",
-    sensorPin:"(핀)", sensorRange:"(값 범위)", sensorSignal:"(연결 방식)",
-    actLabel:"(액추에이터 이름)", actKey:"(JSON 키)", actPin:"(핀)",
     threshold:"(기준 숫자)", direction:"(작으면 / 크면)",
     picoIp:"(IP 주소)", visitorAction:"(관람객이 해 볼 것)"
   };
+  // 설계표에서 자동으로 만들어지는 칸
+  var PH_DERIVED = {
+    sensorLines:"- (0단계 설계표에 센서를 먼저 추가하세요)",
+    actuatorLines:"- 없음",
+    sensorSpecLines:"- (0단계 설계표에 센서를 먼저 추가하세요)",
+    picoSensorLines:"- (0단계 설계표에 센서를 먼저 추가하세요)",
+    autoRule:"(센서와 액추에이터를 추가하고 기준 숫자를 적으면 채워집니다)",
+    sensorKey:"(JSON 키)", sensorLabel:"(센서 이름)", actLabel:"(액추에이터 이름)"
+  };
+  for (var _p in PH_DERIVED) PH[_p] = PH_DERIVED[_p];
+
+  // Pico 핀 — 무선 칩 전용은 항상 제외
+  var RESERVED_ALWAYS = ["GP23","GP24","GP25","GP29"];
+  var ANALOG_PINS = ["GP27","GP28"];
+  var DIGITAL_PINS = ["GP14","GP13","GP12","GP11","GP10","GP9","GP8","GP7","GP6",
+                      "GP5","GP4","GP3","GP2","GP1","GP0","GP20","GP21","GP22"];
+  var BASE_PINS = { dht11:["GP16"], cds:["GP26"], rgb:["GP17","GP18","GP19"], servo:["GP15"] };
+
+  var SENSOR_SIGNALS = ["아날로그 (analogio.AnalogIn)","디지털 (digitalio.DigitalInOut)","I2C","UART"];
+  var ACT_SIGNALS = ["켜고끄기 (255 / 0)","값조절 (PWM)","스텝모터 4핀 (28BYJ-48)"];
 
   function load(){
     try { return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; }
@@ -1002,6 +1105,8 @@ useEffect(() =&gt; {
   var data = load();
   if (!data.f) data.f = {};
   if (!data.c) data.c = {};
+  if (!data.items) data.items = [];
+  if (!data.base) data.base = { dht11:true, cds:true, rgb:true, servo:true };
 
   var savedEl = document.getElementById("saved");
   var flashTimer = null;
@@ -1018,9 +1123,56 @@ useEffect(() =&gt; {
     }, 1200);
   }
 
+  // ── 설계표에서 프롬프트에 들어갈 문장을 만듭니다 ──
+  var derived = {};
+  function esc(s){ return String(s == null ? "" : s); }
+  function sensors(){ return data.items.filter(function(i){ return i.type === "sensor"; }); }
+  function actuators(){ return data.items.filter(function(i){ return i.type === "actuator"; }); }
+
+  function computeDerived(){
+    var ss = sensors(), aa = actuators();
+    var d = {};
+
+    d.sensorLines = ss.length ? ss.map(function(s){
+      return "- " + (s.name || "(이름)") + " / " + (s.pin || "(핀)") + " / " +
+             (s.unit || "(단위)") + " / " + (s.range || "(범위)") +
+             ' / JSON 키 "' + (s.key || "(키)") + '"';
+    }).join("\n") : "";
+
+    d.actuatorLines = aa.length ? aa.map(function(a){
+      return "- " + (a.name || "(이름)") + " / " + (a.pin || "(핀)") + " / " +
+             (a.signal || "(종류)") + ' / JSON 키 "' + (a.key || "(키)") + '"';
+    }).join("\n") : "- 없음";
+
+    d.sensorSpecLines = ss.length ? ss.map(function(s){
+      return '- ' + (s.name || "(이름)") + ' → key "' + (s.key || "(키)") + '", label "' +
+             (s.name || "(이름)") + '", unit "' + (s.unit || "") + '", 값 범위 ' + (s.range || "(범위)");
+    }).join("\n") : "";
+
+    d.picoSensorLines = ss.length ? ss.map(function(s){
+      return "- " + (s.name || "(이름)") + "\n" +
+             "  · 핀: " + (s.pin || "(핀)") + "\n" +
+             "  · 연결 방식: " + (s.signal || "(연결 방식)") + "\n" +
+             '  · JSON 키: "' + (s.key || "(키)") + '"\n' +
+             "  · 값 범위: " + (s.range || "(범위)") + " 로 바꾸고, 범위 밖이면 가둬 주세요";
+    }).join("\n") : "";
+
+    var s0 = ss[0], a0 = aa[0];
+    var th = (data.f.threshold || "").trim(), dir = (data.f.direction || "").trim();
+    d.autoRule = (s0 && a0 && th && dir)
+      ? (s0.name || "(센서)") + " 가 " + th + " 보다 " + dir + " " + (a0.name || "(액추에이터)") + " 를 켠다"
+      : "";
+
+    d.sensorKey   = s0 ? (s0.key  || "") : "";
+    d.sensorLabel = s0 ? (s0.name || "") : "";
+    d.actLabel    = a0 ? (a0.name || "") : "";
+    derived = d;
+  }
+
   // ── 프롬프트 빈칸 채우기 ──
   function paint(k){
-    var v = (data.f[k] || "").trim();
+    var v = (derived[k] != null ? derived[k] : (data.f[k] || ""));
+    v = String(v).trim();
     var nodes = document.querySelectorAll('[data-f="' + k + '"]');
     for (var i=0;i<nodes.length;i++){
       var n = nodes[i];
@@ -1030,22 +1182,159 @@ useEffect(() =&gt; {
       }
     }
   }
-  function paintAll(){ for (var k in PH) paint(k); }
+  function paintAll(){ computeDerived(); for (var k in PH) paint(k); }
 
   var inputs = document.querySelectorAll("[data-k]");
   for (var i=0;i<inputs.length;i++){
     (function(el){
       var k = el.getAttribute("data-k");
       if (data.f[k] != null) el.value = data.f[k];
-      el.addEventListener("input", function(){
-        data.f[k] = el.value; save(data); paint(k);
-      });
-      el.addEventListener("change", function(){
-        data.f[k] = el.value; save(data); paint(k);
-      });
+      function onEdit(){ data.f[k] = el.value; save(data); paintAll(); }
+      el.addEventListener("input", onEdit);
+      el.addEventListener("change", onEdit);
     })(inputs[i]);
   }
-  paintAll();
+
+  // ── 이미 쓰는 부품 체크 ──
+  var baseBoxes = document.querySelectorAll("[data-b]");
+  for (var bi=0; bi<baseBoxes.length; bi++){
+    (function(el){
+      var k = el.getAttribute("data-b");
+      el.checked = data.base[k] !== false;
+      el.addEventListener("change", function(){
+        data.base[k] = el.checked; save(data); renderIo();
+      });
+    })(baseBoxes[bi]);
+  }
+
+  // ── I/O 설계표 ──
+  function usedPins(){
+    var r = RESERVED_ALWAYS.slice();
+    for (var k in BASE_PINS) if (data.base[k] !== false) r = r.concat(BASE_PINS[k]);
+    return r;
+  }
+  function stepperGroup(first){
+    var n = parseInt(String(first).replace("GP",""), 10);
+    if (isNaN(n)) return [];
+    var g = [];
+    for (var i=0;i<4;i++) g.push("GP" + (n+i));
+    return g;
+  }
+  function pinConflict(item){
+    if (!item.pin) return false;
+    var taken = usedPins();
+    var mine = (item.signal === ACT_SIGNALS[2]) ? stepperGroup(item.pin) : [item.pin];
+    for (var i=0;i<mine.length;i++){
+      var p = mine[i];
+      var num = parseInt(p.replace("GP",""), 10);
+      if (isNaN(num) || num > 28 || taken.indexOf(p) !== -1) return true;
+      for (var j=0;j<data.items.length;j++){
+        var o = data.items[j];
+        if (o === item || !o.pin) continue;
+        var others = (o.signal === ACT_SIGNALS[2]) ? stepperGroup(o.pin) : [o.pin];
+        if (others.indexOf(p) !== -1) return true;
+      }
+    }
+    return false;
+  }
+
+  function renderIo(){
+    var body = document.getElementById("ioBody");
+    if (!body) return;
+    if (!data.items.length){
+      body.innerHTML = '<tr><td colspan="7" class="io-empty">아직 없습니다 — 아래 「+ 센서 추가」를 누르세요.</td></tr>';
+      paintAll();
+      return;
+    }
+    body.innerHTML = "";
+    data.items.forEach(function(item, idx){
+      var isS = item.type === "sensor";
+      var opts = (isS ? SENSOR_SIGNALS : ACT_SIGNALS).map(function(o){
+        return '<option' + (o === item.signal ? " selected" : "") + ">" + esc(o) + "</option>";
+      }).join("");
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td><span class="tag ' + (isS ? "s" : "a") + '">' + (isS ? "센서" : "액추에이터") + '</span></td>' +
+        '<td><input data-i="' + idx + '" data-p="name" value="' + esc(item.name).replace(/"/g,"&quot;") + '" placeholder="' + (isS ? "토양수분" : "급수 펌프") + '"></td>' +
+        '<td><input data-i="' + idx + '" data-p="key" value="' + esc(item.key).replace(/"/g,"&quot;") + '" placeholder="' + (isS ? "soil" : "pump") + '"></td>' +
+        '<td><select data-i="' + idx + '" data-p="signal"><option value="">고르세요</option>' + opts + '</select></td>' +
+        '<td><input data-i="' + idx + '" data-p="pin" value="' + esc(item.pin).replace(/"/g,"&quot;") + '" placeholder="GP27"></td>' +
+        '<td><input data-i="' + idx + '" data-p="' + (isS ? "unit" : "range") + '" value="' +
+            esc(isS ? item.unit : item.range).replace(/"/g,"&quot;") + '" placeholder="' + (isS ? "%" : "255 / 0") + '"></td>' +
+        '<td><button class="del" data-del="' + idx + '" title="삭제">✕</button></td>';
+      body.appendChild(tr);
+
+      if (isS){
+        var tr2 = document.createElement("tr");
+        tr2.innerHTML =
+          '<td></td><td colspan="5" style="padding-top:0">' +
+          '<input data-i="' + idx + '" data-p="range" value="' + esc(item.range).replace(/"/g,"&quot;") +
+          '" placeholder="값의 범위 — 예: 0~100"></td><td></td>';
+        body.appendChild(tr2);
+      }
+      var pinInput = tr.querySelector('[data-p="pin"]');
+      if (pinConflict(item)) {
+        pinInput.classList.add("bad");
+        pinInput.title = "이미 쓰는 핀이거나 무선 칩 전용 핀입니다";
+      }
+    });
+
+    body.querySelectorAll("input[data-i], select[data-i]").forEach(function(el){
+      function onEdit(){
+        var i = parseInt(el.getAttribute("data-i"), 10);
+        data.items[i][el.getAttribute("data-p")] = el.value;
+        save(data); paintAll();
+        var pi = el.getAttribute("data-p");
+        if (pi === "pin" || pi === "signal") renderIo();
+      }
+      el.addEventListener("input", onEdit);
+      el.addEventListener("change", onEdit);
+    });
+    body.querySelectorAll("[data-del]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        data.items.splice(parseInt(btn.getAttribute("data-del"), 10), 1);
+        save(data); renderIo();
+      });
+    });
+    paintAll();
+  }
+
+  window.addIo = function(type){
+    data.items.push({
+      type: type, name:"", key:"", pin:"", unit:"", range:"",
+      signal: type === "sensor" ? SENSOR_SIGNALS[0] : ACT_SIGNALS[0]
+    });
+    save(data); renderIo();
+  };
+
+  window.autoPins = function(){
+    if (!data.items.length){ alert("먼저 센서나 액추에이터를 추가하세요."); return; }
+    var taken = usedPins().slice();
+    // 스텝모터는 연속 네 칸이 필요해서 먼저 자리를 잡습니다
+    data.items.filter(function(i){ return i.signal === ACT_SIGNALS[2]; }).forEach(function(item){
+      var found = null;
+      for (var n=0; n<=25 && !found; n++){
+        var g = stepperGroup("GP" + n);
+        var ok = g.every(function(p){ return DIGITAL_PINS.indexOf(p) !== -1 && taken.indexOf(p) === -1; });
+        if (ok) found = g;
+      }
+      if (found){ item.pin = found[0]; taken = taken.concat(found); }
+    });
+    var ai = 0, di = 0;
+    data.items.filter(function(i){ return i.signal !== ACT_SIGNALS[2]; }).forEach(function(item){
+      var wantAnalog = item.type === "sensor" && /아날로그/.test(item.signal || "");
+      if (wantAnalog){
+        while (ai < ANALOG_PINS.length && taken.indexOf(ANALOG_PINS[ai]) !== -1) ai++;
+        if (ai < ANALOG_PINS.length){ item.pin = ANALOG_PINS[ai]; taken.push(ANALOG_PINS[ai++]); return; }
+        alert("아날로그 핀은 GP27 · GP28 두 개뿐입니다. 하나를 디지털 방식 센서로 바꾸거나, 쓰지 않는 기본 부품의 체크를 푸세요.");
+      }
+      while (di < DIGITAL_PINS.length && taken.indexOf(DIGITAL_PINS[di]) !== -1) di++;
+      if (di < DIGITAL_PINS.length){ item.pin = DIGITAL_PINS[di]; taken.push(DIGITAL_PINS[di++]); }
+    });
+    save(data); renderIo();
+  };
+
+  renderIo();
 
   // ── 체크박스 · 진행률 ──
   var boxes = document.querySelectorAll("[data-c]");
@@ -1115,12 +1404,13 @@ useEffect(() =&gt; {
   })();
 
   window.resetAll = function(){
-    if (!confirm("입력한 팀 정보와 체크를 전부 지웁니다. 계속할까요?")) return;
-    data = { f:{}, c:{} };
+    if (!confirm("입력한 팀 정보와 설계표, 체크를 전부 지웁니다. 계속할까요?")) return;
+    data = { f:{}, c:{}, items:[], base:{ dht11:true, cds:true, rgb:true, servo:true } };
     try { localStorage.removeItem(KEY); } catch(e){}
     for (var i=0;i<inputs.length;i++) inputs[i].value = "";
     for (var j=0;j<boxes.length;j++) boxes[j].checked = false;
-    paintAll(); progress();
+    for (var b=0;b<baseBoxes.length;b++) baseBoxes[b].checked = true;
+    renderIo(); progress();
   };
 })();
 </script>
