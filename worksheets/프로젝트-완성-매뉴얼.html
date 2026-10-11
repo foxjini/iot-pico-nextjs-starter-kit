@@ -251,7 +251,7 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
     <div class="anchor-nav">
       <a href="#s0">0 · 준비</a>
       <a href="#w11">11주차 · 기능 완성</a>
-      <a href="#w14">14주차 · 전시 준비</a>
+      <a href="#w14">14주차 · 다시 디자인 + 전시</a>
       <a href="#w15">실물 Pico 로 옮기기</a>
       <a href="#stuck">막혔을 때</a>
       <a href="#errors">오류 사전</a>
@@ -327,6 +327,11 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <div class="fld"><label>관람객이 해 볼 것 하나</label><input data-k="visitorAction" placeholder="조도 센서를 손으로 가려 보세요"><div class="hint">전시의 성패를 가르는 한 줄입니다</div></div>
     </div>
 
+    <h4>14주차에 쓸 것 — 우리 작품의 주인공</h4>
+    <div class="grid">
+      <div class="fld" style="grid-column:1/-1"><label>가장 크게, 가장 먼저 보이게 할 것 하나</label><input data-k="hero" placeholder="토양 수분 (흙이 마른 정도)"><div class="hint">14주차에 화면을 다시 디자인할 때 <b>주인공</b>이 됩니다. 센서 하나일 수도 있고 「문이 열린 각도」처럼 동작일 수도 있습니다 — 이것을 안 정하면 AI 가 <b>멋대로 고릅니다</b></div></div>
+    </div>
+
     <div style="margin-top:14px"><button class="btn-ghost" onclick="resetAll()">입력과 체크 전부 지우기</button></div>
   </div>
 
@@ -389,7 +394,7 @@ py mock_pi_11.py        (실물 Pico 가 있으면 생략)</pre>
       <label class="chk"><input type="checkbox" data-c="c06"><span>센서 값이 들어오고, 빨간 오류 줄(<span class="kbd">F12</span> → Console)이 없다</span></label>
       <div class="note warn"><span class="hd">가상 Pico 로 개발해도 됩니다 — 단, <b>전시 전에 실물로 옮겨야</b> 합니다</span>
         11주차는 가상 Pico 로 해도 됩니다. <b>전시장에는 가상 Pico 가 없으므로</b>,
-        <b>단계 L(무인 리허설)에 들어가기 전에</b> 실물 Pico 로 옮기세요 → <a href="#w15">단계 15</a>.
+        <b>단계 K(무인 리허설)에 들어가기 전에</b> 실물 Pico 로 옮기세요 → <a href="#w15">단계 15</a>.
       </div>
     </div>
   </div>
@@ -874,15 +879,34 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
 
 <!-- ══════════ 14주차 ══════════ -->
 <section id="w14">
-  <h2>14주차 · 전시장에 내놓습니다 (120분 · 마지막 수업)</h2>
-  <p class="muted">새 기능을 배우지 않습니다. <b>몇 시간 동안 사람 없이 켜 두어도 멀쩡한 화면</b>을 만듭니다.</p>
+  <h2>14주차 · 전시회에 내놓을 수준으로 <b>다시 디자인</b>합니다 (120분 · 마지막 수업)</h2>
+  <p class="muted">새 기능을 배우지 않습니다. <b>지금 화면을 통째로 다시 짭니다.</b>
+  기능이 되는 것과 <b>전시장에서 작품으로 보이는 것</b>은 다릅니다.</p>
 
   <div class="flow">
     <span class="n">H · 화면만 묶기</span><span class="a">→</span>
-    <span class="n hot">I · 전시 모드</span><span class="a">→</span>
-    <span class="n">J · 멀리서도 보이게</span><span class="a">→</span>
-    <span class="n">K · 작품 설명</span><span class="a">→</span>
-    <span class="n hot">L · 무인 리허설 30분</span>
+    <span class="n hot">H2 · 진단</span><span class="a">→</span>
+    <span class="n hot">I · 재설계 방향</span><span class="a">→</span>
+    <span class="n">J · 재설계 적용</span><span class="a">→</span>
+    <span class="n hot">K · 검증 + 리허설</span>
+    <span class="a">→</span><span class="n" style="opacity:.62">[방과후] 작품 설명</span>
+  </div>
+
+  <table>
+    <thead><tr><th style="width:26%">단계</th><th style="width:16%">시간</th><th>하는 일</th></tr></thead>
+    <tbody>
+      <tr><td>H · 준비</td><td>10분</td><td>화면 소스만 묶어서 올리기</td></tr>
+      <tr><td><b>H2 · 1단계 진단</b></td><td><b>20분</b></td><td>AI 가 우리 화면을 읽고 <b>문제를 찾아 P0~P3 로</b> 매깁니다</td></tr>
+      <tr><td><b>I · 재설계 방향</b></td><td><b>20분</b></td><td><b>레이아웃 방향 두 가지를 비교</b>해서 고릅니다 (코드 없음)</td></tr>
+      <tr><td><b>J · 2단계 구현</b></td><td><b>30분</b></td><td>고른 방향으로 다시 짭니다 + <b>전시 필수 항목</b></td></tr>
+      <tr><td><b>K · 3단계 검증</b></td><td><b>10분 + 30분</b></td><td>손으로 확인 → <b>무인 리허설 30분</b></td></tr>
+      <tr><td>합계</td><td><b>120분</b></td><td>수업 시간을 꽉 씁니다</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note warn"><span class="hd">⏱️ 합이 정확히 120분입니다 — 여유가 없습니다</span>
+    늦어지면 <b>재설계 방향을 15분으로, 구현을 25분으로</b> 줄이세요.
+    <b>무인 리허설 30분은 절대 줄이지 않습니다.</b> 리허설을 빼면 <b>전시 당일 아침에 발견</b>합니다.
   </div>
 
   <div class="step">
@@ -898,7 +922,7 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
           <tr><td>결과</td><td><code>우리팀-소스.md</code></td><td><code>우리팀-UI.md</code></td></tr>
         </tbody>
       </table>
-      <div class="note tip"><span class="hd">오늘 배우는 것의 핵심 — 좁게 올린다</span>
+      <div class="note tip"><span class="hd">오늘 배우는 것의 핵심 하나 — 좁게 올린다</span>
         오늘 고치는 것은 <b>보이는 부분뿐</b>입니다. 그래서 통신 코드와 데이터베이스 코드를
         <b>일부러 뺀 것</b>을 올립니다. <b>안 올라간 코드는 AI 가 망가뜨릴 수 없습니다.</b>
       </div>
@@ -907,24 +931,239 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
       <label class="chk"><input type="checkbox" data-c="c32"><span>🛡️ <b>화면이 아니라서 통째로 뺀 폴더</b>에 <code>src/app/api/</code> 와 <code>src/lib/</code> 이 찍혀 있다</span></label>
       <label class="chk"><input type="checkbox" data-c="c33"><span>「비밀번호처럼 보이는 줄은 없습니다」 가 찍혀 있다</span></label>
       <label class="chk"><input type="checkbox" data-c="c34"><span>제미나이에 <b>새 대화</b>를 열고 <code>우리팀-UI.md</code> + <b>같은</b> <code>프로젝트-규칙.md</code> 를 올렸다</span></label>
+      <div class="note danger"><span class="hd">🎯 오늘은 백업이 생명줄입니다 — 0-3단계를 다시 하세요</span>
+        오늘은 화면을 <b>통째로</b> 다시 짜는 수업입니다. <b>되돌릴 일이 실제로 생깁니다.</b>
+        <code>page.tsx</code> → <code>page.tsx.bak</code> 으로 <b>지금 잘 되는 것</b>을 한 벌 복사해 두세요.
+        <code>.bak</code> 은 Next.js 가 무시합니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="note danger"><span class="hd">🚨 오늘 가장 먼저 알아야 할 것 — 제미나이는 <b>실행할 수 없습니다</b></span>
+    오늘 쓰는 프롬프트는 원래 <b>저장소를 직접 읽고 파일을 고치는 AI 도구</b>용으로 만들어진 것을
+    <b>채팅용으로 고친</b> 것입니다. 그래서 <b>채팅으로는 못 하는 것</b>이 있습니다.
+  </div>
+  <table>
+    <thead><tr><th style="width:30%">제미나이가 못 하는 것</th><th style="width:34%">그런데 「했다」고 말합니다</th><th>그 일은 <b>누가</b> 하나</th></tr></thead>
+    <tbody>
+      <tr><td>폴더를 열어 보기</td><td>"프로젝트 구조를 확인했습니다"</td><td>우리가 <b>올린 두 파일이 전부</b>입니다</td></tr>
+      <tr><td><code>npm run build</code> · 타입 검사 · 린트</td><td><b>"타입 오류 0건입니다"</b></td><td><b>학생이</b> 직접 돌립니다</td></tr>
+      <tr><td>브라우저로 화면 열기</td><td><b>"반응형을 확인했습니다"</b></td><td><b>학생이</b> <span class="kbd">F12</span> 로 봅니다</td></tr>
+      <tr><td>파일 저장</td><td>"파일을 수정했습니다"</td><td><b>학생이</b> 복사해 붙여넣습니다</td></tr>
+    </tbody>
+  </table>
+  <div class="note danger"><span class="hd">AI 가 「검사했습니다 · 확인했습니다 · 통과했습니다」라고 하면 <b>그것은 거짓입니다</b></span>
+    올린 파일을 <b>읽기만</b> 했을 뿐입니다. 나쁜 뜻이 아니라, 원래 그렇게 말하도록 만들어져 있습니다.<br>
+    <b>그래서 오늘 AI 에게 받는 것은 「확인 결과」가 아니라 「확인할 목록」입니다.</b>
+    <b>통과·실패를 적는 사람은 우리입니다.</b> 이것이 오늘 배우는 것의 절반입니다.
+  </div>
+
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">H2</span><span class="step-title">1단계 — 무엇이 문제인지 <b>먼저 찾습니다</b></span><span class="step-time">20분</span></div>
+    <div class="step-body">
+      <p><b>아직 코드를 받지 않습니다.</b> 보고서만 받습니다.</p>
+      <div class="pbox">
+        <div class="pbox-hd"><span>1단계 · 진단</span><button class="copy">복사</button></div>
+<pre class="prompt">너는 상업용 웹 서비스와 IoT 대시보드를 설계하는 시니어 UI/UX 디자이너이자
+프런트엔드 아키텍트다.
+
+첨부한 파일 두 개가 지금 내 프로젝트의 전부다.
+- 프로젝트-규칙.md : 반드시 지켜야 할 규칙
+- 우리팀-UI.md     : 지금 동작하고 있는 화면 코드
+
+나는 고등학교 1학년이고, 11월 20일 기술 전시회에 이 작품을 내놓는다.
+학교 과제 수준을 넘어 "상업용 제품으로 보이는" 수준까지 올리고 싶다.
+
+내 작품은 이런 것이다.
+- 하는 일 : <span class="f" data-f="topic"></span>
+- 센서 :
+<span class="f" data-f="sensorLines"></span>
+- 액추에이터 :
+<span class="f" data-f="actuatorLines"></span>
+- 관람객이 직접 해 볼 수 있는 것 : <span class="f" data-f="visitorAction"></span>
+
+────────────────────────────── 아래 다섯 가지를 진단해 주세요.
+
+A. 시각적 완성도
+   - 정보의 위계와 가독성 / 타이포그래피 · 색 · 간격 · 정렬의 일관성
+   - 불필요한 카드 · 장식 · 그림자 / AI 가 만든 듯한 획일적인 패턴
+B. 정보 구조
+   - 첫 화면에서 작품의 목적과 핵심 상태를 빠르게 알 수 있는가
+   - 센서 모니터링 · 장치 제어 · 연결 상태가 논리적으로 나뉘어 있는가
+C. IoT 특화
+   - 센서값에 단위와 갱신 시각이 있는가
+   - 명령의 실행 중 · 성공 · 실패가 구분되는가
+   - 실제 장치 상태와 화면이 어긋날 수 있는 자리가 있는가
+D. 반응형과 접근성
+   - 휴대폰 폭 390px / 터치 영역 / 색상 대비 / 키보드 초점
+   - 상태를 색만으로 알리는 곳이 있는가
+E. 전시회 관람 경험
+   - 관람객이 짧은 시간에 작품의 목적을 이해할 수 있는가
+   - 관람객이 직접 조작하고 결과를 확인하기 쉬운가
+   - 몇 시간 동안 사람 없이 켜 두면 어떻게 되는가
+
+────────────────────────────── 답변 규칙
+
+- 코드를 주지 마세요. 이번에는 진단과 설계만 합니다.
+- 올린 두 파일에서 실제로 본 것만 쓰고, 줄 번호나 코드 일부를 근거로 함께 적어 주세요.
+- 올린 파일에 없어서 확인할 수 없는 것은 "확인 불가" 로 따로 모아 주세요.
+  추측해서 단정하지 마세요.
+- 서버 코드 · 데이터베이스 · 통신 · Pico 제어는 오늘 고칠 대상이 아닙니다.
+- 문제마다 아래 표로 정리해 주세요.
+
+  | 문제 | 근거 (코드) | 심각도 | 개선 효과 | 난이도 |
+
+  심각도는 이렇게 나눠 주세요.
+  P0 = 전시 자체가 안 되는 것
+  P1 = 핵심 기능이나 상태가 잘못 보이는 것
+  P2 = 가독성 · 반응형 · 접근성
+  P3 = 장식과 미세한 개선
+
+- 마지막에 "30분 안에 할 수 있는 것부터" 순서를 매겨 주세요.</pre>
+      </div>
+
+      <h4>확인 — AI 의 진단을 <b>우리가 아는 것으로 검산합니다</b></h4>
+      <p>보고서를 그냥 믿지 마세요. <b>아래 세 가지가 P0 이나 P1 에 들어 있어야 합니다.</b></p>
+      <table>
+        <thead><tr><th style="width:42%">들어 있어야 하는 것</th><th>왜 P0 · P1 인가</th></tr></thead>
+        <tbody>
+          <tr><td><b>화면이 저절로 꺼진다</b></td><td>무인 전시 몇 시간이면 <b>꺼진 노트북</b>이 걸려 있게 됩니다</td></tr>
+          <tr><td><b>관람객이 1m 밖에서 값을 못 읽는다</b></td><td>지금 글자 크기는 <b>노트북 앞에 앉아 보는</b> 크기입니다</td></tr>
+          <tr><td><b>작품 설명이 관람객용이 아니다</b></td><td><code>Next.js + TypeScript</code> 는 관람객이 <b>안 궁금해합니다</b></td></tr>
+        </tbody>
+      </table>
+      <label class="chk"><input type="checkbox" data-c="q01"><span>세 가지가 <b>전부</b> 보고서에 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="q02"><span>없는 것이 있으면 <b>다시 물어봤다</b> <span class="muted">(예: 「무인 전시 중에 화면이 꺼지는 문제는 몇 등급입니까?」)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="q03"><span>「확인 불가」 목록에 <b>통신 · DB 코드</b>가 들어 있다 <span class="muted">(일부러 안 올렸으니 정상입니다)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="q04"><span>보고서에 <b>코드가 섞여 있지 않다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="q05"><span>P0 과 P1 이 <b>몇 개인지 워크시트에 적었다</b></span></label>
+
+      <div class="note tip"><span class="hd">💡 왜 검산을 하나요</span>
+        AI 는 <b>올린 파일만</b> 봅니다. 「화면이 꺼진다」는 것은 <b>코드에 안 적혀 있어서</b>
+        놓치기 쉽습니다. 반대로 <b>우리는 전시장을 알고 있습니다.</b>
+        <b>AI 가 찾은 것 + 우리가 아는 것</b>을 합치는 것이 오늘의 컨텍스트 엔지니어링입니다.
+      </div>
+      <div class="note warn"><span class="hd">AI 가 「파일을 컴포넌트로 나누면 좋겠다」고 하면 거절하세요</span>
+        규칙 <b>3-6</b> 입니다. 일반적으로는 맞는 조언이지만, 우리는
+        <b>한 파일 안에서 전체를 보는</b> 방식입니다.
+      </div>
     </div>
   </div>
 
   <div class="step must">
-    <div class="step-hd"><span class="step-no">I</span><span class="step-title">미션 1 — 전시 모드</span><span class="step-time">30분</span></div>
+    <div class="step-hd"><span class="step-no">I</span><span class="step-title">재설계 방향 — <b>두 가지를 비교해서</b> 고릅니다</span><span class="step-time">20분</span></div>
     <div class="step-body">
-      <p>전시장에는 노트북 앞에 아무도 앉아 있지 않습니다. 지금 화면은 몇 분만 두면 <b>저절로 꺼집니다.</b></p>
+      <p>여기가 <b>오늘의 중심</b>입니다. <b>여기서도 코드를 받지 않습니다.</b></p>
       <div class="pbox">
-        <div class="pbox-hd"><span>미션 1 · 전시 모드</span><button class="copy">복사</button></div>
-<pre class="prompt">11월 20일 전시회에 이 화면을 내놓습니다.
-몇 시간 동안 사람 없이 켜 둘 예정인데, 지금은 노트북 화면이 저절로 꺼집니다.
+        <div class="pbox-hd"><span>재설계 · 방향 정하기</span><button class="copy">복사</button></div>
+<pre class="prompt">좋습니다. 이제 화면을 다시 디자인하는 방향을 정하고 싶습니다.
 
-"전시 모드" 버튼을 만들어 주세요.
+지금 내 화면은 이런 상태입니다. (올린 코드에서 확인해 주세요)
+- const UI 의 card 토큰 하나로 모든 블록이 똑같은 흰 카드입니다
+- 보조 글자가 거의 전부 text-sm 한 가지 크기입니다
+- 모든 블록에 같은 테두리(border-slate-200)가 둘러져 있습니다
+- 그래서 무엇이 중요한지 화면만 보고 알 수 없습니다
 
-- 켜면 화면이 꺼지지 않게 해 주세요 (Screen Wake Lock)
-- 켜면 전체화면으로 바꿔 주세요
-- 전시 모드에서는 IP 입력칸과 「장치 연결 / 연결 끊기」 버튼을 숨겨 주세요
-  (관람객이 눌러서 꺼 버리면 안 됩니다)
+Industrial Swiss / Data-first 를 출발점으로 하되, 획일적인 카드 대시보드를
+그대로 따라가지 마세요. 아래 원칙을 적용해 주세요.
+
+- 편집 디자인 수준의 타이포그래피와 명확한 정보 위계
+- 큰 핵심 수치와 절제된 보조 텍스트
+- 비대칭 레이아웃과 의도적인 여백
+- 불필요한 카드와 테두리 제거
+- 작품의 정체성을 드러내는 제한된 강조색 한 가지
+- 데이터의 종류와 중요도에 맞게 서로 다른 모양으로 표현
+- 모바일 · 태블릿 · 데스크톱 반응형
+
+우리 작품의 주인공은 <span class="f" data-f="hero"></span> 입니다.
+이것을 가장 크게, 가장 먼저 보이게 하고, 나머지 센서는 보조 영역에 두세요.
+모든 정보를 같은 크기 카드로 만들지 마세요.
+
+────────────────────────────── 쓰지 말아야 할 것
+
+그라데이션 · 글래스모피즘 · 네온 효과 · 과도한 그림자 ·
+장식용 차트 · 뜻 없는 애니메이션은 쓰지 마세요.
+지금 내 코드에는 이런 것이 하나도 없습니다. 새로 넣지 마세요.
+
+밝은 테마입니다 (bg-slate-50 / text-slate-900). 어두운 테마로 바꾸지 마세요.
+색은 Tailwind 기본 팔레트만 씁니다 — slate · emerald · amber · rose · blue.
+
+────────────────────────────── 이번에 받을 것
+
+아직 코드를 고치지 마세요.
+
+1. 지금 화면의 정보 구조 문제를 짧게 정리
+2. 레이아웃 방향을 "최소 두 가지" 제안하고, 각각
+   - 화면을 글로 그린 배치 (어디에 무엇이, 얼마나 크게)
+   - 장점과 단점
+   - 전시장에서 1m 떨어져 볼 때 어느 쪽이 나은지
+3. 둘 중 어느 쪽을 권하는지와 그 이유
+4. 고른 방향에서 const UI 에 들어갈 토큰 목록 (이름과 값)
+5. 구현을 몇 단계로 나눌지와 순서
+
+내가 하나를 고르면 그때 코드를 주세요. 고르기 전에는 코드를 주지 마세요.</pre>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="q06"><span><b>방향이 두 가지 이상</b> 나왔다 <span class="muted">(하나만 왔으면 「다른 방향도 하나 더 주세요」)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="q07"><span>둘 중 하나를 <b>우리가 골랐다</b> — AI 가 정해 준 것을 그냥 쓰지 않았다</span></label>
+      <label class="chk"><input type="checkbox" data-c="q08"><span>고른 방향에 <b class="f-inline" data-f="hero"></b> 가 <b>가장 크게</b> 들어가 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="q09"><span><b>어두운 테마</b>로 바꾸자는 말이 없다</span></label>
+      <label class="chk"><input type="checkbox" data-c="q10"><span>그라데이션 · 유리 효과 같은 것을 넣자는 말이 <b>없다</b></span></label>
+
+      <div class="note danger"><span class="hd">🎯 「두 가지를 비교한다」가 이 단계의 전부입니다</span>
+        하나만 받으면 <b>비교할 것이 없어서</b> 좋은지 나쁜지 알 수 없습니다.
+        <b>둘을 놓고 고르는 순간 우리가 디자이너가 됩니다.</b>
+      </div>
+      <div class="note warn"><span class="hd">⏱️ 여기서 20분을 넘기면 구현할 시간이 없습니다</span>
+        <b>완벽한 방향을 찾는 자리가 아닙니다.</b> 둘 중 나은 쪽을 고르고 넘어가세요.
+      </div>
+    </div>
+  </div>
+
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">J</span><span class="step-title">2단계 — 고른 방향으로 <b>다시 짭니다</b></span><span class="step-time">30분</span></div>
+    <div class="step-body">
+      <div class="note danger"><span class="hd">🚨 재설계가 <b>조용히 지울 수 있는 것</b> — 오늘 가장 큰 위험</span>
+        화면을 다시 짜면 <b>11주차와 14주차가 통째로 사라질 수 있습니다.</b>
+        AI 는 지우려고 지우는 것이 아니라, <b>새 레이아웃에 자리가 없어서</b> 빠뜨립니다.
+        <b>아래가 빠지면 전시가 안 됩니다.</b>
+      </div>
+      <table>
+        <thead><tr><th style="width:40%">지키지 않으면</th><th>전시장에서 무슨 일이 나나</th></tr></thead>
+        <tbody>
+          <tr><td><b>전시 모드 (Wake Lock)</b></td><td>몇 분 뒤 <b>화면이 저절로 꺼집니다</b></td></tr>
+          <tr><td><code>visibilitychange</code> 재획득</td><td>다른 창 한 번 봤다 돌아오면 <b>그때부터</b> 꺼집니다</td></tr>
+          <tr><td><code>fullscreenchange</code> 처리</td><td>누가 <span class="kbd">ESC</span> 를 누르면 <b>버튼이 숨은 채로 아무것도 못 합니다</b></td></tr>
+          <tr><td>Wake Lock 의 <code>try/catch</code></td><td>지원 안 하는 브라우저에서 <b>화면이 하얘집니다</b></td></tr>
+          <tr><td><b>자동 재연결</b></td><td>Wi-Fi 가 한 번 끊기면 <b>몇 시간 멈춘 화면</b>이 걸립니다</td></tr>
+          <tr><td>연결 상태 세 가지</td><td>「연결됨 / 끊김」만 남으면 <b>재연결 중인지 알 수 없습니다</b></td></tr>
+          <tr><td><b>빈 값 세 가지 구분</b></td><td>「데이터 없음」이 <b>0</b> 으로 보이면 관람객이 <b>틀린 값</b>을 읽습니다</td></tr>
+          <tr><td><b>액추에이터 안전</b></td><td>관람객이 <b class="f-inline" data-f="actLabel"></b> 를 <b>켜 놓고 그냥 갑니다</b></td></tr>
+        </tbody>
+      </table>
+
+      <div class="pbox">
+        <div class="pbox-hd"><span>2단계 · 구현</span><button class="copy">복사</button></div>
+<pre class="prompt">[1번 / 2번] 방향으로 갑니다. 이제 코드를 주세요.
+
+────────────────────────────── 반드시 그대로 남겨야 하는 것
+
+아래는 11주차와 14주차에 만든 것입니다. 새 레이아웃에서도 전부 살아 있어야 합니다.
+자리가 없으면 레이아웃을 바꾸고, 기능을 빼지는 마세요.
+
+- 전시 모드 버튼 (화면이 꺼지지 않게 + 전체화면)
+- Screen Wake Lock 을 try/catch 로 감싼 것
+- visibilitychange 로 화면이 다시 보일 때 Wake Lock 을 한 번 더 거는 것
+- fullscreenchange 를 보고, 전체화면을 빠져나가면 전시 모드도 같이 끄는 것
+  (ESC 를 눌렀을 때 조작 버튼이 다시 나와야 합니다)
+- 전시 모드에서 IP 입력칸과 「장치 연결 / 연결 끊기」 버튼을 숨기는 것
+- 자동 재연결 (연결이 끊기면 아무것도 누르지 않아도 저절로 다시 붙는 것)
+- 연결 상태를 세 가지로 구분하는 것 (연결됨 / 재연결 중 / 끊김)
+  두 가지(true/false)로 줄이지 마세요.
+- 값이 아직 없을 때를 세 가지로 구분해 둔 것. 합치거나 0 으로 바꾸지 마세요.
+    · 한 번도 못 받았다        → 연결 대기 화면
+    · 받았는데 그 센서만 없다  → 「데이터 없음」
+    · 재연결 중이다            → 마지막 값을 흐리게 남긴다
+- 통신 코드와 서버 코드는 한 글자도 바꾸지 마세요. (올리지도 않았습니다)
 
 ★ 우리 팀 액추에이터 버튼은 관람객이 만지게 둘지 말지 제가 정합니다.
   - 관람객이 만져도 되는 것 (LED · 부저처럼 되돌아오는 것)
@@ -932,44 +1171,40 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
   - 관람객이 만지면 안 되는 것 (펌프 · 모터 · 히터처럼 물 · 열 · 움직임이 있는 것)
     → 전시 모드에서는 숨기거나, 켜면 몇 초 뒤에 저절로 꺼지게 해 주세요.
       무인 전시라 관람객이 켜 놓고 그냥 가 버립니다.
-  제 액추에이터는 [            ] 이고, [그대로 둡니다 / 숨깁니다 / 몇 초 뒤 꺼지게 합니다].
+  제 액추에이터는 <span class="f-inline f-opt" data-f="actLabel"></span> 이고, [그대로 둡니다 / 숨깁니다 / 몇 초 뒤 꺼지게 합니다].
 
-★ Wake Lock 은 다른 탭에 갔다 오면 저절로 풀립니다.
-  visibilitychange 로 화면이 다시 보일 때 한 번 더 걸어 주세요.
+────────────────────────────── 어떻게 줄지
 
-★ 전체화면을 빠져나갔을 때 전시 모드도 같이 꺼지게 해 주세요.
-  ESC 를 누르면 전체화면만 풀리는데, 그러면 조작 버튼이 숨겨진 채로 남아서
-  되돌릴 방법이 없어집니다. fullscreenchange 를 보고 처리해 주세요.
-
-★ Wake Lock 을 지원하지 않는 브라우저에서도 오류가 나면 안 됩니다.
-  try/catch 로 감싸 주세요.
+- 한 번에 하나씩 주세요. 먼저 "주인공 영역" 부터 주세요.
+- 색과 간격은 page.tsx 맨 위의 const UI 객체에 모으세요.
+  globals.css 에 @theme 블록을 만들지 마세요. 이 프로젝트는 그 방식이 아닙니다.
+- 새 CSS 파일을 만들지 마세요. 새 라이브러리도 설치하지 마세요.
+  (lucide-react 는 이미 있습니다)
+- 아이콘만 두고 글자를 지우지 마세요. 색만으로 상태를 알리지 마세요.
+  색 + 아이콘 + 글자 세 가지가 같이 바뀌어야 합니다.
+- 실제로 안 들어오는 값을 그럴듯한 숫자로 채워 넣지 마세요.
+- 바뀐 줄에 // ★ 주석을 달고, 무엇이 바뀌었는지 3줄 이내로 요약해 주세요.
 
 대시보드 page.tsx 전체 완성본으로 주세요.</pre>
       </div>
-      <h4>확인 — 네 줄 전부</h4>
-      <label class="chk"><input type="checkbox" data-c="c35"><span>전시 모드를 켜면 전체화면이 되고 <b>조작 버튼이 사라진다</b></span></label>
-      <label class="chk"><input type="checkbox" data-c="c36"><span><b>5분 동안 손대지 않아도</b> 화면이 안 꺼진다</span></label>
-      <label class="chk"><input type="checkbox" data-c="c37"><span>다른 탭에 갔다 돌아와도 <b>여전히 안 꺼진다</b></span></label>
-      <label class="chk"><input type="checkbox" data-c="c38"><span><span class="kbd">ESC</span> 를 누르면 <b>조작 버튼이 다시 나온다</b></span></label>
+
+      <h4>붙여넣기 <b>전에</b> 눈으로 훑습니다</h4>
+      <label class="chk"><input type="checkbox" data-c="q11"><span>마지막 줄이 <code>}</code> 로 제대로 끝난다 <span class="muted">(중간에 잘리지 않았다)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="q12"><span>첫 줄이 <code>"use client";</code> 이고, <code>npm install</code> 하라는 말이 없다</span></label>
+      <label class="chk"><input type="checkbox" data-c="q13"><span><code>globals.css</code> 에 <code>@theme</code> 을 만들라는 말이 없고, 없는 토큰 이름(<code>bg-base</code> · <code>text-ink</code> · <code>text-ok</code>)이 없다</span></label>
+      <label class="chk"><input type="checkbox" data-c="q14"><span>위 표의 <b>여덟 줄이 전부</b> 코드에 보인다 <span class="muted">(전시 모드 · Wake Lock · visibilitychange · fullscreenchange · 자동 재연결 · 연결 상태 세 가지 · 빈 값 세 가지 · 액추에이터)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="q15"><span>센서 값을 <b>그럴듯한 숫자로 채워 넣은 곳이 없다</b></span></label>
       <label class="chk"><input type="checkbox" data-c="c38b"><span>전시 모드에서 <b class="f-inline" data-f="actLabel"></b> 버튼을 <b>어떻게 할지 정하고</b> 그대로 됐다 <span class="muted">(액추에이터가 없으면 그냥 체크)</span></span></label>
 
-      <div class="note danger"><span class="hd">🚨 전시 모드는 액추에이터 버튼을 <b>막아 주지 않습니다</b> — 실제로 확인했습니다</span>
-        전시 모드를 켜면 IP 칸과 연결 버튼은 숨지만, <b>11주차에 만든 액추에이터 버튼은
-        그대로 보이고 그대로 눌립니다.</b> 가상 Pico 로 재어 보니 관람객이 누른 명령이
-        <b>Pico 까지 가서 적용됩니다</b> (<code>우리 팀 액추에이터 pump: 255 (켜짐)</code>).<br>
-        <b>펌프라면 관람객이 켜 놓고 그냥 갑니다.</b> 무인 전시 몇 시간이면 화분이 물에 잠깁니다.
-        모터나 히터면 더 위험합니다. <b>위 프롬프트의 ★ 에서 우리 작품에 맞게 정하세요.</b>
+      <div class="note danger"><span class="hd">🚨 30분에 다 안 끝나는 팀이 나옵니다 — 정상입니다</span>
+        그때는 <b>주인공 영역만</b> 끝내고 멈추세요. 보조 센서 영역은 <b>방과후</b>에 이어서 합니다.<br>
+        <b>반쯤 바뀐 화면으로 리허설에 들어가지 마세요</b> — <code>page.tsx.bak</code> 으로 되돌리고
+        <b>돌아가는 화면</b>으로 리허설하는 것이 맞습니다.
+        전시장에 나가는 것은 「다 바뀐 반쪽 화면」이 아니라 <b>돌아가는 화면</b>입니다.
       </div>
-      <div class="note tip"><span class="hd">숨기는 것이 늘 정답은 아닙니다</span>
-        미션 3 은 <b>「관람객이 직접 해 볼 수 있는 것 한 가지」</b> 를 요구합니다.
-        <b>LED 처럼 안전한 것은 남겨 두는 것이 낫습니다</b> — 관람객이 눌러 보고 반응을
-        확인하는 것이 전시의 핵심입니다. <b>위험한 것만 가리세요.</b>
-      </div>
-
-      <div class="note danger"><span class="hd">🚨 마지막 줄이 오늘 가장 중요합니다 — AI 가 가장 자주 빼먹습니다</span>
+      <div class="note warn"><span class="hd">AI 가 가장 자주 빼먹는 것 — 이 코드가 들어 있는지 눈으로 확인하세요</span>
         전시 모드에서는 조작 버튼이 숨어 있습니다. 누가 <span class="kbd">ESC</span> 를 누르면
         전체화면만 풀리는데, 그러면 <b>버튼이 숨겨진 채로 남아 아무것도 못 하게 됩니다.</b>
-        새로고침밖에 방법이 없습니다. 아래 코드가 받은 코드에 들어 있는지 <b>눈으로 확인하세요.</b>
       </div>
 <pre class="code">// ★ ESC 로 전체화면을 빠져나와도 전시 모드가 같이 꺼지게
 useEffect(() =&gt; {
@@ -979,77 +1214,8 @@ useEffect(() =&gt; {
   document.addEventListener("fullscreenchange", onFsChange);
   return () =&gt; document.removeEventListener("fullscreenchange", onFsChange);
 }, []);</pre>
-      <div class="note warn"><span class="hd">Wake Lock 두 가지를 꼭 확인하세요</span>
-        ① <code>visibilitychange</code> 에서 <b>다시 거는</b> 코드가 있는가 —
-        없으면 전시 중에 한 번 다른 창을 봤다 돌아온 뒤부터 화면이 꺼집니다.<br>
-        ② <code>try/catch</code> 로 <b>감싸져 있는가</b> — 지원하지 않는 브라우저에서 <b>화면이 하얗게</b> 됩니다.
-      </div>
     </div>
   </div>
-
-  <div class="step">
-    <div class="step-hd"><span class="step-no">J</span><span class="step-title">미션 2 — 멀리서도 보이게</span><span class="step-time">25분</span></div>
-    <div class="step-body">
-      <p>관람객은 <b>1m 쯤 떨어져서</b> 봅니다. 지금 글자 크기는 노트북 앞에 앉아 보는 크기입니다.</p>
-      <div class="pbox">
-        <div class="pbox-hd"><span>미션 2 · 멀리서도 보이게</span><button class="copy">복사</button></div>
-<pre class="prompt">전시 모드일 때만 화면을 "멀리서 보는 크기" 로 바꿔 주세요.
-
-- 센서 값 숫자를 훨씬 크게 (전시 모드가 아닐 때는 지금 크기 그대로)
-- 제목과 설명처럼 관람객이 안 읽는 것은 전시 모드에서 숨기거나 작게
-- 상태(정상 / 주의 / 위험)를 색만으로 알리지 마세요.
-  색 + 아이콘 + 글자 세 가지가 같이 바뀌어야 합니다.
-
-★ 크기는 조건부 className 으로 바꿔 주세요. 새 CSS 파일을 만들지 마세요.
-★ const UI 객체를 쓰고 있으니 거기에 항목을 더해도 좋습니다.
-
-대시보드 page.tsx 전체 완성본으로 주세요.</pre>
-      </div>
-      <label class="chk"><input type="checkbox" data-c="c39"><span>전시 모드에서 <b>한 발짝 물러나서도</b> 값이 읽힌다</span></label>
-      <label class="chk"><input type="checkbox" data-c="c40"><span>전시 모드를 끄면 <b>원래 크기로 돌아온다</b> <span class="muted">(평소에 못 쓰게 되면 안 됩니다)</span></span></label>
-      <label class="chk"><input type="checkbox" data-c="c41"><span>상태가 <b>색 + 아이콘 + 글자</b> 세 가지로 같이 바뀐다</span></label>
-      <div class="note tip"><span class="hd">색만으로 알리면 안 되는 이유가 두 가지입니다</span>
-        하나 — <b>색을 구분하기 어려운 사람이 전시회에 옵니다.</b><br>
-        둘 — <b>멀리서는 작은 색 점이 잘 안 보입니다.</b> 글자가 가장 확실합니다.
-      </div>
-    </div>
-  </div>
-
-  <div class="step">
-    <div class="step-hd"><span class="step-no">K</span><span class="step-title">미션 3 — 관람객이 읽는 작품 설명</span><span class="step-time">25분</span></div>
-    <div class="step-body">
-      <p>지금 「이 작품은?」 에는 보통 <code>Next.js + TypeScript</code>, <code>Tailwind CSS</code> 같은 것이 적혀 있습니다.
-      <b>관람객은 이걸 궁금해하지 않습니다.</b> 그리고 <b>버튼을 눌러 창을 열지도 않습니다.</b></p>
-      <div class="pbox">
-        <div class="pbox-hd"><span>미션 3 · 작품 설명</span><button class="copy">복사</button></div>
-<pre class="prompt">작품 설명을 관람객용으로 바꿔 주세요.
-
-- 지금 모달 안에 있는 기술 스펙(Next.js, Tailwind 같은 것)을 빼고,
-  아래 세 가지를 쉬운 말로 적을 자리를 만들어 주세요.
-    1. 이 작품이 무엇을 하는 물건인지 (한 문장)
-    2. 어떻게 동작하는지 (두세 문장)
-    3. 관람객이 직접 해 볼 수 있는 것 한 가지
-- 전시 모드에서는 모달이 아니라 화면에 늘 보이는 카드로 띄워 주세요.
-  관람객은 버튼을 누르지 않습니다.
-
-제 작품은 이렇습니다.
-1. <span class="f" data-f="topic"></span>
-3. <span class="f" data-f="visitorAction"></span>
-
-대시보드 page.tsx 전체 완성본으로 주세요.</pre>
-      </div>
-      <div class="note danger"><span class="hd">🎯 「관람객이 해 볼 것」이 전시의 성패를 가릅니다</span>
-        <b>「조도 센서를 손으로 가려 보세요」</b> 한 줄이 있으면 관람객이 <b>멈춰 서서 해 봅니다.</b>
-        없으면 그냥 지나갑니다. 우리 작품에서 <b>관람객이 손으로 바꿀 수 있는 값</b>이 무엇인지 찾아
-        0단계의 입력칸에 적으세요. <b>이것은 AI 가 대신 못 씁니다 — 우리 작품은 우리가 제일 잘 압니다.</b>
-      </div>
-      <label class="chk"><input type="checkbox" data-c="c42"><span>관람객 화면에서 <b>기술 이름이 사라졌다</b></span></label>
-      <label class="chk"><input type="checkbox" data-c="c43"><span>전시 모드에서는 <b>버튼을 누르지 않아도 설명이 보인다</b></span></label>
-      <label class="chk"><input type="checkbox" data-c="c44"><span><b>해 볼 수 있는 것</b>이 화면에 적혀 있다</span></label>
-      <label class="chk"><input type="checkbox" data-c="c45"><span>초등학생이 읽어도 <b>무슨 물건인지 알 수 있다</b></span></label>
-    </div>
-  </div>
-
   <div class="step must" id="w15">
     <div class="step-hd"><span class="step-no">15</span><span class="step-title">실물 Pico 로 옮기기 — <b>가상 Pico 로만 개발한 팀은 필수</b></span><span class="step-time">별도 시간</span></div>
     <div class="step-body">
@@ -1061,8 +1227,8 @@ useEffect(() =&gt; {
       <table>
         <thead><tr><th style="width:46%">우리 팀은</th><th>언제 하나</th></tr></thead>
         <tbody>
-          <tr><td><b>가상 Pico 로만 개발해 왔다</b> (실물로 한 번도 안 돌려 봄)</td><td>🚨 <b>지금, 단계 L 보다 먼저</b></td></tr>
-          <tr><td>실물 Pico 로 이미 센서가 다 들어온다</td><td>단계 L 뒤에 — <b>우리 팀 센서 추가분만</b></td></tr>
+          <tr><td><b>가상 Pico 로만 개발해 왔다</b> (실물로 한 번도 안 돌려 봄)</td><td>🚨 <b>지금, 단계 K 보다 먼저</b></td></tr>
+          <tr><td>실물 Pico 로 이미 센서가 다 들어온다</td><td>단계 K 뒤에 — <b>우리 팀 센서 추가분만</b></td></tr>
         </tbody>
       </table>
       <div class="note ok"><span class="hd">오늘 하는 일은 한 문장입니다</span>
@@ -1211,8 +1377,49 @@ main.py 전체 완성본으로 주세요.</pre>
   </div>
 
   <div class="step must">
-    <div class="step-hd"><span class="step-no">L</span><span class="step-title">무인 리허설 — 30분 동안 아무도 손대지 않습니다</span><span class="step-time">30분</span></div>
+    <div class="step-hd"><span class="step-no">K</span><span class="step-title">3단계 검증 — 통과 / 실패 / <b>미검증</b></span><span class="step-time">10분 + 30분</span></div>
     <div class="step-body">
+      <div class="pbox">
+        <div class="pbox-hd"><span>3단계 · 확인할 목록 받기</span><button class="copy">복사</button></div>
+<pre class="prompt">붙여넣고 돌려 봤습니다. 이제 검증하고 싶습니다.
+
+제미나이는 제 컴퓨터에서 빌드도 린트도 브라우저도 돌릴 수 없습니다.
+그러니 "확인했다" 고 하지 마시고, 제가 직접 확인할 목록만 만들어 주세요.
+
+아래 다섯 가지에 대해, 각각 "무엇을 어떻게 해 보고 / 무엇이 보여야 통과인지"
+를 한 줄씩 적어 주세요.
+
+A. 시각적 품질 — 위계 · 일관성 · 잘림 · 겹침
+B. 반응형     — 휴대폰 390px / 태블릿 / 데스크톱, 키보드 탐색
+C. IoT 기능   — 센서값 · 단위 · 갱신 시각 · 연결 끊김 · 명령 성공과 실패
+D. 전시 시나리오 — 관람객이 목적을 이해 → 상태 확인 → 직접 조작 → 결과 확인
+E. 안정성     — 콘솔 오류 · 몇 시간 켜 두기 · 끊고 다시 붙기
+
+각 줄은 제가 "통과 / 실패 / 미검증" 중 하나를 적을 수 있게 써 주세요.
+실물 장치가 없어서 확인할 수 없는 것은 미검증으로 두라고 알려 주세요.</pre>
+      </div>
+
+      <h4>① 손으로 확인합니다 (10분) — <b>여기서는 만져도 됩니다</b></h4>
+      <label class="chk"><input type="checkbox" data-c="q16"><span><code>npm run build</code> 가 <b>오류 없이 끝난다</b> <span class="muted">(AI 말이 아니라 우리 화면에 찍힌 것)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="q17"><span><span class="kbd">F12</span> → <code>Console</code> 에 <b>빨간 오류가 없다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c35"><span>전시 모드를 켜면 전체화면이 되고 <b>조작 버튼이 사라진다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c38"><span><span class="kbd">ESC</span> 를 누르면 <b>조작 버튼이 다시 나온다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c36"><span><b>5분 동안 손대지 않아도</b> 화면이 안 꺼진다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c37"><span>다른 탭에 갔다 돌아와도 <b>여전히 안 꺼진다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c39"><span><b>한 발짝 물러나서도</b> <b class="f-inline" data-f="hero"></b> 가 읽힌다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c40"><span>전시 모드를 끄면 <b>원래 크기로 돌아온다</b> <span class="muted">(평소에 못 쓰게 되면 안 됩니다)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="q18"><span><span class="kbd">F12</span> → 휴대폰 모양 → 폭 <b>390</b> 에서 <b>가로로 밀리는 것이 없다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c41"><span>상태가 <b>색 + 아이콘 + 글자</b> 세 가지로 같이 바뀐다 <span class="muted">(가상 Pico 에 <code>add</code> 로 값을 넣어 보기)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="q19"><span><span class="kbd">Tab</span> 키를 누르면 초점 테두리가 <b>차례로 옮겨 다닌다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="q20"><span>액추에이터 버튼을 누르면 가상 Pico 창에 <b><code>우리 팀 액추에이터 … 적용</code></b> 이 찍힌다 <span class="muted">(없으면 그냥 체크)</span></span></label>
+
+      <div class="note danger"><span class="hd">🚨 「미검증」을 「통과」로 적지 마세요</span>
+        실물 Pico 가 없어서 확인 못 한 것은 <b>미검증</b>입니다.
+        미검증은 부끄러운 것이 아니라 <b>전시 전에 해야 할 일 목록</b>입니다.
+        <b>통과로 적어 버리면 그 목록이 사라집니다.</b>
+      </div>
+
+      <h4>② 무인 리허설 30분 — <b>지금부터 아무도 손대지 않습니다</b></h4>
       <div class="note danger"><span class="hd">전시에 실물로 나가는 팀은 이 리허설도 <b>실물 Pico 로</b> 돌리세요</span>
         <b>가상 Pico 로 통과해도 전시가 안 됩니다.</b> 전시장에는 그 창이 없습니다.
         아직 실물로 안 옮겼으면 <a href="#w15">단계 15</a> 를 먼저 하세요.
@@ -1227,8 +1434,60 @@ main.py 전체 완성본으로 주세요.</pre>
       <label class="chk"><input type="checkbox" data-c="c49"><span>센서 카드에 <b>「데이터 없음」이 없다</b></span></label>
       <label class="chk"><input type="checkbox" data-c="c50"><span>노트북 <b>전원 어댑터가 꽂혀 있다</b></span></label>
       <div class="note warn"><span class="hd">두 번째 줄이 안 되는 팀은</span>
-        <b>11주차 프롬프트 4 를 아직 안 끝낸 것입니다.</b> 오늘 미션보다 이것이 먼저입니다.
+        <b>11주차 프롬프트 4 를 아직 안 끝낸 것입니다.</b> 오늘 재설계보다 이것이 먼저입니다.
         위로 올라가 <a href="#w11">단계 F</a> 를 먼저 하세요.
+        전시 중에 Wi-Fi 는 <b>반드시 한 번은</b> 끊깁니다.
+      </div>
+      <div class="note tip"><span class="hd">전시 이틀 전부터는 코드를 그만 고칩니다</span>
+        마지막에 고친 것이 당일에 터집니다. <b>잘 되는 상태에서 멈추는 것</b>도 실력입니다.
+        고치고 싶은 것이 생기면 <b>적어만 두세요.</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">L</span><span class="step-title">관람객이 읽는 작품 설명 <span class="muted">(방과후에 합니다)</span></span><span class="step-time">방과후</span></div>
+    <div class="step-body">
+      <div class="note warn"><span class="hd">수업 시간에는 여기까지 안 옵니다 — 다만 <b>세 문장은 오늘 적어 두세요</b></span>
+        프롬프트는 <b>5분</b>이면 끝납니다. 오래 걸리는 것은 <b>무엇을 적을지 정하는 것</b>이고,
+        그것은 AI 가 대신 못 합니다. <b>진단을 기다리는 동안</b> 워크시트에 손으로 적어 두세요.
+      </div>
+      <p>지금 「이 작품은?」 에는 보통 <code>Next.js + TypeScript</code>, <code>Tailwind CSS</code> 같은 것이 적혀 있습니다.
+      <b>관람객은 이걸 궁금해하지 않습니다.</b> 그리고 <b>버튼을 눌러 창을 열지도 않습니다.</b></p>
+      <div class="pbox">
+        <div class="pbox-hd"><span>방과후 · 작품 설명</span><button class="copy">복사</button></div>
+<pre class="prompt">작품 설명을 관람객용으로 바꿔 주세요.
+
+- 지금 모달 안에 있는 기술 스펙(Next.js, Tailwind 같은 것)을 빼고,
+  아래 세 가지를 쉬운 말로 적을 자리를 만들어 주세요.
+    1. 이 작품이 무엇을 하는 물건인지 (한 문장)
+    2. 어떻게 동작하는지 (두세 문장)
+    3. 관람객이 직접 해 볼 수 있는 것 한 가지
+- 전시 모드에서는 모달이 아니라 화면에 늘 보이는 카드로 띄워 주세요.
+  관람객은 버튼을 누르지 않습니다.
+
+제 작품은 이렇습니다.
+1. <span class="f" data-f="topic"></span>
+3. <span class="f" data-f="visitorAction"></span>
+
+대시보드 page.tsx 전체 완성본으로 주세요.</pre>
+      </div>
+      <div class="note danger"><span class="hd">🎯 「관람객이 해 볼 것」이 전시의 성패를 가릅니다</span>
+        <b>「조도 센서를 손으로 가려 보세요」</b> 한 줄이 있으면 관람객이 <b>멈춰 서서 해 봅니다.</b>
+        없으면 그냥 지나갑니다. 우리 작품에서 <b>관람객이 손으로 바꿀 수 있는 값</b>이 무엇인지 찾아
+        0단계의 입력칸에 적으세요. <b>이것은 AI 가 대신 못 씁니다 — 우리 작품은 우리가 제일 잘 압니다.</b>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="c42"><span>관람객 화면에서 <b>기술 이름이 사라졌다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c43"><span>전시 모드에서는 <b>버튼을 누르지 않아도 설명이 보인다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c44"><span><b>해 볼 수 있는 것</b>이 화면에 적혀 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c45"><span>초등학생이 읽어도 <b>무슨 물건인지 알 수 있다</b></span></label>
+
+      <h4>재설계 2차 — 보조 영역</h4>
+      <p>수업에서 <b>주인공 영역만</b> 끝낸 팀은 나머지를 이어서 합니다.
+      같은 대화에서 <b>「다음 단계를 주세요」</b> 로 이어 가면 됩니다.</p>
+      <div class="note danger"><span class="hd">🚨 재설계를 더 손댔으면 <b>무인 리허설 30분을 다시</b> 통과해야 전시에 나갑니다</span>
+        화면을 바꾸면 <b>지난번 리허설 결과는 무효</b>입니다. 전시 모드와 자동 재연결이
+        아직 살아 있는지 확인할 방법은 <b>다시 30분 돌려 보는 것</b> 하나뿐입니다.
       </div>
     </div>
   </div>
@@ -1313,7 +1572,15 @@ main.py 전체 완성본으로 주세요.</pre>
       <tr><td>대화가 길어지니 규칙을 자꾸 어김</td><td><b>새 대화를 시작</b>하고 파일 두 개를 다시 올리세요. 이게 제일 빠릅니다</td></tr>
       <tr><td><code>@theme</code> 을 만들라고 한다</td><td>13주차(참고) 자료를 보고 하는 말입니다. 우리 토큰은 <code>const UI</code> 객체 — 프롬프트 6</td></tr>
       <tr><td><code>tailwind.config.js</code> 를 만들라고 한다</td><td>인터넷에 v3 자료가 훨씬 많아서 자주 나옵니다. <b>v4 에는 없는 파일</b>입니다</td></tr>
-      <tr><td><b>전시 모드를 끄려는데 버튼이 안 보인다</b></td><td><code>fullscreenchange</code> 처리가 빠진 것입니다. 일단 <b>새로고침</b>하고, 미션 1 의 ★ 코드를 넣으세요</td></tr>
+      <tr><td><b>AI 가 「빌드했습니다 · 타입 오류 0건입니다 · 반응형을 확인했습니다」라고 한다</b></td><td>🚨 <b>거짓입니다.</b> 제미나이는 우리 컴퓨터에서 <b>아무것도 실행할 수 없습니다.</b> 올린 파일을 읽은 것이 전부입니다. <code>npm run build</code> 와 <span class="kbd">F12</span> 는 <b>우리가</b> 돌립니다 → <a href="#w14">단계 K</a></td></tr>
+      <tr><td>진단만 부탁했는데 <b>코드를 준다</b></td><td><b>「코드는 아직 필요 없습니다. 보고서만 주세요」</b> 라고 하세요. 방향이 틀렸을 때 코드를 먼저 받으면 되돌리기가 어렵습니다 (규칙 9-7)</td></tr>
+      <tr><td>재설계 방향을 <b>하나만 준다</b></td><td><b>「다른 방향도 하나 더 주세요」</b> — 비교할 것이 있어야 고를 수 있습니다 → <a href="#w14">단계 I</a></td></tr>
+      <tr><td><b>재설계하고 나니 전시 모드가 사라졌다</b></td><td><b>새 레이아웃에 자리가 없어서 빠뜨린 것입니다.</b> <a href="#w14">단계 J</a> 의 「반드시 남겨야 하는 것」 표를 다시 붙여 넣고 요청하세요</td></tr>
+      <tr><td><b>재설계하고 나니 자동 재연결이 사라졌다</b></td><td>같은 원인입니다. <b>무인 리허설에서 반드시 걸립니다</b> — 그래서 리허설 30분을 빼면 안 됩니다</td></tr>
+      <tr><td><b>재설계가 어두운 테마로 돌아왔다</b></td><td>인터넷의 대시보드 예제가 대부분 어둡습니다. 우리는 <code>bg-slate-50</code> <b>밝은 테마</b>입니다 — 프롬프트 6 · 규칙 3-9</td></tr>
+      <tr><td><b>「데이터 없음」이 <code>0</code> 으로 바뀌었다</b></td><td>🚨 관람객이 <b>틀린 값</b>을 읽습니다. <b>측정 대기와 0 은 다릅니다.</b> 규칙 3-8 의 세 가지 구분을 다시 알려주세요</td></tr>
+      <tr><td>그라데이션 · 반투명 유리 효과를 넣어 준다</td><td>규칙 <b>3-9</b> 의 금지 목록입니다. 지금 코드에는 하나도 없습니다 — 프롬프트 6</td></tr>
+      <tr><td><b>전시 모드를 끄려는데 버튼이 안 보인다</b></td><td><code>fullscreenchange</code> 처리가 빠진 것입니다. 일단 <b>새로고침</b>하고, <a href="#w14">단계 J</a> 의 ★ 코드를 넣으세요</td></tr>
       <tr><td>전시 모드에서 화면이 하얗게 된다</td><td>Wake Lock 을 <code>try/catch</code> 없이 쓴 것입니다</td></tr>
       <tr><td>색을 쟀는데 이상한 값이 나온다</td><td><code>transition</code> 때문에 <b>바뀌는 중</b>일 수 있습니다. 0.5초쯤 기다렸다 보세요</td></tr>
       <tr><td><code>우리팀-UI.md</code> 가 안 만들어진다</td><td><code>package.json</code> 이 있는 폴더에서 실행했는지 확인하세요</td></tr>
@@ -1394,7 +1661,8 @@ main.py 전체 완성본으로 주세요.</pre>
   var PH = {
     teamName:"우리팀", topic:"(0단계에 작품 한 줄 설명을 적으세요)",
     threshold:"(기준 숫자)", direction:"(작으면 / 크면)",
-    picoIp:"(IP 주소)", visitorAction:"(관람객이 해 볼 것)"
+    picoIp:"(IP 주소)", visitorAction:"(관람객이 해 볼 것)",
+    hero:"(0단계에 우리 작품의 주인공을 적으세요)"
   };
   // 설계표에서 자동으로 만들어지는 칸
   var PH_DERIVED = {
