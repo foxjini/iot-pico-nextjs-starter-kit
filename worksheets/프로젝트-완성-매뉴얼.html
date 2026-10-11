@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리 팀 작품 완성 매뉴얼 · 11주차 + 14주차</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#0866ff; --blue-dark:#0053d6; --blue-light:#e7f2ff; --blue-surface:#f0f7ff;
+  --navy:#0e1e38;
+  --text:#1c1e21; --text-2:#5a6069; --text-3:#8a8d91;
+  --bg:#f7f9fc; --card:#ffffff; --line:#e4e6eb;
+  --ok:#059669; --ok-bg:#d1fae5;
+  --warn:#d97706; --warn-bg:#fef3c7;
+  --bad:#dc2626; --bad-bg:#fee2e2;
+  --code-bg:#0e1e38; --code-fg:#e8eefc;
+  --shadow:0 2px 8px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 16px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Inter','Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'맑은 고딕',sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.65; padding-bottom:80px;
+}
+.wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+
+/* ── 상단 고정 바 ── */
+.topbar{
+  position:sticky; top:0; z-index:50; background:rgba(255,255,255,.95);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+}
+.topbar-in{max-width:1060px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.dday{
+  font-weight:800; font-size:15px; color:var(--bad); background:var(--bad-bg);
+  padding:5px 12px; border-radius:999px; white-space:nowrap;
+}
+.bar{flex:1 1 220px;min-width:160px;height:9px;background:var(--line);border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--ok));transition:width .3s}
+.bar-txt{font-size:13px;font-weight:700;color:var(--text-2);white-space:nowrap}
+.saved{font-size:12px;color:var(--text-3);white-space:nowrap}
+
+/* ── 머리말 ── */
+header.hero{
+  background:linear-gradient(135deg,var(--navy),#1b3a6b); color:#fff;
+  padding:44px 0 40px; margin-bottom:28px;
+}
+header.hero h1{font-size:30px;font-weight:900;letter-spacing:-.4px;line-height:1.3}
+header.hero .sub{margin-top:10px;font-size:16px;color:#bcd2f5;font-weight:500}
+header.hero .lead{margin-top:18px;font-size:15px;color:#e3ecfb;max-width:800px}
+header.hero .lead b{color:#fff}
+
+/* ── 공통 블록 ── */
+section{margin:0 0 34px;scroll-margin-top:62px}
+.step,h2,h3{scroll-margin-top:62px}
+h2{
+  font-size:22px;font-weight:800;letter-spacing:-.3px;margin:0 0 6px;
+  padding-bottom:10px;border-bottom:3px solid var(--blue);display:inline-block;
+}
+h3{font-size:17px;font-weight:800;margin:22px 0 8px}
+h4{font-size:15px;font-weight:700;margin:16px 0 6px;color:var(--text-2)}
+p{margin:8px 0}
+.muted{color:var(--text-2);font-size:14px}
+code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:#eef1f6;border:1px solid #dde2ea;border-radius:5px;
+  padding:1px 5px;font-size:.9em;
+}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);margin:14px 0}
+
+/* 콜아웃 */
+.note{border-radius:12px;padding:14px 16px;margin:12px 0;font-size:14.5px;border:1px solid}
+.note b{font-weight:800}
+.note.tip{background:var(--blue-surface);border-color:#cfe2ff}
+.note.warn{background:var(--warn-bg);border-color:#fcd99b}
+.note.danger{background:var(--bad-bg);border-color:#fbc4c4}
+.note.ok{background:var(--ok-bg);border-color:#a7e8cd}
+.note .hd{display:block;font-weight:800;margin-bottom:4px}
+
+/* 표 */
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px;background:var(--card)}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:#f2f5f9;font-weight:700;font-size:13px}
+tbody tr:nth-child(even){background:#fbfcfe}
+
+/* ── 단계 ── */
+.step{
+  background:var(--card);border:1px solid var(--line);border-left:5px solid var(--blue);
+  border-radius:12px;padding:18px 20px;margin:14px 0;box-shadow:var(--shadow);
+}
+.step.must{border-left-color:var(--bad)}
+.step.opt{border-left-color:var(--text-3)}
+.step-hd{display:flex;align-items:flex-start;gap:12px}
+.step-no{
+  flex:0 0 auto;min-width:30px;height:30px;padding:0 8px;border-radius:8px;
+  background:var(--blue);color:#fff;font-weight:800;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.step.must .step-no{background:var(--bad)}
+.step.opt .step-no{background:var(--text-3)}
+.step-title{font-size:17px;font-weight:800;flex:1}
+.step-time{
+  font-size:12px;font-weight:700;color:var(--text-2);background:#eef1f6;
+  border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap;
+}
+.step-body{margin-top:12px}
+
+/* 체크 */
+.chk{display:flex;align-items:flex-start;gap:9px;margin:7px 0;font-size:14.5px;cursor:pointer}
+.chk input{width:18px;height:18px;margin-top:2px;flex:0 0 auto;accent-color:var(--blue);cursor:pointer}
+.chk input:checked+span{color:var(--text-3);text-decoration:line-through}
+.chk span{flex:1}
+
+/* 프롬프트 */
+.pbox{margin:12px 0;border-radius:12px;overflow:hidden;border:1px solid #2b4470}
+.f-inline{font-weight:800;color:var(--blue-dark)}
+.pbox-hd{
+  background:#16284a;color:#cfe0ff;padding:8px 14px;font-size:12.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.copy{
+  background:var(--blue);color:#fff;border:0;border-radius:7px;padding:5px 13px;
+  font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;
+}
+.copy:hover{background:var(--blue-dark)}
+.copy.done{background:var(--ok)}
+pre.prompt{
+  background:var(--code-bg);color:var(--code-fg);padding:15px;margin:0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;
+}
+pre.prompt .f{color:#ffd56b;font-weight:700}
+pre.prompt .f.empty{color:#ff9d9d;background:rgba(255,120,120,.12);border-radius:3px;padding:0 3px}
+pre.code{
+  background:#f6f8fb;border:1px solid var(--line);border-radius:10px;padding:14px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13px;line-height:1.6;overflow-x:auto;margin:12px 0;
+}
+pre.term{
+  background:var(--code-bg);color:#b9f6ca;border-radius:10px;padding:14px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13px;line-height:1.6;overflow-x:auto;margin:12px 0;
+}
+
+/* 팀 설정 */
+.setup{background:var(--card);border:2px solid var(--blue);border-radius:14px;padding:20px;box-shadow:var(--shadow-lg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin-top:12px}
+.fld label{display:block;font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:4px}
+.fld input,.fld select,.fld textarea{
+  width:100%;padding:9px 11px;border:1px solid #cfd5df;border-radius:8px;
+  font-family:inherit;font-size:14px;background:#fff;color:var(--text);
+}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(8,102,255,.14)}
+.fld .hint{font-size:11.5px;color:var(--text-3);margin-top:3px}
+
+/* 흐름 */
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+.flow .n{
+  background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:8px 13px;font-size:13.5px;font-weight:700;box-shadow:var(--shadow);
+}
+.flow .n.hot{background:var(--bad-bg);border-color:#fbc4c4;color:#8d1a1a}
+.flow .a{color:var(--text-3);font-weight:800}
+
+/* 기타 */
+.kbd{
+  display:inline-block;background:#fff;border:1px solid #c8ced8;border-bottom-width:2px;
+  border-radius:6px;padding:1px 7px;font-size:12.5px;font-weight:700;
+  font-family:ui-monospace,monospace;
+}
+.btn-ghost{
+  background:#fff;border:1px solid #cfd5df;border-radius:8px;padding:7px 14px;
+  font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-2);
+}
+.btn-ghost:hover{background:#f2f5f9}
+footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--text-3)}
+.anchor-nav{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0 0}
+.anchor-nav a{
+  font-size:13px;font-weight:700;text-decoration:none;color:var(--blue);
+  background:var(--blue-light);border-radius:999px;padding:5px 12px;
+}
+.anchor-nav a:hover{background:#d6e8ff}
+
+@media (max-width:640px){
+  header.hero h1{font-size:23px}
+  .step{padding:15px}
+  .step-hd{flex-wrap:wrap}
+  pre.prompt{font-size:12px}
+}
+@media print{
+  .topbar,.anchor-nav,.copy,.btn-ghost{display:none!important}
+  body{background:#fff;padding:0}
+  header.hero{background:#0e1e38!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .step,.card,.note,table,pre{break-inside:avoid}
+  pre.prompt{background:#f3f4f6!important;color:#111!important;border:1px solid #ccc}
+  pre.prompt .f{color:#0053d6!important}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <span class="dday" id="dday">전시회까지 —</span>
+    <div class="bar"><i id="barFill"></i></div>
+    <span class="bar-txt" id="barTxt">0 / 0</span>
+    <span class="saved" id="saved">입력과 체크는 이 브라우저에 자동 저장됩니다</span>
+    <button class="btn-ghost" onclick="window.print()">인쇄</button>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>우리 팀 작품 완성 매뉴얼</h1>
+    <div class="sub">11주차 + 14주차로 전시회 작품을 끝까지 만드는 방법</div>
+    <p class="lead">
+      남은 수업은 <b>11주차와 14주차 두 번</b>입니다. 그 다음은 <b>11월 20일 작품 전시회</b>입니다.
+      이 문서는 <b>위에서 아래로 순서대로</b> 따라가면 되도록 만들었습니다.
+      먼저 <b>0단계에서 우리 팀 정보를 한 번만 입력</b>하세요. 그러면 아래 모든 프롬프트에
+      우리 팀 센서 이름 · 핀 · JSON 키가 <b>자동으로 채워집니다.</b>
+    </p>
+    <div class="anchor-nav">
+      <a href="#s0">0 · 준비</a>
+      <a href="#w11">11주차 · 기능 완성</a>
+      <a href="#w14">14주차 · 전시 준비</a>
+      <a href="#stuck">막혔을 때</a>
+      <a href="#errors">오류 사전</a>
+      <a href="#dday-sec">전시 당일</a>
+      <a href="#never">절대 하지 말 것</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ══════════ 0 ══════════ -->
+<section id="s0">
+  <h2>0단계 · 시작 전 준비</h2>
+  <p class="muted">수업 시작 전에 끝내 두면 수업 시간을 전부 작품에 쓸 수 있습니다. 10분이면 됩니다.</p>
+
+  <div class="setup">
+    <h3 style="margin-top:0">우리 팀 정보 — 한 번만 입력하세요</h3>
+    <p class="muted">여기에 적은 값이 아래 <b>모든 프롬프트에 자동으로 들어갑니다.</b> 빈칸은 프롬프트에서 <span style="color:#c00;font-weight:700">빨갛게</span> 표시됩니다.</p>
+    <div class="grid">
+      <div class="fld"><label>팀 이름</label><input data-k="teamName" placeholder="3팀"></div>
+      <div class="fld"><label>작품 한 줄 설명</label><input data-k="topic" placeholder="교실 화분을 자동으로 관리하는 스마트 화분"><div class="hint">한 줄로 설명할 수 없으면 주제가 아직 안 정해진 것입니다</div></div>
+      <div class="fld"><label>Pico IP 주소</label><input data-k="picoIp" placeholder="192.168.0.42"><div class="hint">시리얼 모니터에 찍힙니다. 가상 Pico면 localhost</div></div>
+    </div>
+
+    <h4>추가할 센서 (대표 1개 — 더 있으면 같은 순서를 반복하면 됩니다)</h4>
+    <div class="grid">
+      <div class="fld"><label>센서 이름</label><input data-k="sensorLabel" placeholder="토양수분"></div>
+      <div class="fld"><label>JSON 키 (영문)</label><input data-k="sensorKey" placeholder="soil"><div class="hint">화면과 Pico가 글자 하나까지 같아야 합니다</div></div>
+      <div class="fld"><label>단위</label><input data-k="sensorUnit" placeholder="%"></div>
+      <div class="fld"><label>핀</label><input data-k="sensorPin" placeholder="GP27"><div class="hint">아날로그는 GP27 · GP28 두 개뿐</div></div>
+      <div class="fld"><label>값의 범위</label><input data-k="sensorRange" placeholder="0~100"></div>
+      <div class="fld"><label>연결 방식</label>
+        <select data-k="sensorSignal">
+          <option value="">고르세요</option>
+          <option>아날로그 (analogio.AnalogIn)</option>
+          <option>디지털 (digitalio.DigitalInOut)</option>
+          <option>I2C</option>
+          <option>UART</option>
+        </select>
+      </div>
+    </div>
+
+    <h4>추가할 액추에이터 (없으면 비워 두세요)</h4>
+    <div class="grid">
+      <div class="fld"><label>액추에이터 이름</label><input data-k="actLabel" placeholder="급수 펌프"></div>
+      <div class="fld"><label>JSON 키 (영문)</label><input data-k="actKey" placeholder="pump"></div>
+      <div class="fld"><label>핀</label><input data-k="actPin" placeholder="GP14"></div>
+    </div>
+
+    <h4>자동으로 하고 싶은 일</h4>
+    <div class="grid">
+      <div class="fld"><label>기준 숫자</label><input data-k="threshold" placeholder="30"></div>
+      <div class="fld"><label>방향</label>
+        <select data-k="direction"><option value="">고르세요</option><option>작으면</option><option>크면</option></select>
+      </div>
+      <div class="fld"><label>관람객이 해 볼 것 하나</label><input data-k="visitorAction" placeholder="조도 센서를 손으로 가려 보세요"><div class="hint">전시의 성패를 가르는 한 줄입니다</div></div>
+    </div>
+
+    <div style="margin-top:14px"><button class="btn-ghost" onclick="resetAll()">입력과 체크 전부 지우기</button></div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">0-1</span><span class="step-title">저장소를 최신으로 받습니다</span><span class="step-time">2분</span></div>
+    <div class="step-body">
+      <p>가상 Pico가 <b>2026-10-10에 고쳐졌습니다.</b> 안 받으면 11주차 자동 재연결을 확인할 수 없습니다.</p>
+      <pre class="term">git pull</pre>
+      <div class="note danger"><span class="hd">이걸 건너뛰면 무슨 일이 나는가</span>
+        고치기 전 가상 Pico는 <code>x</code>(USB 뽑기)를 눌러도 <b>연결을 실제로 끊지 않았습니다.</b>
+        그래서 자동 재연결 코드를 <b>맞게 고쳐도 화면이 계속 「연결됨」</b> 으로 남아,
+        멀쩡한 코드를 틀린 줄 알고 몇 시간 뜯어고치게 됩니다.
+      </div>
+      <label class="chk"><input type="checkbox" data-c="c01"><span><code>git pull</code> 을 했다</span></label>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">0-2</span><span class="step-title">세 파일을 프로젝트 폴더에 복사합니다</span><span class="step-time">3분</span></div>
+    <div class="step-body">
+      <p><b>프로젝트 폴더</b>란 <code>package.json</code> 이 있는 폴더입니다. 거기에 아래 세 개를 넣으세요.</p>
+      <table>
+        <thead><tr><th style="width:38%">파일</th><th>어디에 있나</th><th style="width:26%">쓰는 때</th></tr></thead>
+        <tbody>
+          <tr><td><code>bundle-source.js</code></td><td><code>week11-vibe-coding/</code></td><td>11주차</td></tr>
+          <tr><td><code>bundle-ui.js</code></td><td><code>week14-tailwind-vibe/</code></td><td>14주차</td></tr>
+          <tr><td><b><code>프로젝트-규칙.md</code></b></td><td><b><code>week11-vibe-coding/</code></b></td><td><b>11주차 · 14주차 둘 다</b></td></tr>
+        </tbody>
+      </table>
+      <div class="note danger"><span class="hd">규칙 파일을 잘못 가져오면 몇 주 작업이 날아갑니다</span>
+        13주차 폴더에 있는 <code>프로젝트-규칙-tailwind.md</code> 는 <b>쓰지 마세요.</b>
+        그 문서는 색을 <code>globals.css</code> 의 <code>@theme</code> 으로 만드는 것을 전제합니다.
+        우리 코드의 색은 <code>page.tsx</code> 안의 <b><code>const UI</code> 객체</b>라서,
+        그 문서를 올리면 제미나이가 <b>우리 코드에 없는 색 이름</b>(<code>bg-base</code>, <code>text-ink</code>)을 쓴 코드를 내놓습니다.
+        <br><b>쓸 것은 <code>week11-vibe-coding/프로젝트-규칙.md</code> 하나뿐입니다.</b>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="c02"><span>세 파일을 <code>package.json</code> 이 있는 폴더에 복사했다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c03"><span>규칙 파일이 <b><code>프로젝트-규칙.md</code></b> 인 것을 확인했다 (<code>-tailwind</code> 가 안 붙은 것)</span></label>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">0-3</span><span class="step-title">지금 잘 되는 화면을 백업합니다</span><span class="step-time">1분</span></div>
+    <div class="step-body">
+      <p>지금 화면이 잘 돌아간다면, 그 상태를 <b>한 벌 복사해 두세요.</b> 잘못되면 1초 만에 돌아올 수 있습니다.</p>
+      <pre class="term">src/app/dashboard/page.tsx  →  복사해서  page.tsx.bak  으로 이름 바꾸기</pre>
+      <p class="muted"><code>.bak</code> 은 Next.js 가 무시하므로 그냥 둬도 아무 문제 없습니다.</p>
+      <label class="chk"><input type="checkbox" data-c="c04"><span><code>page.tsx.bak</code> 을 만들어 뒀다</span></label>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">0-4</span><span class="step-title">지금 상태가 정상인지 확인합니다</span><span class="step-time">4분</span></div>
+    <div class="step-body">
+      <p><b>고치기 전에 지금이 되는지 먼저 봐야</b> 합니다. 안 되는 상태에서 고치면 무엇 때문인지 알 수 없습니다.</p>
+      <pre class="term">npm run dev
+# 다른 창에서
+py mock_pi_11.py        (실물 Pico 가 있으면 생략)</pre>
+      <label class="chk"><input type="checkbox" data-c="c05"><span>대시보드가 열리고 <b>ONLINE</b> 이 된다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c06"><span>센서 값이 들어오고, 빨간 오류 줄(<span class="kbd">F12</span> → Console)이 없다</span></label>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 11주차 ══════════ -->
+<section id="w11">
+  <h2>11주차 · 우리 팀 기능을 끝냅니다 (100분)</h2>
+  <p class="muted">순서를 꼭 지키세요. <b>화면 → Pico → 자동 재연결 → 자동 제어</b> 입니다.</p>
+
+  <div class="flow">
+    <span class="n">0 · 계획 받기</span><span class="a">→</span>
+    <span class="n">1 · 화면에 센서</span><span class="a">→</span>
+    <span class="n">2 · Pico에 센서</span><span class="a">→</span>
+    <span class="n hot">4 · 자동 재연결 (전시 필수)</span><span class="a">→</span>
+    <span class="n">3 · 자동 제어</span>
+  </div>
+
+  <div class="note danger"><span class="hd">시간이 모자라면 3번을 버리고 4번을 하세요</span>
+    자동 제어(3번)는 <b>없어도 작품이 돌아갑니다.</b> 관람객이 직접 버튼을 누르면 됩니다.<br>
+    자동 재연결(4번)이 없으면 <b>전시 중에 Wi-Fi가 한 번 끊기는 순간 그대로 멈춘 화면</b>이
+    몇 시간 걸려 있게 됩니다. 관람객은 <b>작품이 고장 났다고 생각합니다.</b>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">A</span><span class="step-title">소스를 한 파일로 묶고, 비밀번호가 안 올라간 것을 확인합니다</span><span class="step-time">8분</span></div>
+    <div class="step-body">
+      <pre class="term">node bundle-source.js
+# Pico 코드도 같이 올리려면 (CIRCUITPY 드라이브 글자에 맞게)
+node bundle-source.js D:\</pre>
+      <p><code>우리팀-소스.md</code> 가 만들어집니다. <b>화면에 찍힌 내용을 눈으로 확인하세요.</b></p>
+      <table>
+        <thead><tr><th style="width:52%">이 줄이 찍혀 있어야 합니다</th><th>왜</th></tr></thead>
+        <tbody>
+          <tr><td>🔒 비밀번호가 들어있어 뺀 파일: <code>.env.local</code></td><td><b>2주차 MySQL 접속 정보</b>가 들어 있는 파일입니다</td></tr>
+          <tr><td>🔒 … <code>settings.toml</code> (Pico 코드도 묶었다면)</td><td><b>실습실 공유기 비밀번호</b>가 들어 있습니다</td></tr>
+          <tr><td>✅ 비밀번호처럼 보이는 줄은 없습니다.</td><td>코드 안에 직접 적어둔 비밀번호까지 찾아 줍니다</td></tr>
+        </tbody>
+      </table>
+      <div class="note danger"><span class="hd">⚠️ 가 떴으면 올리지 마세요</span>
+        「비밀번호처럼 보이는 줄이 남아 있습니다」가 나오면 <b>그 줄을 먼저 지우고 다시 묶습니다.</b>
+        한 번 올라간 비밀번호는 <b>되돌릴 수 없습니다.</b> 대화를 지워도 AI 가 잊어주는 것이 아닙니다.
+      </div>
+      <label class="chk"><input type="checkbox" data-c="c11"><span><code>우리팀-소스.md</code> 가 만들어졌다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c12"><span>위 세 줄을 <b>눈으로</b> 확인했다</span></label>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">B</span><span class="step-title">제미나이에 새 대화를 열고 파일 두 개를 올립니다</span><span class="step-time">2분</span></div>
+    <div class="step-body">
+      <p>학교 구글 계정으로 제미나이에 들어가 <b>새 대화</b>를 시작하고, 아래 두 개를 첨부합니다.</p>
+      <table>
+        <thead><tr><th style="width:38%">올리는 것</th><th>무엇인가</th></tr></thead>
+        <tbody>
+          <tr><td><code>우리팀-소스.md</code></td><td>지금 동작하는 우리 코드</td></tr>
+          <tr><td><b><code>프로젝트-규칙.md</code></b></td><td>지켜야 할 규칙 (11주차에 받은 것)</td></tr>
+        </tbody>
+      </table>
+      <div class="note tip"><span class="hd">왜 「새 대화」인가</span>
+        AI 는 대화가 길어지면 <b>처음에 준 규칙을 잊습니다.</b> 고장이 아니라 원래 그렇습니다.
+        규칙을 자꾸 어기기 시작하면 <b>새 대화를 열고 파일 두 개를 다시 올리는 것</b>이 제일 빠릅니다.
+      </div>
+      <label class="chk"><input type="checkbox" data-c="c13"><span>새 대화에 파일 <b>두 개</b>를 올렸다</span></label>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">C</span><span class="step-title">프롬프트 0 — 코드를 받기 전에 계획부터 받습니다</span><span class="step-time">20분</span></div>
+    <div class="step-body">
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 0 · 계획 받기</span><button class="copy">복사</button></div>
+<pre class="prompt">첨부한 파일 두 개를 먼저 읽어 주세요.
+- 프로젝트-규칙.md : 이 프로젝트에서 반드시 지켜야 할 규칙입니다.
+- 우리팀-소스.md   : 지금 동작하고 있는 소스 전체입니다.
+
+우리 팀 작품은 이렇습니다.
+
+[ 주제 ]
+<span class="f" data-f="topic"></span>
+
+[ 추가할 센서 ]
+- <span class="f" data-f="sensorLabel"></span> / <span class="f" data-f="sensorPin"></span> / <span class="f" data-f="sensorUnit"></span> / <span class="f" data-f="sensorRange"></span> / JSON 키 "<span class="f" data-f="sensorKey"></span>"
+
+[ 추가할 액추에이터 ]
+- <span class="f" data-f="actLabel"></span> / <span class="f" data-f="actPin"></span> / JSON 키 "<span class="f" data-f="actKey"></span>"
+
+[ 자동으로 하고 싶은 일 ]
+<span class="f" data-f="sensorLabel"></span> 이 <span class="f" data-f="threshold"></span> 보다 <span class="f" data-f="direction"></span> <span class="f" data-f="actLabel"></span> 를 켠다
+
+──────────────────────────────
+아직 코드를 고치지 마세요.
+먼저 아래 네 가지만 답해 주세요.
+
+1. 위 구성대로 하려면 어떤 파일의 어느 부분을 고쳐야 하는지 목록
+2. 제 소스에서 센서를 하나 늘리려면 정확히 어디어디를 같이 고쳐야 하는지
+   (타입 · 배열 · 값 모으는 곳 · 상태 판정 — 제 소스에 실제로 있는 것만)
+3. 제가 알려드린 정보 중 빠진 것이 있으면 무엇인지
+4. 어떤 순서로 하면 좋을지</pre>
+      </div>
+      <div class="note tip"><span class="hd">「아직 코드를 고치지 마세요」가 핵심 문장입니다</span>
+        계획을 먼저 보면, AI 가 엉뚱하게 이해했을 때 <b>코드를 받기 전에</b> 바로잡을 수 있습니다.
+        코드를 다 받고 붙여넣은 다음에 "아 그게 아닌데" 하면 <b>그 시간이 통째로 날아갑니다.</b>
+      </div>
+      <div class="note warn"><span class="hd">2번 질문이 이번에 새로 들어간 것입니다</span>
+        우리 화면 코드는 센서 이름이 <b>타입으로 못박혀</b> 있어서, 배열에 줄만 추가하면
+        <b>빨간 줄(타입 오류)</b> 이 납니다. 먼저 물어보면 AI 가 고칠 자리를 목록으로 알려 줍니다.
+      </div>
+      <label class="chk"><input type="checkbox" data-c="c14"><span>AI 가 알려준 <b>고칠 자리 목록</b>을 읽고, 내 코드와 맞는지 봤다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c15"><span>AI 가 엉뚱하게 이해한 것이 있으면 <b>지금</b> 바로잡았다</span></label>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">D</span><span class="step-title">프롬프트 1 — 화면에 우리 팀 센서를 추가합니다</span><span class="step-time">22분</span></div>
+    <div class="step-body">
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 1 · 화면에 센서 추가</span><button class="copy">복사</button></div>
+<pre class="prompt">좋습니다. 그 순서대로 진행해 주세요.
+
+먼저 화면부터 하겠습니다.
+대시보드 page.tsx 에 <span class="f" data-f="sensorLabel"></span> 을 추가해 주세요.
+
+- key 는 "<span class="f" data-f="sensorKey"></span>", label 은 "<span class="f" data-f="sensorLabel"></span>", unit 은 "<span class="f" data-f="sensorUnit"></span>", 값 범위는 <span class="f" data-f="sensorRange"></span> 입니다
+- 지금 있는 센서들은 하나도 지우지 마세요
+
+★ 센서 이름이 타입으로 못박혀 있습니다. 배열에 줄만 추가하면 타입 오류가 납니다.
+  제 소스에서 아래에 해당하는 자리를 전부 찾아 같이 고쳐 주세요.
+    - SensorKey 같은 유니온 타입에 이름 추가
+    - SENSORS 배열에 항목 추가
+    - SensorValue / SensorData 처럼 수신 데이터 타입이 있으면 거기도
+    - sensorValues 처럼 값을 모으는 객체가 있으면 거기도
+    - getSensorStatus 처럼 정상/주의/위험을 판정하는 함수가 있으면 거기도
+  제 소스에 없는 것은 만들지 마세요.
+
+- CSS 는 Tailwind 만 씁니다. Bootstrap 클래스(d-flex, row g-3, card)를 쓰지 마세요
+- 색과 간격은 page.tsx 맨 위의 const UI 객체에 모여 있습니다.
+  globals.css 에 @theme 블록을 만들지 말고,
+  bg-base / text-ink 처럼 없는 토큰 이름도 쓰지 마세요
+
+- 파일 전체 완성본으로 주세요
+- 바뀐 줄에 // ★ 주석을 달아 주세요</pre>
+      </div>
+
+      <h4>확인 — 두 가지를 <b>모두</b> 보세요</h4>
+      <label class="chk"><input type="checkbox" data-c="c16"><span><b>빨간 줄(타입 오류)이 없다</b> — 에디터와 <span class="kbd">F12</span> → Console 둘 다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c17"><span><b>화면에 센서 카드가 새로 생겼다</b> — 값이 「데이터 없음」인 것은 정상입니다</span></label>
+
+      <div class="note danger"><span class="hd">🚨 두 번째 확인을 절대 건너뛰지 마세요 — 실제로 측정한 함정입니다</span>
+        타입 오류는 <b>빨간 줄로 바로 보입니다.</b> 그런데 <b><code>SENSORS</code> 배열만 빼먹으면
+        오류가 하나도 없는데 카드도 안 생깁니다.</b> 화면은 <code>SENSORS.map()</code> 으로 그리기 때문입니다.<br>
+        이걸 모르고 넘어가면 다음 시간에 <b>"Pico 가 값을 안 보내나?"</b> 하면서 배선부터 다시 뜯어봅니다.
+        <b>오류가 없는 것과 되는 것은 다릅니다.</b>
+      </div>
+
+      <h4>타입 오류가 떴을 때 — 메시지로 어디를 빼먹었는지 알 수 있습니다</h4>
+      <table>
+        <thead><tr><th style="width:56%">오류 메시지</th><th>빠뜨린 곳</th></tr></thead>
+        <tbody>
+          <tr><td><code>Type '"키"' is not assignable to type 'SensorKey'</code></td><td><code>type SensorKey</code> 유니온</td></tr>
+          <tr><td><code>Property '키' does not exist on type 'SensorValue'</code></td><td><code>type SensorValue</code></td></tr>
+          <tr><td><code>Property '키' is missing … required in type 'Record&lt;SensorKey, …&gt;'</code></td><td><code>sensorValues</code> (값 모으는 객체)</td></tr>
+          <tr style="background:var(--bad-bg)"><td><b>오류는 없는데 카드가 안 보인다</b></td><td><b><code>SENSORS</code> 배열</b></td></tr>
+        </tbody>
+      </table>
+      <p class="muted">메시지를 <b>그대로 복사</b>해서 아래 <a href="#stuck">프롬프트 5</a> 로 물어보면 됩니다.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">E</span><span class="step-title">프롬프트 2 — Pico 에 센서를 추가합니다</span><span class="step-time">20분</span></div>
+    <div class="step-body">
+      <div class="note warn"><span class="hd">코드보다 전압이 먼저입니다</span>
+        Pico 의 핀은 <b>3.3V 까지만</b> 견딥니다. 센서가 Pico 로 <b>내보내는 신호</b>가 5V 면 그 핀이 망가집니다.
+        특히 <b>HC-SR04 초음파의 ECHO 는 5V</b> 라서 <b>분압 저항(1kΩ + 2kΩ)이 필수</b>입니다.
+        배선은 <b>USB 를 뽑은 상태에서</b> 하세요.
+      </div>
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 2 · Pico 에 센서 추가</span><button class="copy">복사</button></div>
+<pre class="prompt">이제 Pico 쪽입니다.
+main.py 에 <span class="f" data-f="sensorLabel"></span> 을 추가해 주세요.
+
+- 핀: <span class="f" data-f="sensorPin"></span>
+- 연결 방식: <span class="f" data-f="sensorSignal"></span>
+- 라이브러리: 없음 (필요하면 알려 주세요)
+- JSON 키: "<span class="f" data-f="sensorKey"></span>"   (화면의 SENSORS key 와 글자 하나까지 같아야 합니다)
+- 값 범위: <span class="f" data-f="sensorRange"></span> 로 바꿔 주세요. 범위 밖이면 가둬 주세요
+- 읽기에 실패하면 None 을 돌려주세요
+
+1초마다 보내는 주기와 지금 있는 센서들은 그대로 두세요.
+파일 전체 완성본으로 주세요.
+CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 쓰지 마세요.</pre>
+      </div>
+      <h4>확인</h4>
+      <label class="chk"><input type="checkbox" data-c="c18"><span>시리얼 모니터의 <code>[WS] 송신 메시지</code> 에 <b>새 키가 들어 있다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c19"><span>화면 센서 카드에 <b>값이 들어온다</b></span></label>
+      <div class="note tip"><span class="hd">부품이 아직 없어도 화면은 끝까지 확인할 수 있습니다</span>
+        가상 Pico 창에 <code>add <span class="f-inline" data-f="sensorKey"></span> 0 100</code> 을 치면
+        그 이름의 센서가 0~100 범위로 들어옵니다. <b>프롬프트 1의 결과를 부품 없이 검증</b>할 수 있습니다.
+        <code>fail <span class="f-inline" data-f="sensorKey"></span></code> 로 그 센서만 고장 낼 수도 있습니다.
+      </div>
+      <div class="note danger"><span class="hd">가장 흔한 실수 — <code>code.py</code> 를 지우지 않은 것</span>
+        센서 하나만 따로 시험하려고 <code>code.py</code> 를 만들었다면 <b>반드시 지우거나
+        <code>code.py.bak</code> 으로 이름을 바꾸세요.</b> CircuitPython 은 <code>code.py</code> 가 있으면
+        <code>main.py</code> 를 <b>아예 실행하지 않습니다.</b> 코드는 다 맞는데 연결조차 안 됩니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">F</span><span class="step-title">프롬프트 4 — 자동 재연결 <b>(전시 필수 · 이것만은 꼭)</b></span><span class="step-time">30분</span></div>
+    <div class="step-body">
+      <p><b>전시장에서 Wi-Fi 는 반드시 한 번은 끊깁니다.</b> 지금 우리 화면은 끊기면
+      <b>사람이 「다시 연결」을 눌러야</b> 합니다. 전시 중에 아무도 안 누르면 작품이 고장 난 것처럼 보입니다.</p>
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 4 · 자동 재연결</span><button class="copy">복사</button></div>
+<pre class="prompt">전시회에서 몇 시간 동안 무인으로 켜 둘 예정입니다.
+Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야 합니다.
+
+연결이 끊기면 자동으로 다시 연결을 시도하게 해 주세요.
+
+- 3초마다 다시 시도해 주세요
+- "연결 끊기" 를 눌러서 끊은 경우에는 다시 연결하지 마세요
+- 다시 시도하는 중임을 화면에 보여 주세요 (지금 있는 "연결 중" 표시를 그대로 쓰세요)
+
+★ 타이머 안에서는 useState 값이 "소켓을 열던 시점의 옛날 값" 으로 보입니다.
+  타이머가 읽어야 하는 것(연결을 원하는 상태인지, IP 주소, 지금 연결 상태)은
+  useRef 로 두고 읽어 주세요.
+
+★ 재연결 중에 센서 값을 지우지 마세요.
+  지금은 다시 연결할 때 값을 null 로 비우는데, 그러면 전시 중에 화면이 깜빡입니다.
+  마지막 값을 흐리게(opacity 를 낮춰) 남겨 두고, 다시 연결되면 선명하게 돌려 주세요.
+
+★ 자동으로 다시 붙는 중에는 "다시 연결" 안내 카드를 띄우지 마세요.
+  사람이 직접 끊어 둔 경우에만 띄웁니다.
+
+- 페이지를 벗어날 때 타이머가 남지 않게 정리해 주세요
+
+대시보드 page.tsx 전체 완성본으로 주세요.</pre>
+      </div>
+
+      <h4>확인 — 네 줄을 <b>전부</b> 직접 해 보세요. 이게 오늘 가장 중요한 확인입니다</h4>
+      <table>
+        <thead><tr><th style="width:42%">무엇을 한다</th><th>어떻게 되어야 한다</th></tr></thead>
+        <tbody>
+          <tr><td>연결한다</td><td><b>ONLINE</b></td></tr>
+          <tr><td>가상 Pico 창에 <b><code>x</code></b> (USB 뽑기)</td><td><b>「연결 중」</b> 으로 바뀌고, <b>값이 흐리게 남아 있다</b></td></tr>
+          <tr><td><b>아무것도 안 누르고 5초 기다린다</b></td><td><b>저절로 ONLINE</b> 으로 돌아온다</td></tr>
+          <tr><td>「연결 끊기」 를 누른다</td><td><b>OFFLINE 그대로</b> — 다시 안 붙는다</td></tr>
+        </tbody>
+      </table>
+      <label class="chk"><input type="checkbox" data-c="c20"><span>1번 — 연결하면 ONLINE</span></label>
+      <label class="chk"><input type="checkbox" data-c="c21"><span>2번 — <code>x</code> 를 치면 「연결 중」 + <b>값이 흐리게 남는다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c22"><span>3번 — <b>아무것도 안 누르고</b> 저절로 ONLINE</span></label>
+      <label class="chk"><input type="checkbox" data-c="c23"><span>4번 — 사람이 끊으면 <b>OFFLINE 유지</b></span></label>
+
+      <div class="note danger"><span class="hd">네 번째 줄을 빠뜨리기 쉽습니다</span>
+        사람이 일부러 끊었는데 3초 뒤에 다시 붙으면 <b>연결을 끊을 방법이 없어집니다.</b>
+        프롬프트에 「연결 끊기로 끊은 경우에는 다시 연결하지 마세요」가 들어 있는지 확인하세요.
+      </div>
+      <div class="note warn"><span class="hd">안 되면 여기를 보세요 — 학생들이 꼭 걸리는 다섯 곳</span>
+        <table style="margin-top:8px">
+          <thead><tr><th style="width:40%">증상</th><th>원인</th></tr></thead>
+          <tbody>
+            <tr><td>끊겼는데 다시 안 붙음</td><td><code>connect()</code> 안의 조건이 <b>타이머에서는 옛 값</b>을 봄 → 상태도 <code>useRef</code> 로</td></tr>
+            <tr><td>사람이 끊었는데 자꾸 붙음</td><td>끊긴 이유를 구분하지 않음 → <code>wantConnectedRef</code></td></tr>
+            <tr><td>IP 를 바꿨는데 옛 IP 로 재시도</td><td>타이머가 옛 state 를 들고 있음 → <code>picoIpRef</code></td></tr>
+            <tr><td>재시도마다 화면이 깜빡임</td><td>재연결 때 센서 값을 <code>null</code> 로 비움 → 흐리게 유지</td></tr>
+            <tr><td>재시도가 두 배씩 늘어남</td><td><code>onerror</code> 와 <code>onclose</code> <b>양쪽에서</b> 재시도 → <code>onclose</code> 한 곳에서만</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="step opt">
+    <div class="step-hd"><span class="step-no">G</span><span class="step-title">프롬프트 3 — 자동 제어 <span class="muted">(시간이 남으면)</span></span><span class="step-time">18분</span></div>
+    <div class="step-body">
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 3 · 자동 제어</span><button class="copy">복사</button></div>
+<pre class="prompt">자동 제어를 넣어 주세요.
+
+<span class="f" data-f="sensorLabel"></span> 이 <span class="f" data-f="threshold"></span> 보다 <span class="f" data-f="direction"></span> <span class="f" data-f="actLabel"></span> 를 켜고, 반대면 끕니다.
+
+- 지금 있는 자동 모드 구조를 그대로 쓰세요
+- 센서값이 null 이면 아무것도 하지 않아야 합니다
+- 지금 상태와 같으면 명령을 다시 보내지 마세요
+
+★ 이것은 RGB LED 가 아니므로, RGB LED 버튼 격자 안에 끼워 넣지 말고
+  새 카드로 만들어 주세요.
+
+대시보드 page.tsx 전체 완성본으로 주세요.</pre>
+      </div>
+      <h4>확인</h4>
+      <label class="chk"><input type="checkbox" data-c="c24"><span><code>add <span class="f-inline" data-f="sensorKey"></span> 0 25</code> → <b>저절로 켜진다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c25"><span><code>add <span class="f-inline" data-f="sensorKey"></span> 60 100</code> → <b>저절로 꺼진다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c26"><span><code>fail <span class="f-inline" data-f="sensorKey"></span></code> → <b>아무것도 하지 않는다</b></span></label>
+      <div class="note danger"><span class="hd"><code>fail</code> 을 꼭 해 보세요</span>
+        센서가 고장나 값이 <code>null</code> 일 때 <code>?? 0</code> 으로 0 처리했다면
+        <code>0 &lt; 기준</code> 이라 <b>"켜야 한다"고 판단해 계속 켭니다.</b>
+        아무 에러도 안 납니다. 화분이라면 <b>물이 계속 나옵니다.</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">11주차를 마치며 — 다음 시간에 필요한 것</h3>
+    <label class="chk"><input type="checkbox" data-c="c27"><span>자동 재연결 네 줄이 <b>전부</b> 통과했다 <span class="muted">(안 됐으면 14주차 전에 꼭 끝내세요)</span></span></label>
+    <label class="chk"><input type="checkbox" data-c="c28"><span>고친 <code>page.tsx</code> 를 <b>다시 <code>.bak</code> 으로 백업</b>했다 (잘 되는 상태를 저장)</span></label>
+    <label class="chk"><input type="checkbox" data-c="c29"><span>AI 가 규칙을 어긴 것이 있었으면 <b>무엇이었는지 적어 뒀다</b></span></label>
+  </div>
+</section>
+
+<!-- ══════════ 14주차 ══════════ -->
+<section id="w14">
+  <h2>14주차 · 전시장에 내놓습니다 (120분 · 마지막 수업)</h2>
+  <p class="muted">새 기능을 배우지 않습니다. <b>몇 시간 동안 사람 없이 켜 두어도 멀쩡한 화면</b>을 만듭니다.</p>
+
+  <div class="flow">
+    <span class="n">H · 화면만 묶기</span><span class="a">→</span>
+    <span class="n hot">I · 전시 모드</span><span class="a">→</span>
+    <span class="n">J · 멀리서도 보이게</span><span class="a">→</span>
+    <span class="n">K · 작품 설명</span><span class="a">→</span>
+    <span class="n hot">L · 무인 리허설 30분</span>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">H</span><span class="step-title">이번에는 <b>화면 코드만</b> 묶습니다</span><span class="step-time">10분</span></div>
+    <div class="step-body">
+      <pre class="term">node bundle-ui.js</pre>
+      <p><code>우리팀-UI.md</code> 가 만들어집니다. <b>11주차와 다른 도구</b>입니다.</p>
+      <table>
+        <thead><tr><th></th><th><code>bundle-source.js</code> (11주차)</th><th><code>bundle-ui.js</code> (오늘)</th></tr></thead>
+        <tbody>
+          <tr><td>넣는 것</td><td>프로젝트 전체 + Pico 코드</td><td><b>화면 파일만</b></td></tr>
+          <tr><td>빼는 것</td><td>비밀번호 · <code>node_modules</code></td><td>거기에 더해 <b><code>src/app/api/</code> · <code>src/lib/</code></b></td></tr>
+          <tr><td>결과</td><td><code>우리팀-소스.md</code></td><td><code>우리팀-UI.md</code></td></tr>
+        </tbody>
+      </table>
+      <div class="note tip"><span class="hd">오늘 배우는 것의 핵심 — 좁게 올린다</span>
+        오늘 고치는 것은 <b>보이는 부분뿐</b>입니다. 그래서 통신 코드와 데이터베이스 코드를
+        <b>일부러 뺀 것</b>을 올립니다. <b>안 올라간 코드는 AI 가 망가뜨릴 수 없습니다.</b>
+      </div>
+      <h4>올리기 전에 이 세 줄을 눈으로 찾으세요</h4>
+      <label class="chk"><input type="checkbox" data-c="c31"><span><code>.env.local</code> 을 뺐다고 찍혀 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c32"><span><code>src/app/api</code> 와 <code>src/lib</code> 을 뺐다고 찍혀 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c33"><span>「비밀번호처럼 보이는 줄은 없습니다」 가 찍혀 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c34"><span>제미나이에 <b>새 대화</b>를 열고 <code>우리팀-UI.md</code> + <b>같은</b> <code>프로젝트-규칙.md</code> 를 올렸다</span></label>
+    </div>
+  </div>
+
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">I</span><span class="step-title">미션 1 — 전시 모드</span><span class="step-time">30분</span></div>
+    <div class="step-body">
+      <p>전시장에는 노트북 앞에 아무도 앉아 있지 않습니다. 지금 화면은 몇 분만 두면 <b>저절로 꺼집니다.</b></p>
+      <div class="pbox">
+        <div class="pbox-hd"><span>미션 1 · 전시 모드</span><button class="copy">복사</button></div>
+<pre class="prompt">11월 20일 전시회에 이 화면을 내놓습니다.
+몇 시간 동안 사람 없이 켜 둘 예정인데, 지금은 노트북 화면이 저절로 꺼집니다.
+
+"전시 모드" 버튼을 만들어 주세요.
+
+- 켜면 화면이 꺼지지 않게 해 주세요 (Screen Wake Lock)
+- 켜면 전체화면으로 바꿔 주세요
+- 전시 모드에서는 IP 입력칸과 「장치 연결 / 연결 끊기」 버튼을 숨겨 주세요
+  (관람객이 눌러서 꺼 버리면 안 됩니다)
+
+★ Wake Lock 은 다른 탭에 갔다 오면 저절로 풀립니다.
+  visibilitychange 로 화면이 다시 보일 때 한 번 더 걸어 주세요.
+
+★ 전체화면을 빠져나갔을 때 전시 모드도 같이 꺼지게 해 주세요.
+  ESC 를 누르면 전체화면만 풀리는데, 그러면 조작 버튼이 숨겨진 채로 남아서
+  되돌릴 방법이 없어집니다. fullscreenchange 를 보고 처리해 주세요.
+
+★ Wake Lock 을 지원하지 않는 브라우저에서도 오류가 나면 안 됩니다.
+  try/catch 로 감싸 주세요.
+
+대시보드 page.tsx 전체 완성본으로 주세요.</pre>
+      </div>
+      <h4>확인 — 네 줄 전부</h4>
+      <label class="chk"><input type="checkbox" data-c="c35"><span>전시 모드를 켜면 전체화면이 되고 <b>조작 버튼이 사라진다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c36"><span><b>5분 동안 손대지 않아도</b> 화면이 안 꺼진다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c37"><span>다른 탭에 갔다 돌아와도 <b>여전히 안 꺼진다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c38"><span><span class="kbd">ESC</span> 를 누르면 <b>조작 버튼이 다시 나온다</b></span></label>
+
+      <div class="note danger"><span class="hd">🚨 마지막 줄이 오늘 가장 중요합니다 — AI 가 가장 자주 빼먹습니다</span>
+        전시 모드에서는 조작 버튼이 숨어 있습니다. 누가 <span class="kbd">ESC</span> 를 누르면
+        전체화면만 풀리는데, 그러면 <b>버튼이 숨겨진 채로 남아 아무것도 못 하게 됩니다.</b>
+        새로고침밖에 방법이 없습니다. 아래 코드가 받은 코드에 들어 있는지 <b>눈으로 확인하세요.</b>
+      </div>
+<pre class="code">// ★ ESC 로 전체화면을 빠져나와도 전시 모드가 같이 꺼지게
+useEffect(() =&gt; {
+  const onFsChange = () =&gt; {
+    if (!document.fullscreenElement) setKiosk(false);
+  };
+  document.addEventListener("fullscreenchange", onFsChange);
+  return () =&gt; document.removeEventListener("fullscreenchange", onFsChange);
+}, []);</pre>
+      <div class="note warn"><span class="hd">Wake Lock 두 가지를 꼭 확인하세요</span>
+        ① <code>visibilitychange</code> 에서 <b>다시 거는</b> 코드가 있는가 —
+        없으면 전시 중에 한 번 다른 창을 봤다 돌아온 뒤부터 화면이 꺼집니다.<br>
+        ② <code>try/catch</code> 로 <b>감싸져 있는가</b> — 지원하지 않는 브라우저에서 <b>화면이 하얗게</b> 됩니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">J</span><span class="step-title">미션 2 — 멀리서도 보이게</span><span class="step-time">25분</span></div>
+    <div class="step-body">
+      <p>관람객은 <b>1m 쯤 떨어져서</b> 봅니다. 지금 글자 크기는 노트북 앞에 앉아 보는 크기입니다.</p>
+      <div class="pbox">
+        <div class="pbox-hd"><span>미션 2 · 멀리서도 보이게</span><button class="copy">복사</button></div>
+<pre class="prompt">전시 모드일 때만 화면을 "멀리서 보는 크기" 로 바꿔 주세요.
+
+- 센서 값 숫자를 훨씬 크게 (전시 모드가 아닐 때는 지금 크기 그대로)
+- 제목과 설명처럼 관람객이 안 읽는 것은 전시 모드에서 숨기거나 작게
+- 상태(정상 / 주의 / 위험)를 색만으로 알리지 마세요.
+  색 + 아이콘 + 글자 세 가지가 같이 바뀌어야 합니다.
+
+★ 크기는 조건부 className 으로 바꿔 주세요. 새 CSS 파일을 만들지 마세요.
+★ const UI 객체를 쓰고 있으니 거기에 항목을 더해도 좋습니다.
+
+대시보드 page.tsx 전체 완성본으로 주세요.</pre>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="c39"><span>전시 모드에서 <b>한 발짝 물러나서도</b> 값이 읽힌다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c40"><span>전시 모드를 끄면 <b>원래 크기로 돌아온다</b> <span class="muted">(평소에 못 쓰게 되면 안 됩니다)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="c41"><span>상태가 <b>색 + 아이콘 + 글자</b> 세 가지로 같이 바뀐다</span></label>
+      <div class="note tip"><span class="hd">색만으로 알리면 안 되는 이유가 두 가지입니다</span>
+        하나 — <b>색을 구분하기 어려운 사람이 전시회에 옵니다.</b><br>
+        둘 — <b>멀리서는 작은 색 점이 잘 안 보입니다.</b> 글자가 가장 확실합니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-hd"><span class="step-no">K</span><span class="step-title">미션 3 — 관람객이 읽는 작품 설명</span><span class="step-time">25분</span></div>
+    <div class="step-body">
+      <p>지금 「이 작품은?」 에는 보통 <code>Next.js + TypeScript</code>, <code>Tailwind CSS</code> 같은 것이 적혀 있습니다.
+      <b>관람객은 이걸 궁금해하지 않습니다.</b> 그리고 <b>버튼을 눌러 창을 열지도 않습니다.</b></p>
+      <div class="pbox">
+        <div class="pbox-hd"><span>미션 3 · 작품 설명</span><button class="copy">복사</button></div>
+<pre class="prompt">작품 설명을 관람객용으로 바꿔 주세요.
+
+- 지금 모달 안에 있는 기술 스펙(Next.js, Tailwind 같은 것)을 빼고,
+  아래 세 가지를 쉬운 말로 적을 자리를 만들어 주세요.
+    1. 이 작품이 무엇을 하는 물건인지 (한 문장)
+    2. 어떻게 동작하는지 (두세 문장)
+    3. 관람객이 직접 해 볼 수 있는 것 한 가지
+- 전시 모드에서는 모달이 아니라 화면에 늘 보이는 카드로 띄워 주세요.
+  관람객은 버튼을 누르지 않습니다.
+
+제 작품은 이렇습니다.
+1. <span class="f" data-f="topic"></span>
+3. <span class="f" data-f="visitorAction"></span>
+
+대시보드 page.tsx 전체 완성본으로 주세요.</pre>
+      </div>
+      <div class="note danger"><span class="hd">🎯 「관람객이 해 볼 것」이 전시의 성패를 가릅니다</span>
+        <b>「조도 센서를 손으로 가려 보세요」</b> 한 줄이 있으면 관람객이 <b>멈춰 서서 해 봅니다.</b>
+        없으면 그냥 지나갑니다. 우리 작품에서 <b>관람객이 손으로 바꿀 수 있는 값</b>이 무엇인지 찾아
+        0단계의 입력칸에 적으세요. <b>이것은 AI 가 대신 못 씁니다 — 우리 작품은 우리가 제일 잘 압니다.</b>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="c42"><span>관람객 화면에서 <b>기술 이름이 사라졌다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c43"><span>전시 모드에서는 <b>버튼을 누르지 않아도 설명이 보인다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c44"><span><b>해 볼 수 있는 것</b>이 화면에 적혀 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c45"><span>초등학생이 읽어도 <b>무슨 물건인지 알 수 있다</b></span></label>
+    </div>
+  </div>
+
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">L</span><span class="step-title">무인 리허설 — 30분 동안 아무도 손대지 않습니다</span><span class="step-time">30분</span></div>
+    <div class="step-body">
+      <div class="note danger"><span class="hd">리허설 없이 전시에 나가면 당일 아침에 발견합니다</span>
+        지금부터 30분 동안 <b>코드를 고치지 않습니다.</b> 고쳤으면 <b>30분을 처음부터</b> 다시 셉니다.
+        고친 뒤 10분만 보고 괜찮다고 넘긴 것이 당일에 터집니다.
+      </div>
+      <label class="chk"><input type="checkbox" data-c="c46"><span>전시 모드를 켜 두고 <b>30분 뒤에도 화면이 켜져 있다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c47"><span>중간에 가상 Pico 창에 <code>x</code> 를 쳐서 끊었다가 → <b>아무것도 안 누르고 저절로 ONLINE</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c48"><span>30분 내내 <b>오류 화면이 한 번도 안 떴다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c49"><span>센서 카드에 <b>「데이터 없음」이 없다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c50"><span>노트북 <b>전원 어댑터가 꽂혀 있다</b></span></label>
+      <div class="note warn"><span class="hd">두 번째 줄이 안 되는 팀은</span>
+        <b>11주차 프롬프트 4 를 아직 안 끝낸 것입니다.</b> 오늘 미션보다 이것이 먼저입니다.
+        위로 올라가 <a href="#w11">단계 F</a> 를 먼저 하세요.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 막혔을 때 ══════════ -->
+<section id="stuck">
+  <h2>막혔을 때 — 되돌리는 프롬프트 두 개</h2>
+
+  <div class="pbox">
+    <div class="pbox-hd"><span>프롬프트 5 · 오류가 났을 때</span><button class="copy">복사</button></div>
+<pre class="prompt">붙여넣었더니 오류가 납니다. 고쳐 주세요.
+
+[오류 메시지를 그대로 복사해서 붙여넣기]
+
+[어느 화면에서 / 무엇을 눌렀을 때 났는지]
+
+고친 파일을 전체 완성본으로 다시 주세요.</pre>
+  </div>
+  <div class="note warn"><span class="hd">"안 돼요" 라고만 쓰면 AI 도 못 고칩니다</span>
+    브라우저 오류는 <span class="kbd">F12</span> → <code>Console</code>, Pico 오류는 시리얼 모니터에 있습니다.
+    <b>빨간 줄을 그대로</b> 복사하세요. 요약하지 마세요.
+  </div>
+
+  <div class="pbox">
+    <div class="pbox-hd"><span>프롬프트 6 · AI 가 규칙을 어겼을 때</span><button class="copy">복사</button></div>
+<pre class="prompt">방금 주신 코드는 규칙에 어긋납니다.
+
+[무엇이 문제인지]
+(예: className 에 d-flex 같은 Bootstrap 클래스가 들어 있습니다. 우리는 Tailwind 만 씁니다.)
+(예: Pico 코드에 machine 모듈이 들어 있습니다. 우리는 CircuitPython 을 씁니다.)
+(예: globals.css 에 @theme 을 만들라고 하셨습니다. 우리는 const UI 객체를 씁니다.)
+(예: bg-base 라는 색 이름을 쓰셨습니다. 우리 코드에 없는 이름입니다.)
+
+프로젝트-규칙.md 를 다시 확인하고, 규칙에 맞게 고쳐서
+파일 전체 완성본으로 다시 주세요.</pre>
+  </div>
+  <div class="note tip"><span class="hd">이걸 쓸 줄 아는 것이 오늘 배우는 것 중 하나입니다</span>
+    AI 는 틀립니다. <b>틀렸을 때 무엇이 틀렸는지 말해줄 수 있는 사람</b>만 AI 를 제대로 씁니다.
+    그러려면 코드를 읽을 줄 알아야 하고, 그게 8 · 9주차에 한 일입니다.
+  </div>
+
+  <h3>붙여넣기 전 검수 — 5분이면 됩니다</h3>
+  <div class="card">
+    <h4 style="margin-top:0">공통</h4>
+    <label class="chk"><input type="checkbox" data-c="r01"><span>코드의 <b>마지막 줄이 <code>}</code> 로 제대로 끝난다</b> (중간에 잘리지 않았다)</span></label>
+    <label class="chk"><input type="checkbox" data-c="r02"><span>첫 줄이 <code>"use client";</code> 다</span></label>
+    <label class="chk"><input type="checkbox" data-c="r03"><span><code>npm install</code> 을 하라는 말이 <b>없다</b></span></label>
+    <h4>화면 코드</h4>
+    <label class="chk"><input type="checkbox" data-c="r04"><span><b>Bootstrap 클래스가 없다</b> — <code>d-flex</code>, <code>row g-3</code>, <code>card</code>, <code>col-md-6</code>, <code>fs-5</code></span></label>
+    <label class="chk"><input type="checkbox" data-c="r05"><span><code>react-bootstrap</code> 을 import 하지 않았다</span></label>
+    <label class="chk"><input type="checkbox" data-c="r06"><span><code>const UI</code> 객체를 그대로 쓴다 — <code>globals.css</code> 에 <code>@theme</code> 을 만들지 않았다</span></label>
+    <label class="chk"><input type="checkbox" data-c="r07"><span><b>없는 색 이름을 쓰지 않았다</b> — <code>bg-base</code>, <code>text-ink</code>, <code>border-line</code>, <code>text-ok</code></span></label>
+    <label class="chk"><input type="checkbox" data-c="r08"><span>연결 상태 구분과 <b>오류 · 데이터 없음 화면이 그대로</b> 있다</span></label>
+    <label class="chk"><input type="checkbox" data-c="r09"><span>센서를 늘렸다면 <b>타입까지 같이</b> 고쳤다 (빨간 줄이 없다)</span></label>
+    <h4>Pico 코드 (<code>main.py</code>)</h4>
+    <label class="chk"><input type="checkbox" data-c="r10"><span><code>machine</code>, <code>utime</code>, <code>network</code> 가 <b>없다</b> → 있으면 MicroPython (잘못된 것)</span></label>
+    <label class="chk"><input type="checkbox" data-c="r11"><span><code>import board</code>, <code>digitalio</code>, <code>analogio</code>, <code>pwmio</code> 를 쓴다</span></label>
+    <label class="chk"><input type="checkbox" data-c="r12"><span><code>pin.value = True</code> 형태다 (<code>pin.value(1)</code> 이면 MicroPython)</span></label>
+    <label class="chk"><input type="checkbox" data-c="r13"><span>읽기 실패 시 <code>None</code> 을 돌려준다</span></label>
+  </div>
+</section>
+
+<!-- ══════════ 오류 사전 ══════════ -->
+<section id="errors">
+  <h2>오류 사전 — 증상으로 찾기</h2>
+  <p class="muted">여기 있는 것은 전부 <b>실제로 일어났던 일</b>입니다. 먼저 찾아보고, 없으면 프롬프트 5 로 물어보세요.</p>
+  <table>
+    <thead><tr><th style="width:40%">증상</th><th>원인과 대처</th></tr></thead>
+    <tbody>
+      <tr><td><b>센서를 붙이고 코드도 넣었는데 연결조차 안 된다</b></td><td><b><code>code.py</code> 를 지우지 않았을 겁니다.</b> CircuitPython 은 <code>code.py</code> 가 있으면 <code>main.py</code> 를 실행하지 않습니다 — <b>가장 흔합니다</b></td></tr>
+      <tr><td>타입 오류가 나는데 뭘 빼먹었는지 모른다</td><td>위 <a href="#w11">단계 D</a> 의 오류 메시지 표를 보세요. 메시지가 어디를 빼먹었는지 알려 줍니다</td></tr>
+      <tr><td><b>오류는 없는데 센서 카드가 안 생긴다</b></td><td><b><code>SENSORS</code> 배열에만 안 들어간 것입니다.</b> 타입만 맞으면 빌드는 성공합니다</td></tr>
+      <tr><td>센서값이 계속 <b>0</b> 이다</td><td>전원(3V3)이나 신호선이 안 닿았습니다. <code>code.py</code> 로 센서 하나만 시험해 회로부터 확인하세요</td></tr>
+      <tr><td>센서값이 계속 <b>65535</b> 다</td><td><b>GND 가 안 이어졌습니다.</b> 모든 부품의 GND 를 Pico GND 와 이으세요</td></tr>
+      <tr><td><b>Pico 가 자꾸 재부팅된다 / 대시보드가 자주 끊긴다</b></td><td>서보 · 펌프 · 모터를 <b>3V3 에서 먹이고 있을 겁니다.</b> 3V3 는 다 합쳐 약 300mA 입니다. <b>외부 5V(왼쪽 빨강 레일)</b> 로 옮기세요</td></tr>
+      <tr><td><b>전엔 되던 Wi-Fi 가 이제 안 붙는다</b></td><td>새로 쓴 핀이 <b>GP23 · GP24 · GP25 · GP29</b> 인지 확인하세요. 무선 칩 전용 핀입니다</td></tr>
+      <tr><td><b>초음파 거리값이 이상하다 / Pico 가 뜨겁다</b></td><td><b>즉시 USB 를 뽑으세요.</b> HC-SR04 의 ECHO 는 5V 입니다. <b>분압(1kΩ+2kΩ)</b> 을 넣었는지 확인</td></tr>
+      <tr><td>아날로그 센서를 3개 붙이려는데 핀이 없다</td><td><b>GP27 · GP28 두 개뿐입니다.</b> 하나를 디지털 센서로 바꾸거나 팀에서 구성을 다시 정하세요</td></tr>
+      <tr><td>붙여넣었더니 <b>화면이 하얗게</b> 됨</td><td><span class="kbd">F12</span> → Console 에 빨간 오류가 있습니다. 프롬프트 5 로. 급하면 <code>.bak</code> 으로 되돌리세요</td></tr>
+      <tr><td>코드가 중간에 잘려서 나옴</td><td>"이어서 주세요" 보다 <b>"그 파일을 처음부터 끝까지 다시 주세요"</b> 가 낫습니다</td></tr>
+      <tr><td>대화가 길어지니 규칙을 자꾸 어김</td><td><b>새 대화를 시작</b>하고 파일 두 개를 다시 올리세요. 이게 제일 빠릅니다</td></tr>
+      <tr><td><code>@theme</code> 을 만들라고 한다</td><td>13주차(참고) 자료를 보고 하는 말입니다. 우리 토큰은 <code>const UI</code> 객체 — 프롬프트 6</td></tr>
+      <tr><td><code>tailwind.config.js</code> 를 만들라고 한다</td><td>인터넷에 v3 자료가 훨씬 많아서 자주 나옵니다. <b>v4 에는 없는 파일</b>입니다</td></tr>
+      <tr><td><b>전시 모드를 끄려는데 버튼이 안 보인다</b></td><td><code>fullscreenchange</code> 처리가 빠진 것입니다. 일단 <b>새로고침</b>하고, 미션 1 의 ★ 코드를 넣으세요</td></tr>
+      <tr><td>전시 모드에서 화면이 하얗게 된다</td><td>Wake Lock 을 <code>try/catch</code> 없이 쓴 것입니다</td></tr>
+      <tr><td>색을 쟀는데 이상한 값이 나온다</td><td><code>transition</code> 때문에 <b>바뀌는 중</b>일 수 있습니다. 0.5초쯤 기다렸다 보세요</td></tr>
+      <tr><td><code>우리팀-UI.md</code> 가 안 만들어진다</td><td><code>package.json</code> 이 있는 폴더에서 실행했는지 확인하세요</td></tr>
+      <tr><td><b><code>x</code> 를 쳤는데 계속 연결됨으로 남는다</b></td><td><b><code>git pull</code> 을 안 받은 것입니다.</b> 가상 Pico 가 2026-10-10 에 고쳐졌습니다 (0단계)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════ 전시 당일 ══════════ -->
+<section id="dday-sec">
+  <h2>전시 당일 아침 점검표</h2>
+  <div class="note danger"><span class="hd">전시 이틀 전부터는 코드를 그만 고칩니다</span>
+    <b>마지막에 고친 것이 당일에 터집니다.</b> 「잘 되는 상태에서 멈추는 것」도 실력입니다.
+    고치고 싶은 것이 생기면 <b>적어만 두세요.</b>
+  </div>
+  <div class="card">
+    <p class="muted" style="margin-top:0"><b>위에서부터 순서대로</b> 하세요. 순서가 있습니다.</p>
+    <label class="chk"><input type="checkbox" data-c="d01"><span>공유기가 켜져 있고, <b>Pico 와 노트북이 같은 공유기</b>에 붙었다</span></label>
+    <label class="chk"><input type="checkbox" data-c="d02"><span>Pico 시리얼 모니터에서 <b>IP 를 확인</b>하고 화면에 넣었다 <span class="muted">(우리 팀 IP: <b class="f-inline" data-f="picoIp"></b>)</span></span></label>
+    <label class="chk"><input type="checkbox" data-c="d03"><span><b>배선 사진과 대조</b>해서 빠진 선이 없다</span></label>
+    <label class="chk"><input type="checkbox" data-c="d04"><span>센서 값이 <b>전부 들어온다</b> — 「데이터 없음」이 없다</span></label>
+    <label class="chk"><input type="checkbox" data-c="d05"><span><b>한 번 끊어 보고</b> 저절로 돌아오는 것을 확인했다</span></label>
+    <label class="chk"><input type="checkbox" data-c="d06"><span><b>전시 모드를 켰다</b></span></label>
+    <label class="chk"><input type="checkbox" data-c="d07"><span>노트북 <b>전원 어댑터</b>를 꽂았다</span></label>
+    <label class="chk"><input type="checkbox" data-c="d08"><span>관람객이 <b>해 볼 수 있는 것</b>이 화면에 적혀 있다 <span class="muted">(<b class="f-inline" data-f="visitorAction"></b>)</span></span></label>
+  </div>
+  <div class="note tip"><span class="hd">IP 는 공유기를 다시 켜면 바뀔 수 있습니다</span>
+    당일 아침에 <b>다시 확인</b>하세요. 어제 되던 IP 라고 믿고 넘어가면 전시 시작 직후에 발견합니다.
+  </div>
+</section>
+
+<!-- ══════════ 금지 ══════════ -->
+<section id="never">
+  <h2>절대 하지 말 것</h2>
+  <table>
+    <thead><tr><th style="width:44%">하지 말 것</th><th>왜</th></tr></thead>
+    <tbody>
+      <tr><td><b>프로젝트 폴더를 통째로 압축해서 올리기</b></td><td><code>.env.local</code>(MySQL 접속 정보)과 <code>settings.toml</code>(공유기 비밀번호)이 같이 올라갑니다. <b>반드시 묶기 스크립트를 쓰세요</b></td></tr>
+      <tr><td><b>프롬프트에 비밀번호 · 개인정보 쓰기</b></td><td>Wi-Fi 비밀번호, DB 비밀번호, 이름 · 학번 · 전화번호를 쓰지 마세요. <b>한 번 올라가면 되돌릴 수 없습니다</b></td></tr>
+      <tr><td><b><code>프로젝트-규칙-tailwind.md</code> 올리기</b></td><td>13주차(참고) 전용입니다. 제미나이가 <b>우리 코드에 없는 색 이름</b>을 쓴 코드를 내놓습니다</td></tr>
+      <tr><td><b>한 번에 여러 가지 요청하기</b></td><td>안 될 때 <b>어느 쪽이 문제인지 알 수 없습니다.</b> 하나 받으면 붙여넣고 돌려본 뒤 다음으로</td></tr>
+      <tr><td><b><code>.bak</code> 없이 고치기</b></td><td>되돌릴 방법이 없어집니다. 복사는 1초, 복구는 1초입니다</td></tr>
+      <tr><td><b>확인 안 하고 다음 프롬프트로 넘어가기</b></td><td>세 번째 프롬프트에서 터지면 <b>세 개 중 어느 것이 원인인지</b> 알 수 없습니다</td></tr>
+      <tr><td><b>전시 이틀 전에 코드 고치기</b></td><td>마지막에 고친 것이 당일에 터집니다</td></tr>
+      <tr><td><b>리허설 중에 코드 고치기</b></td><td>고쳤으면 <b>30분을 처음부터</b> 다시 세야 합니다</td></tr>
+      <tr><td><b>통신 코드 · DB 코드 건드리기</b></td><td>14주차는 <b>보이는 부분만</b> 고칩니다. <code>bundle-ui.js</code> 가 일부러 빼 놓은 이유입니다</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note ok" style="margin-top:22px"><span class="hd">마지막으로</span>
+    관람객이 멈춰 서서 손으로 센서를 가려 보고 <b>화면이 바뀌는 것을 보는 순간</b> —
+    그것이 작품이 완성되는 순간입니다. 기능이 몇 개인지보다 <b>그 한 순간이 되는지</b>가 중요합니다.
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="padding:0">
+    인천전자마이스터고 정보통신과 1학년 · IoT 스마트 제어 시스템 실습 ·
+    11주차 + 14주차 작품 완성 매뉴얼 · 2026-10-11<br>
+    같이 보는 것 — <code>week11-vibe-coding/프롬프트-모음-우리팀.md</code> ·
+    <code>week14-tailwind-vibe/프롬프트-모음-전시.md</code> ·
+    <code>mock-pico/README.md</code>
+  </div>
+</footer>
+
+</div><!-- /wrap -->
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "iot_project_manual_v1";
+  var PH = {
+    teamName:"우리팀", topic:"(0단계에 작품 한 줄 설명을 적으세요)",
+    sensorLabel:"(센서 이름)", sensorKey:"(JSON 키)", sensorUnit:"(단위)",
+    sensorPin:"(핀)", sensorRange:"(값 범위)", sensorSignal:"(연결 방식)",
+    actLabel:"(액추에이터 이름)", actKey:"(JSON 키)", actPin:"(핀)",
+    threshold:"(기준 숫자)", direction:"(작으면 / 크면)",
+    picoIp:"(IP 주소)", visitorAction:"(관람객이 해 볼 것)"
+  };
+
+  function load(){
+    try { return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; }
+    catch(e){ return {}; }
+  }
+  function save(d){
+    try { localStorage.setItem(KEY, JSON.stringify(d)); flash(); }
+    catch(e){ /* 사생활 보호 모드 등 — 저장만 안 됩니다 */ }
+  }
+  var data = load();
+  if (!data.f) data.f = {};
+  if (!data.c) data.c = {};
+
+  var savedEl = document.getElementById("saved");
+  var flashTimer = null;
+  function flash(){
+    if(!savedEl) return;
+    savedEl.textContent = "저장됨";
+    savedEl.style.color = "#059669";
+    savedEl.style.fontWeight = "700";
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(function(){
+      savedEl.textContent = "입력과 체크는 이 브라우저에 자동 저장됩니다";
+      savedEl.style.color = "";
+      savedEl.style.fontWeight = "";
+    }, 1200);
+  }
+
+  // ── 프롬프트 빈칸 채우기 ──
+  function paint(k){
+    var v = (data.f[k] || "").trim();
+    var nodes = document.querySelectorAll('[data-f="' + k + '"]');
+    for (var i=0;i<nodes.length;i++){
+      var n = nodes[i];
+      n.textContent = v || (PH[k] || "(입력하세요)");
+      if (n.classList.contains("f")) {
+        if (v) n.classList.remove("empty"); else n.classList.add("empty");
+      }
+    }
+  }
+  function paintAll(){ for (var k in PH) paint(k); }
+
+  var inputs = document.querySelectorAll("[data-k]");
+  for (var i=0;i<inputs.length;i++){
+    (function(el){
+      var k = el.getAttribute("data-k");
+      if (data.f[k] != null) el.value = data.f[k];
+      el.addEventListener("input", function(){
+        data.f[k] = el.value; save(data); paint(k);
+      });
+      el.addEventListener("change", function(){
+        data.f[k] = el.value; save(data); paint(k);
+      });
+    })(inputs[i]);
+  }
+  paintAll();
+
+  // ── 체크박스 · 진행률 ──
+  var boxes = document.querySelectorAll("[data-c]");
+  var fill = document.getElementById("barFill");
+  var btxt = document.getElementById("barTxt");
+  function progress(){
+    var done = 0;
+    for (var i=0;i<boxes.length;i++) if (boxes[i].checked) done++;
+    var pct = boxes.length ? Math.round(done / boxes.length * 100) : 0;
+    if (fill) fill.style.width = pct + "%";
+    if (btxt) btxt.textContent = done + " / " + boxes.length + " (" + pct + "%)";
+  }
+  for (var j=0;j<boxes.length;j++){
+    (function(b){
+      var k = b.getAttribute("data-c");
+      if (data.c[k]) b.checked = true;
+      b.addEventListener("change", function(){
+        data.c[k] = b.checked; save(data); progress();
+      });
+    })(boxes[j]);
+  }
+  progress();
+
+  // ── 복사 ──
+  var btns = document.querySelectorAll("button.copy");
+  for (var m=0;m<btns.length;m++){
+    (function(btn){
+      btn.addEventListener("click", function(){
+        var box = btn.closest(".pbox");
+        var pre = box ? box.querySelector("pre.prompt") : null;
+        if (!pre) return;
+        var text = pre.innerText;
+        function done(){
+          var old = btn.textContent;
+          btn.textContent = "복사됨!";
+          btn.classList.add("done");
+          setTimeout(function(){ btn.textContent = old; btn.classList.remove("done"); }, 1400);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, fallback);
+        } else { fallback(); }
+        function fallback(){
+          var ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed"; ta.style.left = "-9999px";
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand("copy"); done(); }
+          catch(e){ alert("복사가 안 됩니다. 프롬프트를 직접 선택해서 복사하세요."); }
+          document.body.removeChild(ta);
+        }
+      });
+    })(btns[m]);
+  }
+
+  // ── D-day ──
+  (function(){
+    var el = document.getElementById("dday");
+    if (!el) return;
+    var now = new Date();
+    var show = new Date(2026, 10, 20); // 2026-11-20
+    var a = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var days = Math.round((show - a) / 86400000);
+    if (days > 0)       el.textContent = "전시회까지 " + days + "일";
+    else if (days === 0) el.textContent = "오늘이 전시회입니다";
+    else                 el.textContent = "전시회가 끝났습니다";
+  })();
+
+  window.resetAll = function(){
+    if (!confirm("입력한 팀 정보와 체크를 전부 지웁니다. 계속할까요?")) return;
+    data = { f:{}, c:{} };
+    try { localStorage.removeItem(KEY); } catch(e){}
+    for (var i=0;i<inputs.length;i++) inputs[i].value = "";
+    for (var j=0;j<boxes.length;j++) boxes[j].checked = false;
+    paintAll(); progress();
+  };
+})();
+</script>
+</body>
+</html>
