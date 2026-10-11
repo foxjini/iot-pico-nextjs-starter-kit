@@ -904,7 +904,7 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
       </div>
       <h4>올리기 전에 이 세 줄을 눈으로 찾으세요</h4>
       <label class="chk"><input type="checkbox" data-c="c31"><span><code>.env.local</code> 을 뺐다고 찍혀 있다</span></label>
-      <label class="chk"><input type="checkbox" data-c="c32"><span><code>src/app/api</code> 와 <code>src/lib</code> 을 뺐다고 찍혀 있다</span></label>
+      <label class="chk"><input type="checkbox" data-c="c32"><span>🛡️ <b>화면이 아니라서 통째로 뺀 폴더</b>에 <code>src/app/api/</code> 와 <code>src/lib/</code> 이 찍혀 있다</span></label>
       <label class="chk"><input type="checkbox" data-c="c33"><span>「비밀번호처럼 보이는 줄은 없습니다」 가 찍혀 있다</span></label>
       <label class="chk"><input type="checkbox" data-c="c34"><span>제미나이에 <b>새 대화</b>를 열고 <code>우리팀-UI.md</code> + <b>같은</b> <code>프로젝트-규칙.md</code> 를 올렸다</span></label>
     </div>
@@ -926,6 +926,14 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
 - 전시 모드에서는 IP 입력칸과 「장치 연결 / 연결 끊기」 버튼을 숨겨 주세요
   (관람객이 눌러서 꺼 버리면 안 됩니다)
 
+★ 우리 팀 액추에이터 버튼은 관람객이 만지게 둘지 말지 제가 정합니다.
+  - 관람객이 만져도 되는 것 (LED · 부저처럼 되돌아오는 것)
+    → 전시 모드에서도 그대로 두세요. 관람객이 해 볼 거리입니다.
+  - 관람객이 만지면 안 되는 것 (펌프 · 모터 · 히터처럼 물 · 열 · 움직임이 있는 것)
+    → 전시 모드에서는 숨기거나, 켜면 몇 초 뒤에 저절로 꺼지게 해 주세요.
+      무인 전시라 관람객이 켜 놓고 그냥 가 버립니다.
+  제 액추에이터는 [            ] 이고, [그대로 둡니다 / 숨깁니다 / 몇 초 뒤 꺼지게 합니다].
+
 ★ Wake Lock 은 다른 탭에 갔다 오면 저절로 풀립니다.
   visibilitychange 로 화면이 다시 보일 때 한 번 더 걸어 주세요.
 
@@ -943,6 +951,20 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
       <label class="chk"><input type="checkbox" data-c="c36"><span><b>5분 동안 손대지 않아도</b> 화면이 안 꺼진다</span></label>
       <label class="chk"><input type="checkbox" data-c="c37"><span>다른 탭에 갔다 돌아와도 <b>여전히 안 꺼진다</b></span></label>
       <label class="chk"><input type="checkbox" data-c="c38"><span><span class="kbd">ESC</span> 를 누르면 <b>조작 버튼이 다시 나온다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="c38b"><span>전시 모드에서 <b class="f-inline" data-f="actLabel"></b> 버튼을 <b>어떻게 할지 정하고</b> 그대로 됐다 <span class="muted">(액추에이터가 없으면 그냥 체크)</span></span></label>
+
+      <div class="note danger"><span class="hd">🚨 전시 모드는 액추에이터 버튼을 <b>막아 주지 않습니다</b> — 실제로 확인했습니다</span>
+        전시 모드를 켜면 IP 칸과 연결 버튼은 숨지만, <b>11주차에 만든 액추에이터 버튼은
+        그대로 보이고 그대로 눌립니다.</b> 가상 Pico 로 재어 보니 관람객이 누른 명령이
+        <b>Pico 까지 가서 적용됩니다</b> (<code>우리 팀 액추에이터 pump: 255 (켜짐)</code>).<br>
+        <b>펌프라면 관람객이 켜 놓고 그냥 갑니다.</b> 무인 전시 몇 시간이면 화분이 물에 잠깁니다.
+        모터나 히터면 더 위험합니다. <b>위 프롬프트의 ★ 에서 우리 작품에 맞게 정하세요.</b>
+      </div>
+      <div class="note tip"><span class="hd">숨기는 것이 늘 정답은 아닙니다</span>
+        미션 3 은 <b>「관람객이 직접 해 볼 수 있는 것 한 가지」</b> 를 요구합니다.
+        <b>LED 처럼 안전한 것은 남겨 두는 것이 낫습니다</b> — 관람객이 눌러 보고 반응을
+        확인하는 것이 전시의 핵심입니다. <b>위험한 것만 가리세요.</b>
+      </div>
 
       <div class="note danger"><span class="hd">🚨 마지막 줄이 오늘 가장 중요합니다 — AI 가 가장 자주 빼먹습니다</span>
         전시 모드에서는 조작 버튼이 숨어 있습니다. 누가 <span class="kbd">ESC</span> 를 누르면
@@ -1315,6 +1337,7 @@ main.py 전체 완성본으로 주세요.</pre>
     <label class="chk"><input type="checkbox" data-c="d04"><span>센서 값이 <b>전부 들어온다</b> — 「데이터 없음」이 없다</span></label>
     <label class="chk"><input type="checkbox" data-c="d05"><span><b>한 번 끊어 보고</b> 저절로 돌아오는 것을 확인했다</span></label>
     <label class="chk"><input type="checkbox" data-c="d06"><span><b>전시 모드를 켰다</b></span></label>
+    <label class="chk"><input type="checkbox" data-c="d06b"><span>전시 모드에서 <b>관람객이 눌러도 되는 버튼만</b> 남아 있다 <span class="muted">(펌프 · 모터 · 히터는 숨김 또는 자동 꺼짐)</span></span></label>
     <label class="chk"><input type="checkbox" data-c="d07"><span>노트북 <b>전원 어댑터</b>를 꽂았다</span></label>
     <label class="chk"><input type="checkbox" data-c="d08"><span>관람객이 <b>해 볼 수 있는 것</b>이 화면에 적혀 있다 <span class="muted">(<b class="f-inline" data-f="visitorAction"></b>)</span></span></label>
   </div>
@@ -1339,6 +1362,7 @@ main.py 전체 완성본으로 주세요.</pre>
       <tr><td><b>확인 안 하고 다음 프롬프트로 넘어가기</b></td><td>세 번째 프롬프트에서 터지면 <b>세 개 중 어느 것이 원인인지</b> 알 수 없습니다</td></tr>
       <tr><td><b>전시 이틀 전에 코드 고치기</b></td><td>마지막에 고친 것이 당일에 터집니다</td></tr>
       <tr><td><b>리허설 중에 코드 고치기</b></td><td>고쳤으면 <b>30분을 처음부터</b> 다시 세야 합니다</td></tr>
+      <tr><td><b>펌프 · 모터 버튼을 전시 모드에 열어 두기</b></td><td><b>관람객이 켜 놓고 그냥 갑니다.</b> 무인 몇 시간이면 화분이 물에 잠깁니다 — 숨기거나 <b>몇 초 뒤 자동으로 꺼지게</b></td></tr>
       <tr><td><b>통신 코드 · DB 코드 건드리기</b></td><td>14주차는 <b>보이는 부분만</b> 고칩니다. <code>bundle-ui.js</code> 가 일부러 빼 놓은 이유입니다</td></tr>
     </tbody>
   </table>

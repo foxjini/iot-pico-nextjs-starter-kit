@@ -50,6 +50,14 @@ const LANG = {
 const included = [];
 const seen = new Set();
 const skippedSecret = [];
+// 14주차의 핵심이 "좁게 올리는 것" 이라서, 뺀 폴더를 눈에 보이게 찍어 줍니다.
+// 조용히 빼기만 하면 학생이 매뉴얼 체크리스트("api 와 lib 을 뺐다고 찍혀 있다")를
+// 확인할 수 없습니다 — 14주차 모의 진행에서 나온 문제입니다.
+const PROTECTED_DIRS = [
+  { rel: "src/app/api", why: "서버 · 통신 코드 — 오늘 고칠 것이 아닙니다" },
+  { rel: "src/lib",     why: "데이터베이스 코드 — 오늘 고칠 것이 아닙니다" },
+];
+const protectedFound = [];
 const warnings = [];
 const notes = [];
 
@@ -173,6 +181,16 @@ if (missing.length) {
   missing.forEach((f) => console.log(`   ${f}`));
   console.log("    대시보드 파일이 다른 곳에 있을 수 있습니다.");
   console.log("    src/app 아래에서 \"use client\" 로 시작하는 page.tsx 를 찾아보세요.");
+}
+// 실제로 있는 폴더만 찍습니다 (없는 것을 뺐다고 하면 거짓말이 됩니다)
+PROTECTED_DIRS.forEach((d) => {
+  const full = path.join(ROOT, ...d.rel.split("/"));
+  if (fs.existsSync(full) && fs.statSync(full).isDirectory()) protectedFound.push(d);
+});
+if (protectedFound.length) {
+  console.log("\n🛡️  화면이 아니라서 통째로 뺀 폴더:");
+  protectedFound.forEach((d) => console.log(`   ${d.rel}/  — ${d.why}`));
+  console.log("    안 올라간 코드는 AI 가 망가뜨릴 수 없습니다.");
 }
 if (notes.length) {
   console.log("\n— 일부러 뺀 것:");
