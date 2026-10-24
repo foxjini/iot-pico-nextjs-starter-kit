@@ -84,10 +84,20 @@ const BASE_ACTUATOR: Record<string, number> = {
    두 화면에서 같은 장치가 다른 색이면 관람객이 다른 작품으로 느낍니다. */
 const CLAY = ["#7FC8E8", "#F2A3B3", "#F2CE7A", "#A7B6F2", "#8FD9B6", "#F2B289"];
 
+/* 3D 화면과 **같은 규칙**으로 색을 고릅니다 — 센서는 센서끼리 순번,
+   액추에이터는 (순번 + 3). 전체 순번으로 고르면 장치 순서가 섞인 팀에서
+   두 화면의 색이 어긋납니다. */
+function tintOf(d: Device) {
+  const list = TWIN.devices.filter((x) => x.kind === d.kind);
+  const k = list.indexOf(d);
+  return CLAY[(d.kind === "sensor" ? k : k + 3) % CLAY.length];
+}
+
 const UI = {
   /* 🚨 **3D 화면(`twin/page.tsx`)의 `const UI` 와 같은 값이어야 합니다.**
      3D 가 깨져 이 화면으로 떨어졌을 때, 관람객이 「전혀 다른 작품」으로 느끼면 안 됩니다. */
-  page: "min-h-screen bg-[#F6F5F2] text-[#141414]",
+  page:
+    "min-h-screen bg-[#F6F5F2] bg-[radial-gradient(1100px_520px_at_50%_-8%,#FFFFFF,transparent_70%)] text-[#141414]",
   card:
     "rounded-2xl border border-black/[0.06] bg-white " +
     "shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-18px_rgba(16,24,40,0.28)]",
@@ -458,6 +468,8 @@ export default function OfficePage() {
   const [picoIp, setPicoIp] = useState("127.0.0.1");
   const [status, setStatusState] = useState<ConnectionStatus>("offline");
   const [sensor, setSensor] = useState<SensorData | null>(null);
+  /* 3D 화면과 같게 — 값이 **실제로 도착한** 시각 */
+  const [lastAt, setLastAt] = useState<number | null>(null);
   const [kiosk, setKiosk] = useState(false);
 
   // ★ 11주차
@@ -504,6 +516,7 @@ export default function OfficePage() {
     ws.onmessage = (event) => {
       try {
         setSensor(JSON.parse(event.data));
+        setLastAt(Date.now());
       } catch {
         console.warn("잘못된 메시지 형식:", event.data);
         return;
@@ -641,7 +654,14 @@ export default function OfficePage() {
       <div className="mx-auto w-full max-w-[1400px] px-4 py-5 sm:px-6">
         {/* ── 위쪽 띠 ─────────────────────────────────────── */}
         <header className="mb-4 flex flex-wrap items-center gap-3">
-          <h1 className={UI.sectionTitle}>{TWIN.teamName}</h1>
+          <div className="min-w-0">
+            <h1 className={UI.sectionTitle}>{TWIN.teamName}</h1>
+            <p className="text-xs text-slate-400">
+              3D 없는 화면 · 장치 {TWIN.devices.length} · 센서{" "}
+              {TWIN.devices.filter((d) => d.kind === "sensor").length} · 액추에이터{" "}
+              {TWIN.devices.filter((d) => d.kind === "actuator").length}
+            </p>
+          </div>
 
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
@@ -655,6 +675,11 @@ export default function OfficePage() {
               : <WifiOff className="h-3.5 w-3.5" aria-hidden="true" />}
             {online ? "ONLINE" : connecting ? "재연결 중…" : "OFFLINE"}
           </span>
+          {lastAt !== null && !(!online && !connecting) && (
+            <span className="text-xs tabular-nums text-slate-400">
+              마지막 수신 {new Date(lastAt).toLocaleTimeString("ko-KR")}
+            </span>
+          )}
 
           <div className="ml-auto flex items-center gap-2">
             {/* ★ 11주차 — 3D 가 이상하면 관람객 앞에서 1초에 되돌립니다 */}
@@ -699,7 +724,7 @@ export default function OfficePage() {
               <span className="text-xs tabular-nums text-slate-400">{TWIN.devices.length}</span>
             </div>
             <ul className="space-y-1">
-              {TWIN.devices.map((d, i) => {
+              {TWIN.devices.map((d) => {
                 const st = deskState(d, sensor, actuator);
                 const Icon = iconFor(d);
                 const on = selectedKey === d.key;
@@ -721,8 +746,8 @@ export default function OfficePage() {
                            색을 감싼 칩에 두면 아이콘 쪽에 style 을 줄 필요가 없습니다
                            (iconFor 가 돌려주는 타입은 style 을 안 받습니다). */
                         style={{
-                          backgroundColor: `${CLAY[i % CLAY.length]}33`,
-                          color: CLAY[i % CLAY.length],
+                          backgroundColor: `${tintOf(d)}33`,
+                          color: tintOf(d),
                         }}
                       >
                         <Icon className="h-4 w-4" aria-hidden="true" />
@@ -794,14 +819,14 @@ export default function OfficePage() {
 
           {/* ── 오른쪽 · 인스펙터 ─────────────────────────── */}
           <aside className={`${UI.card} p-4`}>
-            <div className="mb-3 flex gap-1 rounded-xl bg-slate-100 p-1">
+            <div className="mb-3 flex gap-1 rounded-full bg-[#F1EFEA] p-1">
               {([["detail", "상세"], ["control", "제어"], ["trail", "기록"]] as const).map(([k, t]) => (
                 <button
                   key={k}
                   type="button"
                   onClick={() => setTab(k)}
-                  className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors ${UI.focus}
-                              ${tab === k ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                  className={`flex-1 rounded-full px-2 py-1.5 text-xs font-semibold transition-colors ${UI.focus}
+                              ${tab === k ? "bg-[#141414] text-white shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
                 >
                   {t}
                 </button>

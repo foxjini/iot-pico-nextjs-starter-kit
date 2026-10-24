@@ -35,7 +35,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import {
   Html,
   OrbitControls,
@@ -45,6 +45,7 @@ import {
 } from "@react-three/drei";
 import {
   AlertTriangle,
+  ArrowLeft,
   Boxes,
   CheckCircle2,
   CircleHelp,
@@ -69,7 +70,8 @@ import { TWIN, type Device, type RoomKind, type Spot } from "./team-twin";
 
 const UI = {
   /* 찬 회색(bg-slate-50) 대신 **따뜻한 종이색**. 흰 카드가 떠 보입니다. */
-  page: "min-h-screen bg-[#F6F5F2] text-[#141414]",
+  page:
+    "min-h-screen bg-[#F6F5F2] bg-[radial-gradient(1100px_520px_at_50%_-8%,#FFFFFF,transparent_70%)] text-[#141414]",
   /* 테두리는 머리카락처럼 얇게, 그림자는 2단으로 아주 옅게.
      진한 테두리 하나보다 이쪽이 훨씬 비싸 보입니다. */
   card:
@@ -133,15 +135,17 @@ type TrailItem = {
    학생은 좌표를 쓰지 않습니다. `spot` 이름 여섯 개 중에서 고를 뿐입니다.
    ════════════════════════════════════════════════════════════ */
 
+/* ★ 여섯 자리는 이제 **캐릭터가 서는 바닥 위 자리**입니다 (y = 0).
+ *  이름은 그대로라 학생 설정(`spot: "desk"` 등)은 바꿀 것이 없습니다.
+ *  좌표는 정사영 카메라에서 **이름표끼리 안 겹치게** 실측으로 잡았습니다 —
+ *  옮길 때는 「여섯 자리 전부 쓰는 설정」으로 다시 확인하세요. */
 const SPOTS: Record<Spot, [number, number, number]> = {
-  shelf: [-1.55, 1.05, -2.0],
-  desk: [1.5, 0.95, -1.1],
-  // 「벽」은 **뒷벽**입니다. 옆벽(x=-3)은 이 카메라에서 심하게 찌그러져 보여
-  // 장치를 붙이면 거의 안 보입니다. 뒷벽은 화면에서 가장 넓은 면입니다.
-  wall: [-0.95, 1.8, -2.85],
-  ground: [0, 0.18, 0.5],
-  corner: [-2.1, 0.3, 1.7],
-  ceiling: [0, 2.45, -0.4],
+  shelf: [-1.75, 0, -2.0], //  뒤쪽 낮은 선반 앞
+  desk: [1.6, 0, -0.65], //    오른쪽 책상 무리 앞 (벽 자리 캐릭터를 가리지 않게)
+  wall: [0.25, 0, -2.15], //   뒷벽 화이트보드 앞
+  ground: [-0.2, 0, 0.55], //  가운데 러그 위 — 주인공 자리로 좋습니다
+  corner: [-2.05, 0, 1.95], // 앞쪽 왼편 구석
+  ceiling: [2.0, 0, 1.55], //  앞쪽 오른편 — 천장 조명을 돌보는 자리
 };
 
 /** 「산소 펌프 을(를)」처럼 쓰지 않습니다. 팀마다 장치 이름이 다르니
@@ -228,10 +232,13 @@ const LEVEL_3D: Record<Level, string> = {
  *  상태는 라벨 글자(「정상」·「위험」)로도 읽히므로 색만으로 판단하지 않아도 됩니다. */
 const CLAY = ["#7FC8E8", "#F2A3B3", "#F2CE7A", "#A7B6F2", "#8FD9B6", "#F2B289"];
 
-function bodyColor(device: Device, level: Level, index: number) {
-  if (level === "danger" || level === "warn") return LEVEL_3D[level];
-  if (level === "none" || level === "waiting") return LEVEL_3D[level];
-  return CLAY[index % CLAY.length];
+/* 고유색을 흰색 쪽으로 섞습니다 — 몸통은 머리카락보다 옅어야 점토 인형처럼 보입니다 */
+function mix(hex: string, to: string, t: number) {
+  const a = parseInt(hex.slice(1), 16);
+  const b = parseInt(to.slice(1), 16);
+  const ch = (v: number, sh: number) => (v >> sh) & 255;
+  const m = (sh: number) => Math.round(ch(a, sh) + (ch(b, sh) - ch(a, sh)) * t);
+  return `#${((m(16) << 16) | (m(8) << 8) | m(0)).toString(16).padStart(6, "0")}`;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -241,137 +248,165 @@ function bodyColor(device: Device, level: Level, index: number) {
    ════════════════════════════════════════════════════════════ */
 
 function RoomShell({ room }: { room: RoomPreset }) {
-  /* 점토처럼 보이게 하는 재질 한 벌. 거칠기를 높이고 금속성을 0 으로 두면
+  /* 점토처럼 보이게 하는 재질. 거칠기를 높이고 금속성을 0 으로 두면
      빛이 뭉개져 플라스틱이 아니라 점토가 됩니다. */
-  const clay = { roughness: 0.62, metalness: 0, };
+  const clay = { roughness: 0.62, metalness: 0 };
+  /* ★ 벽은 **낮게**. 높은 벽은 화면 위쪽을 회색으로 눌렀습니다.
+     레퍼런스처럼 허리 높이 반벽이면 방 안이 다 보입니다. */
+  const WALL_H = 1.1;
 
   return (
     <group>
-      {/* ★ 방이 **떠 있는 둥근 단** 위에 놓입니다.
-          레퍼런스 이미지의 인상을 만드는 가장 큰 요소입니다 — 방이 바닥에
-          주저앉지 않고 하나의 「작품」으로 보입니다. */}
-      <RoundedBox
-        args={[7.2, 0.44, 7.2]}
-        radius={0.2}
-        smoothness={2}
-        position={[0, -0.24, 0]}
-        castShadow
-        receiveShadow
-      >
-        <meshStandardMaterial color="#FFFFFF" {...clay} roughness={0.78} />
+      {/* 방이 **떠 있는 둥근 단** 위에 놓입니다 — 방이 하나의 「작품」으로 보입니다 */}
+      <RoundedBox args={[6.7, 0.44, 6.7]} radius={0.2} smoothness={2} position={[0, -0.24, 0]}>
+        <meshStandardMaterial color="#FFFFFF" roughness={0.78} metalness={0} />
       </RoundedBox>
 
       {/* 바닥 — 단보다 아주 조금 위에 둬서 z-fighting 을 피합니다 */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]}>
         <planeGeometry args={[6, 6]} />
         <meshStandardMaterial color={room.floor} roughness={0.92} metalness={0} />
       </mesh>
 
-      {/* 뒷벽 */}
-      <RoundedBox args={[6, 3, 0.12]} radius={0.05} smoothness={2} position={[0, 1.5, -3]} receiveShadow>
-        <meshStandardMaterial color={room.wall} {...clay} />
-      </RoundedBox>
-
-      {/* 왼쪽 벽 — ★ 카메라가 [+x, +z](앞·오른쪽)에 있으므로 옆벽은 **왼쪽(-x)** 이어야
-          합니다. 오른쪽(+3)에 두면 벽이 카메라와 방 사이를 가로막아 **방이 통째로
-          회색 판때기로 가려집니다** (실측으로 확인한 결함). 뒷벽과 이 벽 둘만 세워
-          「열린 모서리 방」을 만드는 것이 아이소메트릭의 기본 구성입니다. */}
-      <RoundedBox args={[0.12, 3, 6]} radius={0.05} smoothness={2} position={[-3, 1.5, 0]} receiveShadow>
-        <meshStandardMaterial color={room.wall} {...clay} />
-      </RoundedBox>
-
-      {/* 창가 선반 */}
-      <RoundedBox args={[1.3, 0.1, 0.5]} radius={0.04} smoothness={2}
-                  position={[-1.55, 0.95, -2.0]} castShadow receiveShadow>
-        <meshStandardMaterial color="#FBF7F1" {...clay} />
-      </RoundedBox>
-      {/* 선반 다리 */}
-      {[-2.1, -1.0].map((x) => (
-        <RoundedBox key={x} args={[0.08, 0.92, 0.08]} radius={0.03} smoothness={2}
-                    position={[x, 0.46, -2.0]}>
-          <meshStandardMaterial color="#E7DED1" {...clay} />
-        </RoundedBox>
-      ))}
-      {/* 선반 위 책 더미 — 방이 「누가 쓰는 곳」처럼 보이게 합니다 */}
-      {[
-        { x: -1.15, h: 0.22, c: "#F2A3B3" },
-        { x: -1.02, h: 0.3, c: "#9BC6F2" },
-        { x: -0.9, h: 0.18, c: "#F2CE7A" },
-      ].map((b) => (
-        <RoundedBox key={b.x} args={[0.09, b.h, 0.3]} radius={0.02} smoothness={2}
-                    position={[b.x, 1.0 + b.h / 2, -2.0]}>
-          <meshStandardMaterial color={b.c} {...clay} />
-        </RoundedBox>
-      ))}
-
-      {/* 책상 */}
-      <RoundedBox args={[1.4, 0.09, 0.8]} radius={0.04} smoothness={2}
-                  position={[1.5, 0.85, -1.1]} castShadow receiveShadow>
-        <meshStandardMaterial color="#F7E8D4" {...clay} />
-      </RoundedBox>
-      {[1.0, 2.0].map((x) => (
-        <RoundedBox key={x} args={[0.08, 0.81, 0.08]} radius={0.03} smoothness={2}
-                    position={[x, 0.4, -1.1]}>
-          <meshStandardMaterial color="#E7D3B6" {...clay} />
-        </RoundedBox>
-      ))}
-      {/* 책상 위 모니터 */}
-      <RoundedBox args={[0.62, 0.4, 0.05]} radius={0.03} smoothness={2}
-                  position={[1.72, 1.14, -1.33]} castShadow>
-        <meshStandardMaterial color="#3C4453" {...clay} />
-      </RoundedBox>
-      <RoundedBox args={[0.55, 0.33, 0.01]} radius={0.02} smoothness={2}
-                  position={[1.72, 1.14, -1.3]}>
-        <meshStandardMaterial color="#AFC9E8" roughness={0.3} metalness={0} />
-      </RoundedBox>
-      <RoundedBox args={[0.2, 0.05, 0.14]} radius={0.02} smoothness={2}
-                  position={[1.72, 0.92, -1.33]} castShadow>
-        <meshStandardMaterial color="#3C4453" {...clay} />
-      </RoundedBox>
-
-      {/* 바닥 화단 — 방 성격을 한눈에 */}
-      <mesh position={[0, 0.09, 0.5]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.58, 0.62, 0.18, 24]} />
-        <meshStandardMaterial color={room.accent} roughness={0.85} metalness={0} />
+      {/* 가운데 러그 — 주인공 자리를 받쳐 줍니다 */}
+      <mesh position={[-0.2, 0.012, 0.55]}>
+        <cylinderGeometry args={[1.3, 1.3, 0.02, 40]} />
+        <meshStandardMaterial color={mix(room.accent, "#FFFFFF", 0.55)} roughness={0.95} metalness={0} />
       </mesh>
 
-      {/* 책상 의자 — 방이 「사람이 쓰는 곳」으로 읽히게 합니다 */}
-      <group position={[1.35, 0, -0.25]}>
-        <RoundedBox args={[0.42, 0.09, 0.42]} radius={0.05} smoothness={2}
-                    position={[0, 0.46, 0]} castShadow receiveShadow>
-          <meshStandardMaterial color="#C7D2E8" roughness={0.65} metalness={0} />
-        </RoundedBox>
-        <RoundedBox args={[0.42, 0.42, 0.09]} radius={0.05} smoothness={2}
-                    position={[0, 0.68, 0.18]} castShadow>
-          <meshStandardMaterial color="#C7D2E8" roughness={0.65} metalness={0} />
-        </RoundedBox>
-        <mesh position={[0, 0.22, 0]} castShadow>
-          <cylinderGeometry args={[0.05, 0.05, 0.44, 12]} />
-          <meshStandardMaterial color="#9AA4B2" roughness={0.6} metalness={0} />
-        </mesh>
-        <mesh position={[0, 0.03, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[0.22, 0.24, 0.06, 20]} />
-          <meshStandardMaterial color="#9AA4B2" roughness={0.6} metalness={0} />
-        </mesh>
-      </group>
+      {/* 뒷벽 · 왼쪽 벽 — 카메라가 앞·오른쪽에 있으므로 벽은 **뒤와 왼쪽**에만 섭니다 */}
+      <RoundedBox args={[6, WALL_H, 0.14]} radius={0.05} smoothness={2} position={[0, WALL_H / 2, -3]}>
+        <meshStandardMaterial color="#FFFFFF" {...clay} />
+      </RoundedBox>
+      <RoundedBox args={[0.14, WALL_H, 6]} radius={0.05} smoothness={2} position={[-3, WALL_H / 2, 0]}>
+        <meshStandardMaterial color="#FFFFFF" {...clay} />
+      </RoundedBox>
+      {/* 벽 위 모서리 띠 — 흰 벽이 바닥과 섞이지 않게 테두리를 줍니다 */}
+      <mesh position={[0, WALL_H + 0.005, -3]}>
+        <boxGeometry args={[6, 0.01, 0.15]} />
+        <meshStandardMaterial color={room.wall} roughness={0.8} metalness={0} />
+      </mesh>
+      <mesh position={[-3, WALL_H + 0.005, 0]}>
+        <boxGeometry args={[0.15, 0.01, 6]} />
+        <meshStandardMaterial color={room.wall} roughness={0.8} metalness={0} />
+      </mesh>
 
-      {/* 앞쪽 오른편 화분 — 비어 있던 사분면을 채웁니다 */}
-      <group position={[1.95, 0, 0.95]} scale={0.88}>
-        <mesh position={[0, 0.17, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[0.2, 0.16, 0.34, 24]} />
-          <meshStandardMaterial color="#D98E6A" roughness={0.8} metalness={0} />
-        </mesh>
-        {[
-          { p: [0, 0.52, 0], r: 0.21 },
-          { p: [0.14, 0.44, 0.07], r: 0.14 },
-          { p: [-0.12, 0.46, -0.06], r: 0.13 },
-        ].map((l, i) => (
-          <mesh key={i} position={l.p as [number, number, number]} castShadow>
-            <sphereGeometry args={[l.r, 14, 14]} />
-            <meshStandardMaterial color="#6FBF8E" roughness={0.75} metalness={0} />
+      {/* 화이트보드 — 막대그래프 장식 */}
+      <group position={[0.55, 0, -2.72]}>
+        <RoundedBox args={[1.5, 0.85, 0.06]} radius={0.03} smoothness={2} position={[0, 1.15, 0]}>
+          <meshStandardMaterial color="#FFFFFF" {...clay} />
+        </RoundedBox>
+        <RoundedBox args={[1.58, 0.93, 0.04]} radius={0.03} smoothness={2} position={[0, 1.15, -0.03]}>
+          <meshStandardMaterial color="#C9CFD8" {...clay} />
+        </RoundedBox>
+        {[0.22, 0.38, 0.3, 0.5, 0.42].map((h, k) => (
+          <mesh key={k} position={[-0.5 + k * 0.25, 0.86 + h / 2, 0.04]}>
+            <boxGeometry args={[0.14, h, 0.02]} />
+            <meshStandardMaterial color={CLAY[k % CLAY.length]} roughness={0.6} metalness={0} />
+          </mesh>
+        ))}
+        {[-0.6, 0.6].map((x) => (
+          <mesh key={x} position={[x, 0.36, 0.02]}>
+            <cylinderGeometry args={[0.025, 0.025, 0.72, 8]} />
+            <meshStandardMaterial color="#AEB6C2" roughness={0.6} metalness={0} />
           </mesh>
         ))}
       </group>
+
+      {/* 뒤쪽 낮은 선반 + 책 */}
+      <RoundedBox args={[1.4, 0.56, 0.36]} radius={0.04} smoothness={2} position={[-1.85, 0.28, -2.72]}>
+        <meshStandardMaterial color="#F3ECE2" {...clay} />
+      </RoundedBox>
+      {[
+        { x: -2.3, h: 0.24, c: "#F2A3B3" },
+        { x: -2.18, h: 0.3, c: "#9BC6F2" },
+        { x: -2.06, h: 0.2, c: "#F2CE7A" },
+      ].map((b) => (
+        <mesh key={b.x} position={[b.x, 0.56 + b.h / 2, -2.72]}>
+          <boxGeometry args={[0.09, b.h, 0.26]} />
+          <meshStandardMaterial color={b.c} roughness={0.6} metalness={0} />
+        </mesh>
+      ))}
+
+      {/* 오른쪽 뒤 책상 무리 — 모니터 둘 · 의자 둘 */}
+      <RoundedBox args={[1.5, 0.08, 0.75]} radius={0.03} smoothness={2} position={[2.0, 0.62, -2.35]}>
+        <meshStandardMaterial color="#F7EDE0" {...clay} />
+      </RoundedBox>
+      {[1.35, 2.65].map((x) => (
+        <mesh key={x} position={[x, 0.3, -2.35]}>
+          <boxGeometry args={[0.06, 0.6, 0.65]} />
+          <meshStandardMaterial color="#E9DCCB" roughness={0.65} metalness={0} />
+        </mesh>
+      ))}
+      {[1.65, 2.35].map((x) => (
+        <group key={x}>
+          <RoundedBox args={[0.5, 0.32, 0.04]} radius={0.02} smoothness={2} position={[x, 0.86, -2.5]}>
+            <meshStandardMaterial color="#3C4453" {...clay} />
+          </RoundedBox>
+          <mesh position={[x, 0.86, -2.475]}>
+            <boxGeometry args={[0.44, 0.26, 0.005]} />
+            <meshStandardMaterial color="#AFC9E8" roughness={0.35} metalness={0} />
+          </mesh>
+          <mesh position={[x, 0.68, -2.5]}>
+            <boxGeometry args={[0.16, 0.04, 0.12]} />
+            <meshStandardMaterial color="#3C4453" roughness={0.6} metalness={0} />
+          </mesh>
+          {/* 의자 */}
+          <RoundedBox args={[0.38, 0.07, 0.38]} radius={0.04} smoothness={2} position={[x, 0.42, -1.85]}>
+            <meshStandardMaterial color="#DCE3EF" {...clay} />
+          </RoundedBox>
+          <RoundedBox args={[0.38, 0.36, 0.07]} radius={0.04} smoothness={2} position={[x, 0.62, -1.68]}>
+            <meshStandardMaterial color="#DCE3EF" {...clay} />
+          </RoundedBox>
+          <mesh position={[x, 0.2, -1.85]}>
+            <cylinderGeometry args={[0.04, 0.12, 0.4, 10]} />
+            <meshStandardMaterial color="#AEB6C2" roughness={0.6} metalness={0} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* 왼쪽 벽 소파 */}
+      <group position={[-2.45, 0, -0.25]}>
+        <RoundedBox args={[0.75, 0.26, 1.6]} radius={0.08} smoothness={2} position={[0, 0.2, 0]}>
+          <meshStandardMaterial color="#EDE7DE" {...clay} />
+        </RoundedBox>
+        <RoundedBox args={[0.22, 0.5, 1.6]} radius={0.08} smoothness={2} position={[-0.3, 0.42, 0]}>
+          <meshStandardMaterial color="#E6DED3" {...clay} />
+        </RoundedBox>
+        {[-0.74, 0.74].map((z) => (
+          <RoundedBox key={z} args={[0.75, 0.36, 0.16]} radius={0.06} smoothness={2} position={[0, 0.27, z]}>
+            <meshStandardMaterial color="#E6DED3" {...clay} />
+          </RoundedBox>
+        ))}
+        <RoundedBox args={[0.3, 0.3, 0.3]} radius={0.08} smoothness={2} position={[0.05, 0.45, 0.25]}>
+          <meshStandardMaterial color="#F2B289" {...clay} />
+        </RoundedBox>
+      </group>
+
+      {/* 화분 셋 — 레퍼런스의 초록이 방을 살립니다 */}
+      {[
+        { p: [-2.55, 0, 1.0] as const, s: 0.9 },
+        { p: [2.6, 0, 0.1] as const, s: 1.1 },
+        { p: [2.55, 0, 2.55] as const, s: 0.8 },
+      ].map((pl, k) => (
+        <group key={k} position={pl.p as unknown as [number, number, number]} scale={pl.s}>
+          <mesh position={[0, 0.17, 0]}>
+            <cylinderGeometry args={[0.2, 0.15, 0.34, 18]} />
+            <meshStandardMaterial color="#FFFFFF" roughness={0.75} metalness={0} />
+          </mesh>
+          {[
+            { p: [0, 0.55, 0], r: 0.22 },
+            { p: [0.14, 0.45, 0.08], r: 0.15 },
+            { p: [-0.13, 0.47, -0.06], r: 0.14 },
+            { p: [0.02, 0.76, 0.02], r: 0.13 },
+          ].map((l, m) => (
+            <mesh key={m} position={l.p as [number, number, number]}>
+              <sphereGeometry args={[l.r, 14, 12]} />
+              <meshStandardMaterial color={m % 2 ? "#7CC797" : "#5DB27F"} roughness={0.75} metalness={0} />
+            </mesh>
+          ))}
+        </group>
+      ))}
     </group>
   );
 }
@@ -381,6 +416,113 @@ function RoomShell({ room }: { room: RoomPreset }) {
    값은 **3D 안의 텍스처가 아니라 진짜 글자(DOM)** 로 띄웁니다.
    그래야 1m 밖에서도 또렷하고, 화면 읽기 프로그램도 읽을 수 있습니다.
    ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   3D — 장치를 돌보는 점토 캐릭터
+   ════════════════════════════════════════════════════════════
+
+   장치 하나마다 캐릭터 하나가 자기 자리에서 장치를 돌봅니다.
+   색의 역할을 **둘로 나눕니다**.
+
+     머리카락  = 누구인지 (장치 고유색, CLAY)
+     전구·상자 = 지금 상태 (정상 초록 · 주의 호박 · 위험 장미색 / 켜짐 호박)
+
+   한 가지 색으로 둘 다 하려 하면 평소에 온 방이 초록 한 가지가 되거나,
+   위험 신호가 고유색에 묻힙니다. 기본 도형(구·캡슐·상자)만 씁니다.
+   ════════════════════════════════════════════════════════════ */
+
+const SKIN = "#F5D3BA";
+
+/* 캐릭터 크기 배율. 이름표·말풍선 높이가 여기에 맞춰져 있습니다 */
+const CHAR = 1.45;
+
+/* 이름표의 상태 점 색 */
+const DOT: Record<Level, string> = {
+  none: "#94A3B8",
+  waiting: "#94A3B8",
+  ok: "#4ADE80",
+  warn: "#FBBF24",
+  danger: "#FFFFFF",
+};
+
+function Caretaker({ tint, hero, children }: { tint: string; hero: boolean; children: React.ReactNode }) {
+  return (
+    /* ★ 주인공 하나만 아주 약하게 떠 있게 합니다. 전부 움직이면 산만해집니다. */
+    <Float enabled={hero} speed={1.1} rotationIntensity={0.08} floatIntensity={0.18} floatingRange={[0, 0.05]}>
+      {/* 카메라가 [+x, +z] 쪽에 있으므로 45° 돌려 얼굴이 관람객을 보게 합니다.
+          CHAR 배로 키웁니다 — 레퍼런스처럼 캐릭터가 **방의 주인공**이어야 합니다. */}
+      <group rotation={[0, Math.PI / 4, 0]} scale={CHAR}>
+        {/* 몸통 — 고유색을 옅게 */}
+        <mesh position={[0, 0.3, 0]}>
+          <capsuleGeometry args={[0.15, 0.2, 4, 12]} />
+          <meshStandardMaterial color={mix(tint, "#FFFFFF", 0.35)} roughness={0.62} metalness={0} />
+        </mesh>
+        {/* 머리 */}
+        <mesh position={[0, 0.67, 0]}>
+          <sphereGeometry args={[0.16, 18, 14]} />
+          <meshStandardMaterial color={SKIN} roughness={0.55} metalness={0} />
+        </mesh>
+        {/* 머리카락 — 윗반구. 이게 「누구인지」를 알려 주는 색입니다 */}
+        <mesh position={[0, 0.69, -0.015]} scale={[1.07, 1, 1.07]}>
+          <sphereGeometry args={[0.165, 18, 8, 0, Math.PI * 2, 0, Math.PI * 0.52]} />
+          <meshStandardMaterial color={tint} roughness={0.5} metalness={0} />
+        </mesh>
+        {/* 눈 */}
+        {[-0.055, 0.055].map((x) => (
+          <mesh key={x} position={[x, 0.655, 0.152]}>
+            <sphereGeometry args={[0.017, 8, 6]} />
+            <meshStandardMaterial color="#2B2B33" roughness={0.4} metalness={0} />
+          </mesh>
+        ))}
+        {/* 돌보는 장치 — 캐릭터 오른편 */}
+        <group position={[0.34, 0, 0.02]}>{children}</group>
+      </group>
+    </Float>
+  );
+}
+
+/* 이름표 — 캐릭터 머리 위의 작은 검은 알약 (레퍼런스의 `Ara AGENT 1`) */
+function NameTag({
+  portal,
+  deviceKey,
+  ariaLabel,
+  onSelect,
+  danger,
+  ring,
+  stale,
+  children,
+}: {
+  portal: RefObject<HTMLElement>;
+  deviceKey: string;
+  ariaLabel: string;
+  onSelect: () => void;
+  danger: boolean;
+  ring: "" | "selected" | "pending";
+  stale: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Html center portal={portal} position={[0, 1.08 * CHAR, 0]} zIndexRange={[20, 0]}>
+      <button
+        type="button"
+        onClick={onSelect}
+        data-device={deviceKey}
+        aria-label={ariaLabel}
+        className={`pointer-events-auto inline-flex w-max items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_4px_14px_-4px_rgba(16,24,40,0.45)] ${UI.focus} ${
+          danger ? "bg-rose-600" : "bg-[#141414]/90"
+        } ${stale ? "opacity-60" : ""} ${
+          ring === "pending"
+            ? "ring-2 ring-rose-400 ring-offset-2"
+            : ring === "selected"
+              ? "ring-2 ring-blue-400 ring-offset-2"
+              : ""
+        }`}
+      >
+        {children}
+      </button>
+    </Html>
+  );
+}
 
 function SensorNode({
   device,
@@ -404,59 +546,71 @@ function SensorNode({
   index: number;
 }) {
   const pos = SPOTS[device.spot];
-  const color = bodyColor(device, level, index);
+  const bulb = LEVEL_3D[level];
   const shown = value === null || value === undefined ? "—" : String(value);
+  const aria = `${device.label} — ${LEVEL_TEXT[level]}${
+    value === null || value === undefined ? "" : ` ${value}${device.unit ?? ""}`
+  }`;
 
   return (
     <group position={pos}>
-      {/* 받침 — 장치가 공중에 뜨지 않고 **놓여** 보이게 합니다 */}
-      <mesh position={[0, -0.09, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[0.16, 0.18, 0.06, 24]} />
-        <meshStandardMaterial color="#FFFFFF" roughness={0.8} metalness={0} />
-      </mesh>
-      {/* ★ 주인공 하나만 아주 약하게 떠 있게 합니다. 전부 움직이면 산만해집니다. */}
-      <Float
-        enabled={device.hero === true}
-        speed={1.1}
-        rotationIntensity={0.12}
-        floatIntensity={0.22}
-        floatingRange={[0, 0.06]}
-      >
-        <mesh castShadow position={[0, 0.06, 0]}>
-          <sphereGeometry args={[0.18, 18, 18]} />
+      <Caretaker tint={CLAY[index % CLAY.length]} hero={device.hero === true}>
+        {/* 센서 기둥 + 전구. **전구 색이 상태**입니다 */}
+        <mesh position={[0, 0.02, 0]}>
+          <cylinderGeometry args={[0.11, 0.12, 0.04, 16]} />
+          <meshStandardMaterial color="#FFFFFF" roughness={0.8} metalness={0} />
+        </mesh>
+        <mesh position={[0, 0.27, 0]}>
+          <cylinderGeometry args={[0.022, 0.022, 0.5, 8]} />
+          <meshStandardMaterial color="#AEB6C2" roughness={0.6} metalness={0} />
+        </mesh>
+        <mesh position={[0, 0.58, 0]}>
+          <sphereGeometry args={[0.095, 16, 12]} />
           <meshStandardMaterial
-            color={color}
-            /* 점토는 **스스로 빛나지 않습니다.** 위험할 때만 아주 조금 올립니다. */
-            emissive={color}
-            emissiveIntensity={level === "danger" ? 0.35 : 0.04}
-            roughness={0.58}
+            color={bulb}
+            emissive={bulb}
+            /* 위험할 때만 확실히 빛납니다 — 1m 밖에서 읽히는 신호 */
+            emissiveIntensity={level === "danger" ? 0.9 : level === "warn" ? 0.45 : 0.18}
+            roughness={0.45}
             metalness={0}
           />
         </mesh>
-      </Float>
-      <Html center portal={portal} position={[0, 0.52, 0]} zIndexRange={[20, 0]}>
-        <button
-          type="button"
-          onClick={onSelect}
-          data-device={device.key}
-          aria-label={`${device.label} — ${LEVEL_TEXT[level]}${
-            value === null || value === undefined ? "" : ` ${value}${device.unit ?? ""}`
-          }`}
-          className={`pointer-events-auto flex w-max flex-col items-center gap-0.5 rounded-xl border px-2.5 py-1.5 text-center shadow-sm ${UI.focus} ${
-            LEVEL_CLASS[level]
-          } ${stale ? "opacity-60" : ""} ${selected ? "ring-2 ring-blue-500" : ""}`}
-        >
-          <span className="text-[11px] font-semibold leading-tight">{device.label}</span>
-          {big && device.hero ? (
+      </Caretaker>
+
+      {big && device.hero ? (
+        /* 전시 모드의 주인공은 **큰 값 카드** — 멀리서 숫자가 읽혀야 합니다 */
+        <Html center portal={portal} position={[0, 1.3 * CHAR, 0]} zIndexRange={[20, 0]}>
+          <button
+            type="button"
+            onClick={onSelect}
+            data-device={device.key}
+            aria-label={aria}
+            className={`pointer-events-auto flex w-max flex-col items-center gap-0.5 rounded-2xl border bg-white/95 px-4 py-2 text-center shadow-[0_12px_32px_-12px_rgba(16,24,40,0.35)] ${UI.focus} ${
+              LEVEL_CLASS[level]
+            } ${stale ? "opacity-60" : ""}`}
+          >
+            <span className="text-xs font-semibold leading-tight">{device.label}</span>
             <span data-hero-value className="text-4xl font-bold leading-none tabular-nums">
               {shown}
               <span className="ml-0.5 text-base font-semibold">{device.unit ?? ""}</span>
             </span>
-          ) : (
-            <span className="text-[10px] leading-tight">{LEVEL_TEXT[level]}</span>
-          )}
-        </button>
-      </Html>
+          </button>
+        </Html>
+      ) : (
+        <NameTag
+          portal={portal}
+          deviceKey={device.key}
+          ariaLabel={aria}
+          onSelect={onSelect}
+          danger={level === "danger"}
+          ring={selected ? "selected" : ""}
+          stale={stale}
+        >
+          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: DOT[level] }} />
+          {device.label}
+          <span className="font-normal text-white/65">{LEVEL_TEXT[level]}</span>
+        </NameTag>
+      )}
     </group>
   );
 }
@@ -484,51 +638,54 @@ function ActuatorNode({
 }) {
   const pos = SPOTS[device.spot];
   if (hidden) return null;
-  /* 액추에이터는 **켜짐이 가장 중요한 신호**라 켜지면 호박색으로 덮습니다.
-     꺼져 있을 때만 고유색입니다. */
-  const color = on ? "#F2B33D" : CLAY[(index + 3) % CLAY.length];
+  const tint = CLAY[(index + 3) % CLAY.length];
+  /* 켜짐이 가장 중요한 신호라 켜지면 호박색으로 덮고 빛납니다 */
+  const box = on ? "#F2B33D" : mix(tint, "#FFFFFF", 0.45);
 
   return (
     <group position={pos}>
-      <mesh position={[0, -0.09, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[0.18, 0.2, 0.06, 24]} />
-        <meshStandardMaterial color="#FFFFFF" roughness={0.8} metalness={0} />
-      </mesh>
-      <RoundedBox args={[0.34, 0.28, 0.34]} radius={0.07} smoothness={2}
-                  position={[0, 0.08, 0]} castShadow>
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          /* 켜졌을 때만 빛납니다 — 그게 「켜짐」을 1m 밖에서 읽게 하는 신호입니다 */
-          emissiveIntensity={on ? 0.5 : 0.02}
-          roughness={0.55}
-          metalness={0}
+      <Caretaker tint={tint} hero={false}>
+        <RoundedBox args={[0.3, 0.26, 0.3]} radius={0.06} smoothness={2} position={[0, 0.13, 0]}>
+          <meshStandardMaterial
+            color={box}
+            emissive={box}
+            emissiveIntensity={on ? 0.55 : 0.02}
+            roughness={0.55}
+            metalness={0}
+          />
+        </RoundedBox>
+        {/* 상자 위 표시등 */}
+        <mesh position={[0, 0.28, 0]}>
+          <sphereGeometry args={[0.035, 10, 8]} />
+          <meshStandardMaterial
+            color={on ? "#FFF3C4" : "#9AA4B2"}
+            emissive={on ? "#FFD666" : "#000000"}
+            emissiveIntensity={on ? 1 : 0}
+            roughness={0.4}
+            metalness={0}
+          />
+        </mesh>
+      </Caretaker>
+
+      <NameTag
+        portal={portal}
+        deviceKey={device.key}
+        ariaLabel={`${device.label} — ${on ? "켜짐" : "꺼짐"}${pending ? ", 승인 기다리는 중" : ""}`}
+        onSelect={onSelect}
+        danger={false}
+        ring={pending ? "pending" : selected ? "selected" : ""}
+        stale={stale}
+      >
+        <span
+          aria-hidden="true"
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ backgroundColor: pending ? "#FB7185" : on ? "#FBBF24" : "#94A3B8" }}
         />
-      </RoundedBox>
-      <Html center portal={portal} position={[0, 0.52, 0]} zIndexRange={[20, 0]}>
-        <button
-          type="button"
-          onClick={onSelect}
-          data-device={device.key}
-          aria-label={`${device.label} — ${on ? "켜짐" : "꺼짐"}${pending ? ", 승인 기다리는 중" : ""}`}
-          className={`pointer-events-auto flex w-max flex-col items-center gap-0.5 rounded-xl border px-2.5 py-1.5 text-center shadow-sm ${UI.focus} ${
-            on
-              ? "border-amber-200 bg-amber-50 text-amber-700"
-              : "border-slate-200 bg-white text-slate-600"
-          } ${stale ? "opacity-60" : ""} ${
-            pending
-              ? "ring-2 ring-rose-400 ring-offset-1"
-              : selected
-                ? "ring-2 ring-blue-500"
-                : ""
-          }`}
-        >
-          <span className="text-[11px] font-semibold leading-tight">{device.label}</span>
-          <span className="text-[10px] leading-tight">
-            {pending ? "승인 기다리는 중" : on ? "켜짐" : "꺼짐"}
-          </span>
-        </button>
-      </Html>
+        {device.label}
+        <span className="font-normal text-white/65">
+          {pending ? "승인 기다리는 중" : on ? "켜짐" : "꺼짐"}
+        </span>
+      </NameTag>
     </group>
   );
 }
@@ -667,6 +824,23 @@ function TrailStep({
   );
 }
 
+/* ★ 정사영 카메라의 확대 비율을 **캔버스 크기에 맞춥니다.**
+ *
+ *  정사영은 거리가 아니라 zoom 으로 크기가 정해집니다. 값을 하나로 못박으면
+ *  전시 모드처럼 캔버스가 넓어질 때 방이 작게 남거나 잘립니다.
+ *  방(흰 단 포함)이 화면에서 차지하는 폭·높이를 대략 9.8 × 7.2 칸으로 보고,
+ *  둘 중 빡빡한 쪽에 맞춥니다. drei 의 Bounds 를 쓰지 않고 R3F 코어만 씁니다. */
+function FitZoom() {
+  const camera = useThree((st) => st.camera);
+  const width = useThree((st) => st.size.width);
+  const height = useThree((st) => st.size.height);
+  useEffect(() => {
+    camera.zoom = Math.max(30, Math.min(width / 9.8, height / 7.2));
+    camera.updateProjectionMatrix();
+  }, [camera, width, height]);
+  return null;
+}
+
 /* ★ 승인 말풍선을 **그 장치 옆**에 띄웁니다.
  *
  *  화면 아래 고정이면 *무엇을* 승인하는지 눈으로 이어 붙여야 합니다.
@@ -688,12 +862,13 @@ function PendingBubble({
   const pos = SPOTS[device.spot];
   /* ★ 장치가 화면 **왼쪽**에 있으면 말풍선을 오른쪽으로 펼칩니다 (그 반대도).
      가운데 맞춤으로 두면 가장자리 장치에서 **말풍선이 캔버스 밖으로 잘립니다** —
-     실측으로 확인했습니다. 방이 원점 기준이므로 x 부호만 보면 됩니다. */
-  const toRight = pos[0] < 0;
+     실측으로 확인했습니다. */
+  /* 정사영에서 화면 가로 위치는 (x − z) 에 비례합니다 */
+  const toRight = pos[0] - pos[2] < 0;
   return (
     <Html
       portal={portal}
-      position={[pos[0], pos[1] + 0.95, pos[2]]}
+      position={[pos[0], pos[1] + 1.45 * CHAR, pos[2]]}
       zIndexRange={[40, 30]}
       style={{ transform: toRight ? "translate(-8%, -100%)" : "translate(-92%, -100%)" }}
     >
@@ -772,6 +947,8 @@ export default function TwinPage() {
   const [picoIp, setPicoIp] = useState("127.0.0.1");
   const [status, setStatus] = useState<ConnectionStatus>("offline");
   const [sensor, setSensor] = useState<SensorMap | null>(null);
+  /* 마지막으로 값이 **실제로 도착한** 시각. 시계보다 정직합니다 */
+  const [lastAt, setLastAt] = useState<number | null>(null);
   const [applied, setApplied] = useState<AppliedMap | null>(null);
   const [actuator, setActuator] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<string | null>(null);
@@ -842,6 +1019,7 @@ export default function TwinPage() {
       setSensor(rest as SensorMap);
 
       const now = Date.now();
+      setLastAt(now);
       if (appliedRaw && typeof appliedRaw === "object") {
         const ap = appliedRaw as AppliedMap;
         setApplied(ap);
@@ -1050,12 +1228,16 @@ export default function TwinPage() {
   return (
     <main className={UI.page}>
       {/* ── 머리줄 ─────────────────────────────────────────── */}
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-black/[0.05] bg-white/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-3 px-4 py-3">
-          <h1 className="text-base font-semibold">
-            {TWIN.teamName}
-            <span className="ml-2 text-sm font-normal text-slate-500">· {room.name}</span>
-          </h1>
+          <div className="min-w-0">
+            <h1 className="text-base font-semibold tracking-tight">{TWIN.teamName}</h1>
+            {/* 레퍼런스의 「4 agents · 9 outputs」 자리 */}
+            <p className="text-xs text-slate-400">
+              {room.name} · 장치 {TWIN.devices.length} · 센서 {sensors.length} · 액추에이터{" "}
+              {actuators.length}
+            </p>
+          </div>
 
           <span
             data-status={status}
@@ -1074,6 +1256,11 @@ export default function TwinPage() {
             )}
             {status === "online" ? "ONLINE" : status === "connecting" ? "재연결 중" : "OFFLINE"}
           </span>
+          {lastAt !== null && status !== "offline" && (
+            <span className="text-xs tabular-nums text-slate-400">
+              마지막 수신 {new Date(lastAt).toLocaleTimeString("ko-KR")}
+            </span>
+          )}
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {!kiosk && (
@@ -1101,12 +1288,6 @@ export default function TwinPage() {
                     <PlugZap className="h-4 w-4" aria-hidden="true" /> 끊기
                   </button>
                 )}
-                <a href="/office" className={`${UI.secondaryButton} ${UI.focus}`}>
-                  3D 없는 화면
-                </a>
-                <a href="/dashboard" className={`${UI.secondaryButton} ${UI.focus}`}>
-                  2D 로 돌아가기
-                </a>
               </>
             )}
             <button type="button" onClick={toggleKiosk} className={`${UI.secondaryButton} ${UI.focus}`}>
@@ -1126,7 +1307,7 @@ export default function TwinPage() {
 
       <div
         className={`mx-auto grid max-w-[1400px] gap-4 p-4 ${
-          kiosk ? "lg:grid-cols-1" : "lg:grid-cols-[260px_minmax(0,1fr)_340px]"
+          kiosk ? "lg:grid-cols-1" : "lg:grid-cols-[248px_minmax(0,1fr)_328px]"
         }`}
       >
         {/* ── 왼쪽 · 장치 목록 ──────────────────────────────── */}
@@ -1223,8 +1404,11 @@ export default function TwinPage() {
           <div className="absolute inset-0">
             {webgl === null ? null : (
               <Canvas
-                shadows
-                camera={{ position: [4.6, 4.6, 5.3], fov: 40 }}
+                /* ★ 정사영(orthographic) — 원근 왜곡 없이 **도면 같은 아이소메트릭**.
+                   원근 카메라는 앞쪽 바닥을 크게, 뒤쪽 장치를 작게 그려
+                   방 앞이 휑해 보였습니다. */
+                orthographic
+                camera={{ position: [10, 9, 10], zoom: 80, near: 0.1, far: 100 }}
                 /* ★ 픽셀 비율 상한. 레티나 화면에서 이게 없으면 픽셀을 4배로 그립니다 —
                    성능에서 가장 크게 손해 보는 자리입니다. */
                 dpr={[1, 1.75]}
@@ -1234,6 +1418,7 @@ export default function TwinPage() {
                     나옵니다. groundColor 도 너무 어두우면(#1e293b) 옆면을 끌어내립니다. */}
                 {/* 그림자가 너무 진하면 바닥에 **구멍이 뚫린 것처럼** 보입니다.
                     주광을 낮추고 주변광을 올리면 그림자가 옅어집니다. */}
+                <FitZoom />
                 <hemisphereLight intensity={1.2} groundColor="#cbd5e1" />
                 <ambientLight intensity={1.15} />
                 {/* 🐞 이 빛은 **그림자를 던지지 않습니다** (castShadow 없음).
@@ -1310,22 +1495,57 @@ export default function TwinPage() {
                   enablePan={false}
                   /* 바닥(y=0)이 아니라 **사람 눈높이**를 봅니다. 원점을 보면 바닥이
                      화면 아래 2/3 를 먹고 장치가 작아집니다. */
-                  target={[0, 0.9, 0]}
-                  minPolarAngle={0.4}
-                  maxPolarAngle={1.35}
-                  minDistance={5}
-                  maxDistance={13}
+                  target={[0, 0.35, 0]}
+                  /* 확대·축소는 끕니다 — 크기는 FitZoom 이 화면에 맞춥니다.
+                     돌려 보기만 됩니다. */
+                  enableZoom={false}
+                  minPolarAngle={0.6}
+                  maxPolarAngle={1.2}
                 />
               </Canvas>
             )}
           </div>
 
+          {/* 방 아래 떠 있는 알약 — 레퍼런스의 「← Lounge」 · 「Manage team」 자리.
+              전시 모드에서는 숨깁니다 (관람객이 누를 곳이 아닙니다). */}
+          {!kiosk && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex items-center justify-between gap-2 p-3">
+              <a
+                href="/dashboard"
+                className={`pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur hover:bg-white ${UI.focus}`}
+              >
+                <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                2D 로 돌아가기
+              </a>
+              <a
+                href="/office"
+                className={`pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur hover:bg-white ${UI.focus}`}
+              >
+                3D 없는 화면
+              </a>
+            </div>
+          )}
         </section>
 
         {/* ── 오른쪽 · 상세 / 제어 / 기록 ───────────────────── */}
         {!kiosk && (
           <aside className={`${UI.card} ${UI.cardPadding} space-y-4`}>
-            <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
+            {/* 레퍼런스의 「NEEDS YOU」. 🚨 **버튼은 넣지 않습니다** — 같은 이름의
+                「승인」 버튼이 두 곳에 있으면 무엇을 눌러야 할지 헷갈립니다.
+                승인은 방 안 말풍선 **한 곳에서만** 합니다. */}
+            {pending && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-3">
+                <span className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  <ShieldAlert className="h-3 w-3" aria-hidden="true" /> 승인이 필요해요
+                </span>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                  <b>{pending.device.label}</b>
+                  {josa(pending.device.label, "을", "를")} 켤지 묻고 있습니다.{" "}
+                  <span className="text-slate-500">방 안 말풍선에서 정하세요.</span>
+                </p>
+              </div>
+            )}
+            <div className="flex gap-1 rounded-full bg-[#F1EFEA] p-1">
               {(
                 [
                   ["detail", "상세"],
@@ -1337,8 +1557,8 @@ export default function TwinPage() {
                   key={k}
                   type="button"
                   onClick={() => setTab(k)}
-                  className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold ${UI.focus} ${
-                    tab === k ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  className={`flex-1 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${UI.focus} ${
+                    tab === k ? "bg-[#141414] text-white shadow-sm" : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   {name}
