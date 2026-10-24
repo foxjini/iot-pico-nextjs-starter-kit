@@ -1860,6 +1860,7 @@ npm run dev</pre>
       <tr><td><b>🧊 <code>Module not found: Can't resolve './team-twin'</code></b></td><td><b>화면이 하나도 안 뜹니다 — 2D 까지</b>. <code>src/app/office/page.tsx</code> 의 import 가 <code>../twin/team-twin</code> 인지 보세요. <b><code>./team-twin</code> 으로 바뀌어 있으면 그것이 원인</b>입니다 (설정 파일은 <code>twin/</code> 폴더에 있습니다)</td></tr>
       <tr><td><b>🧊 <code>Cannot find module 'three'</code></b></td><td><code>npm install three@0.182.0 @react-three/fiber@9.8.2 @react-three/drei@10.7.9</code> 를 안 했습니다</td></tr>
       <tr><td><b>🧊 설치가 거부되거나 <code>Invalid hook call</code></b></td><td><code>@react-three/fiber</code> 가 <b>8.x</b> 일 것입니다. <b>9.8.2</b> 여야 합니다 — 8.x 는 React 18 전용입니다</td></tr>
+      <tr><td><b>🧊 3D 가 뜨긴 하는데 <b>뚝뚝 끊긴다</b></b></td><td>그 노트북의 그래픽이 약한 것입니다. <b>고장이 아닙니다.</b> 전시에는 <code>/office</code>(3D 없는 화면)로 띄우세요 — 같은 내용이 끊김 없이 나옵니다. <b>당일 쓸 노트북에서 미리 확인</b>하세요</td></tr>
       <tr><td><b>🧊 「이 컴퓨터에서는 3D 를 켤 수 없습니다」</b></td><td><b>고장이 아닙니다.</b> 그 노트북에 WebGL 이 없습니다 → 버튼으로 <code>/office</code> 로 가면 3D 없이 같은 내용</td></tr>
       <tr><td><b>🧊 <code>/twin</code> 에 장치 하나가 안 보인다</b></td><td><code>spot</code> 이 겹쳤습니다. 여섯 자리 중 <b>서로 다른 것</b>으로 적으세요</td></tr>
       <tr><td><b>🧊 멀쩡한데 센서가 늘 「위험」으로 뜬다</b></td><td><code>warn</code> 과 <code>danger</code> 를 <b>거꾸로</b> 적었습니다. 화면은 두 숫자의 크기로 방향을 읽습니다 — <b>높을수록 나쁘면 <code>danger</code> 를 더 크게</b>(온도 <code>warn 30 · danger 35</code>), <b>낮을수록 나쁘면 더 작게</b>(토양수분 <code>warn 30 · danger 15</code>)</td></tr>

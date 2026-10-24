@@ -36,7 +36,13 @@
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Html, OrbitControls } from "@react-three/drei";
+import {
+  Html,
+  OrbitControls,
+  RoundedBox,
+  ContactShadows,
+  Float,
+} from "@react-three/drei";
 import {
   AlertTriangle,
   Boxes,
@@ -62,20 +68,29 @@ import { TWIN, type Device, type RoomKind, type Spot } from "./team-twin";
    ════════════════════════════════════════════════════════════ */
 
 const UI = {
-  page: "min-h-screen bg-slate-50 text-slate-900",
-  card: "rounded-2xl border border-slate-200 bg-white",
+  /* 찬 회색(bg-slate-50) 대신 **따뜻한 종이색**. 흰 카드가 떠 보입니다. */
+  page: "min-h-screen bg-[#F6F5F2] text-[#141414]",
+  /* 테두리는 머리카락처럼 얇게, 그림자는 2단으로 아주 옅게.
+     진한 테두리 하나보다 이쪽이 훨씬 비싸 보입니다. */
+  card:
+    "rounded-2xl border border-black/[0.06] bg-white " +
+    "shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-18px_rgba(16,24,40,0.28)]",
   cardPadding: "p-5",
-  sectionTitle: "text-lg font-semibold tracking-tight text-slate-900",
-  cardTitle: "text-sm font-semibold text-slate-900",
+  sectionTitle: "text-lg font-semibold tracking-tight text-[#141414]",
+  cardTitle: "text-sm font-semibold tracking-tight text-[#141414]",
+  /* 구역 머리에 붙이는 아주 작은 대문자 라벨. 밀도를 만드는 값싼 장치입니다. */
+  eyebrow: "text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400",
+  /* JSON 키처럼 **코드인 것**은 코드처럼 보여야 합니다 */
+  mono: "font-mono text-[11px] tracking-tight text-slate-400",
   description: "text-sm leading-6 text-slate-500",
   focus:
     "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
   primaryButton:
-    "inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 " +
-    "text-sm font-semibold text-white transition-colors hover:bg-slate-800 " +
+    "inline-flex items-center justify-center gap-2 rounded-xl bg-[#141414] px-4 py-2.5 " +
+    "text-sm font-semibold text-white transition-colors hover:bg-[#2a2a2a] " +
     "disabled:cursor-not-allowed disabled:opacity-50",
   secondaryButton:
-    "inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 " +
+    "inline-flex items-center justify-center gap-2 rounded-xl border border-black/[0.08] " +
     "bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50",
 };
 
@@ -147,11 +162,13 @@ type RoomPreset = {
   accent: string;
 };
 
+/* 바닥을 **밝게** 잡았습니다. 어두운 흙색은 화면의 절반을 차지하면서
+   전체를 무겁게 눌렀습니다 (실측: 바닥이 화면의 44%). */
 const ROOMS: Record<RoomKind, RoomPreset> = {
-  farm: { name: "온실", floor: "#8d6e4f", wall: "#eef6ef", accent: "#16a34a" },
-  home: { name: "집", floor: "#d8b486", wall: "#f8fafc", accent: "#0284c7" },
-  factory: { name: "공장", floor: "#94a3b8", wall: "#e2e8f0", accent: "#f59e0b" },
-  park: { name: "공원", floor: "#86b86a", wall: "#eff6ff", accent: "#0ea5e9" },
+  farm: { name: "온실", floor: "#C8A882", wall: "#F2F7F2", accent: "#4FC48D" },
+  home: { name: "집", floor: "#E2C7A0", wall: "#FAFAFA", accent: "#5BAEE0" },
+  factory: { name: "공장", floor: "#B4BDC8", wall: "#EDF1F5", accent: "#F2B33D" },
+  park: { name: "공원", floor: "#A8D08A", wall: "#F2F7FF", accent: "#5BAEE0" },
 };
 
 /* ════════════════════════════════════════════════════════════
@@ -193,13 +210,29 @@ const LEVEL_CLASS: Record<Level, string> = {
   danger: "bg-rose-50 text-rose-700 border-rose-200",
 };
 
+/* 3D 쪽은 **클레이 파스텔**입니다. 화면 글자(LEVEL_CLASS)는 또렷한 색을 쓰지만,
+   입체물은 채도를 낮춰야 점토처럼 보입니다 — 형광색은 플라스틱처럼 보입니다. */
 const LEVEL_3D: Record<Level, string> = {
-  none: "#cbd5e1",
-  waiting: "#cbd5e1",
-  ok: "#10b981",
-  warn: "#f59e0b",
-  danger: "#f43f5e",
+  none: "#CFD4DC",
+  waiting: "#CFD4DC",
+  ok: "#4FC48D",
+  warn: "#F2B33D",
+  danger: "#F2607A",
 };
+
+/* ★ 장치마다 **자기 색**을 줍니다.
+ *
+ *  전부 상태색(정상=초록)으로 칠하면 평소에 **온 방이 초록 한 가지**가 되어
+ *  어느 덩어리가 어느 장치인지 눈으로 구분이 안 됩니다 (실측으로 확인).
+ *  그래서 평소에는 고유색, **주의·위험일 때만 상태색으로 덮습니다.**
+ *  상태는 라벨 글자(「정상」·「위험」)로도 읽히므로 색만으로 판단하지 않아도 됩니다. */
+const CLAY = ["#7FC8E8", "#F2A3B3", "#F2CE7A", "#A7B6F2", "#8FD9B6", "#F2B289"];
+
+function bodyColor(device: Device, level: Level, index: number) {
+  if (level === "danger" || level === "warn") return LEVEL_3D[level];
+  if (level === "none" || level === "waiting") return LEVEL_3D[level];
+  return CLAY[index % CLAY.length];
+}
 
 /* ════════════════════════════════════════════════════════════
    3D — 방
@@ -208,41 +241,137 @@ const LEVEL_3D: Record<Level, string> = {
    ════════════════════════════════════════════════════════════ */
 
 function RoomShell({ room }: { room: RoomPreset }) {
+  /* 점토처럼 보이게 하는 재질 한 벌. 거칠기를 높이고 금속성을 0 으로 두면
+     빛이 뭉개져 플라스틱이 아니라 점토가 됩니다. */
+  const clay = { roughness: 0.62, metalness: 0, };
+
   return (
     <group>
-      {/* 바닥 */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+      {/* ★ 방이 **떠 있는 둥근 단** 위에 놓입니다.
+          레퍼런스 이미지의 인상을 만드는 가장 큰 요소입니다 — 방이 바닥에
+          주저앉지 않고 하나의 「작품」으로 보입니다. */}
+      <RoundedBox
+        args={[7.2, 0.44, 7.2]}
+        radius={0.2}
+        smoothness={2}
+        position={[0, -0.24, 0]}
+        castShadow
+        receiveShadow
+      >
+        <meshStandardMaterial color="#FFFFFF" {...clay} roughness={0.78} />
+      </RoundedBox>
+
+      {/* 바닥 — 단보다 아주 조금 위에 둬서 z-fighting 을 피합니다 */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]} receiveShadow>
         <planeGeometry args={[6, 6]} />
-        <meshStandardMaterial color={room.floor} roughness={0.85} />
+        <meshStandardMaterial color={room.floor} roughness={0.92} metalness={0} />
       </mesh>
+
       {/* 뒷벽 */}
-      <mesh position={[0, 1.5, -3]} receiveShadow>
-        <boxGeometry args={[6, 3, 0.1]} />
-        <meshStandardMaterial color={room.wall} roughness={0.6} />
-      </mesh>
+      <RoundedBox args={[6, 3, 0.12]} radius={0.05} smoothness={2} position={[0, 1.5, -3]} receiveShadow>
+        <meshStandardMaterial color={room.wall} {...clay} />
+      </RoundedBox>
+
       {/* 왼쪽 벽 — ★ 카메라가 [+x, +z](앞·오른쪽)에 있으므로 옆벽은 **왼쪽(-x)** 이어야
           합니다. 오른쪽(+3)에 두면 벽이 카메라와 방 사이를 가로막아 **방이 통째로
           회색 판때기로 가려집니다** (실측으로 확인한 결함). 뒷벽과 이 벽 둘만 세워
           「열린 모서리 방」을 만드는 것이 아이소메트릭의 기본 구성입니다. */}
-      <mesh position={[-3, 1.5, 0]} receiveShadow>
-        <boxGeometry args={[0.1, 3, 6]} />
-        <meshStandardMaterial color={room.wall} roughness={0.6} />
-      </mesh>
+      <RoundedBox args={[0.12, 3, 6]} radius={0.05} smoothness={2} position={[-3, 1.5, 0]} receiveShadow>
+        <meshStandardMaterial color={room.wall} {...clay} />
+      </RoundedBox>
+
       {/* 창가 선반 */}
-      <mesh position={[-1.55, 0.95, -2.0]} castShadow receiveShadow>
-        <boxGeometry args={[1.3, 0.08, 0.5]} />
-        <meshStandardMaterial color="#faf5ee" roughness={0.4} />
-      </mesh>
+      <RoundedBox args={[1.3, 0.1, 0.5]} radius={0.04} smoothness={2}
+                  position={[-1.55, 0.95, -2.0]} castShadow receiveShadow>
+        <meshStandardMaterial color="#FBF7F1" {...clay} />
+      </RoundedBox>
+      {/* 선반 다리 */}
+      {[-2.1, -1.0].map((x) => (
+        <RoundedBox key={x} args={[0.08, 0.92, 0.08]} radius={0.03} smoothness={2}
+                    position={[x, 0.46, -2.0]}>
+          <meshStandardMaterial color="#E7DED1" {...clay} />
+        </RoundedBox>
+      ))}
+      {/* 선반 위 책 더미 — 방이 「누가 쓰는 곳」처럼 보이게 합니다 */}
+      {[
+        { x: -1.15, h: 0.22, c: "#F2A3B3" },
+        { x: -1.02, h: 0.3, c: "#9BC6F2" },
+        { x: -0.9, h: 0.18, c: "#F2CE7A" },
+      ].map((b) => (
+        <RoundedBox key={b.x} args={[0.09, b.h, 0.3]} radius={0.02} smoothness={2}
+                    position={[b.x, 1.0 + b.h / 2, -2.0]}>
+          <meshStandardMaterial color={b.c} {...clay} />
+        </RoundedBox>
+      ))}
+
       {/* 책상 */}
-      <mesh position={[1.5, 0.85, -1.1]} castShadow receiveShadow>
-        <boxGeometry args={[1.4, 0.07, 0.8]} />
-        <meshStandardMaterial color="#f5e6d3" roughness={0.45} />
-      </mesh>
+      <RoundedBox args={[1.4, 0.09, 0.8]} radius={0.04} smoothness={2}
+                  position={[1.5, 0.85, -1.1]} castShadow receiveShadow>
+        <meshStandardMaterial color="#F7E8D4" {...clay} />
+      </RoundedBox>
+      {[1.0, 2.0].map((x) => (
+        <RoundedBox key={x} args={[0.08, 0.81, 0.08]} radius={0.03} smoothness={2}
+                    position={[x, 0.4, -1.1]}>
+          <meshStandardMaterial color="#E7D3B6" {...clay} />
+        </RoundedBox>
+      ))}
+      {/* 책상 위 모니터 */}
+      <RoundedBox args={[0.62, 0.4, 0.05]} radius={0.03} smoothness={2}
+                  position={[1.72, 1.14, -1.33]} castShadow>
+        <meshStandardMaterial color="#3C4453" {...clay} />
+      </RoundedBox>
+      <RoundedBox args={[0.55, 0.33, 0.01]} radius={0.02} smoothness={2}
+                  position={[1.72, 1.14, -1.3]}>
+        <meshStandardMaterial color="#AFC9E8" roughness={0.3} metalness={0} />
+      </RoundedBox>
+      <RoundedBox args={[0.2, 0.05, 0.14]} radius={0.02} smoothness={2}
+                  position={[1.72, 0.92, -1.33]} castShadow>
+        <meshStandardMaterial color="#3C4453" {...clay} />
+      </RoundedBox>
+
       {/* 바닥 화단 — 방 성격을 한눈에 */}
-      <mesh position={[0, 0.08, 0.5]} receiveShadow>
-        <cylinderGeometry args={[0.55, 0.55, 0.16, 24]} />
-        <meshStandardMaterial color={room.accent} roughness={0.8} />
+      <mesh position={[0, 0.09, 0.5]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.58, 0.62, 0.18, 24]} />
+        <meshStandardMaterial color={room.accent} roughness={0.85} metalness={0} />
       </mesh>
+
+      {/* 책상 의자 — 방이 「사람이 쓰는 곳」으로 읽히게 합니다 */}
+      <group position={[1.35, 0, -0.25]}>
+        <RoundedBox args={[0.42, 0.09, 0.42]} radius={0.05} smoothness={2}
+                    position={[0, 0.46, 0]} castShadow receiveShadow>
+          <meshStandardMaterial color="#C7D2E8" roughness={0.65} metalness={0} />
+        </RoundedBox>
+        <RoundedBox args={[0.42, 0.42, 0.09]} radius={0.05} smoothness={2}
+                    position={[0, 0.68, 0.18]} castShadow>
+          <meshStandardMaterial color="#C7D2E8" roughness={0.65} metalness={0} />
+        </RoundedBox>
+        <mesh position={[0, 0.22, 0]} castShadow>
+          <cylinderGeometry args={[0.05, 0.05, 0.44, 12]} />
+          <meshStandardMaterial color="#9AA4B2" roughness={0.6} metalness={0} />
+        </mesh>
+        <mesh position={[0, 0.03, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.22, 0.24, 0.06, 20]} />
+          <meshStandardMaterial color="#9AA4B2" roughness={0.6} metalness={0} />
+        </mesh>
+      </group>
+
+      {/* 앞쪽 오른편 화분 — 비어 있던 사분면을 채웁니다 */}
+      <group position={[1.95, 0, 0.95]} scale={0.88}>
+        <mesh position={[0, 0.17, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.2, 0.16, 0.34, 24]} />
+          <meshStandardMaterial color="#D98E6A" roughness={0.8} metalness={0} />
+        </mesh>
+        {[
+          { p: [0, 0.52, 0], r: 0.21 },
+          { p: [0.14, 0.44, 0.07], r: 0.14 },
+          { p: [-0.12, 0.46, -0.06], r: 0.13 },
+        ].map((l, i) => (
+          <mesh key={i} position={l.p as [number, number, number]} castShadow>
+            <sphereGeometry args={[l.r, 14, 14]} />
+            <meshStandardMaterial color="#6FBF8E" roughness={0.75} metalness={0} />
+          </mesh>
+        ))}
+      </group>
     </group>
   );
 }
@@ -262,6 +391,7 @@ function SensorNode({
   selected,
   onSelect,
   portal,
+  index,
 }: {
   device: Device;
   value: number | null | undefined;
@@ -271,23 +401,40 @@ function SensorNode({
   selected: boolean;
   onSelect: () => void;
   portal: RefObject<HTMLElement>;
+  index: number;
 }) {
   const pos = SPOTS[device.spot];
-  const color = LEVEL_3D[level];
+  const color = bodyColor(device, level, index);
   const shown = value === null || value === undefined ? "—" : String(value);
 
   return (
     <group position={pos}>
-      <mesh castShadow>
-        <sphereGeometry args={[0.17, 20, 20]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={level === "danger" ? 0.6 : 0.2}
-          roughness={0.35}
-        />
+      {/* 받침 — 장치가 공중에 뜨지 않고 **놓여** 보이게 합니다 */}
+      <mesh position={[0, -0.09, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[0.16, 0.18, 0.06, 24]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.8} metalness={0} />
       </mesh>
-      <Html center portal={portal} position={[0, 0.45, 0]} zIndexRange={[20, 0]}>
+      {/* ★ 주인공 하나만 아주 약하게 떠 있게 합니다. 전부 움직이면 산만해집니다. */}
+      <Float
+        enabled={device.hero === true}
+        speed={1.1}
+        rotationIntensity={0.12}
+        floatIntensity={0.22}
+        floatingRange={[0, 0.06]}
+      >
+        <mesh castShadow position={[0, 0.06, 0]}>
+          <sphereGeometry args={[0.18, 18, 18]} />
+          <meshStandardMaterial
+            color={color}
+            /* 점토는 **스스로 빛나지 않습니다.** 위험할 때만 아주 조금 올립니다. */
+            emissive={color}
+            emissiveIntensity={level === "danger" ? 0.35 : 0.04}
+            roughness={0.58}
+            metalness={0}
+          />
+        </mesh>
+      </Float>
+      <Html center portal={portal} position={[0, 0.52, 0]} zIndexRange={[20, 0]}>
         <button
           type="button"
           onClick={onSelect}
@@ -323,6 +470,7 @@ function ActuatorNode({
   selected,
   onSelect,
   portal,
+  index,
 }: {
   device: Device;
   on: boolean;
@@ -332,23 +480,32 @@ function ActuatorNode({
   selected: boolean;
   onSelect: () => void;
   portal: RefObject<HTMLElement>;
+  index: number;
 }) {
   const pos = SPOTS[device.spot];
   if (hidden) return null;
-  const color = on ? "#f59e0b" : "#64748b";
+  /* 액추에이터는 **켜짐이 가장 중요한 신호**라 켜지면 호박색으로 덮습니다.
+     꺼져 있을 때만 고유색입니다. */
+  const color = on ? "#F2B33D" : CLAY[(index + 3) % CLAY.length];
 
   return (
     <group position={pos}>
-      <mesh castShadow>
-        <boxGeometry args={[0.32, 0.26, 0.32]} />
+      <mesh position={[0, -0.09, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[0.18, 0.2, 0.06, 24]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.8} metalness={0} />
+      </mesh>
+      <RoundedBox args={[0.34, 0.28, 0.34]} radius={0.07} smoothness={2}
+                  position={[0, 0.08, 0]} castShadow>
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={on ? 0.75 : 0.05}
-          roughness={0.4}
+          /* 켜졌을 때만 빛납니다 — 그게 「켜짐」을 1m 밖에서 읽게 하는 신호입니다 */
+          emissiveIntensity={on ? 0.5 : 0.02}
+          roughness={0.55}
+          metalness={0}
         />
-      </mesh>
-      <Html center portal={portal} position={[0, 0.45, 0]} zIndexRange={[20, 0]}>
+      </RoundedBox>
+      <Html center portal={portal} position={[0, 0.52, 0]} zIndexRange={[20, 0]}>
         <button
           type="button"
           onClick={onSelect}
@@ -358,10 +515,18 @@ function ActuatorNode({
             on
               ? "border-amber-200 bg-amber-50 text-amber-700"
               : "border-slate-200 bg-white text-slate-600"
-          } ${stale ? "opacity-60" : ""} ${selected ? "ring-2 ring-blue-500" : ""}`}
+          } ${stale ? "opacity-60" : ""} ${
+            pending
+              ? "ring-2 ring-rose-400 ring-offset-1"
+              : selected
+                ? "ring-2 ring-blue-500"
+                : ""
+          }`}
         >
           <span className="text-[11px] font-semibold leading-tight">{device.label}</span>
-          <span className="text-[10px] leading-tight">{on ? "켜짐" : "꺼짐"}</span>
+          <span className="text-[10px] leading-tight">
+            {pending ? "승인 기다리는 중" : on ? "켜짐" : "꺼짐"}
+          </span>
         </button>
       </Html>
     </group>
@@ -397,56 +562,56 @@ function CommandTrail({ trail, now }: { trail: TrailItem[]; now: number }) {
     return <p className={UI.description}>아직 보낸 명령이 없습니다. 장치를 눌러 보세요.</p>;
   }
   return (
-    <ul className="space-y-4">
+    <ul className="space-y-3">
       {trail.map((t) => {
         /* ③ 은 네 가지로 갈립니다. 「아직 기다리는 중」과 「끝내 안 왔다」는 다릅니다. */
         const waiting = t.sentOk && t.ackAt === null && now - t.at <= ACK_MS;
+        /* 기다리는 동안만 막대가 찹니다 — 「멈춘 것」과 「기다리는 것」은 다릅니다 */
+        const pct = waiting ? Math.min(100, ((now - t.at) / ACK_MS) * 100) : 0;
         return (
-          <li key={t.id} className="rounded-xl border border-slate-200 p-3">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold">
+          <li key={t.id} className="rounded-xl border border-black/[0.06] bg-white p-3">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold tracking-tight">
                 {t.label} → {t.value > 0 ? "켜기" : "끄기"}
               </span>
-              <span className="text-xs tabular-nums text-slate-400">
+              <span className="text-[11px] tabular-nums text-slate-400">
                 {new Date(t.at).toLocaleTimeString("ko-KR")}
               </span>
             </div>
-            <ol className="space-y-1.5 text-xs">
+
+            {/* 세로 레일 — 명령이 **어디까지 갔는지**가 한눈에 보입니다 */}
+            <ol className="relative space-y-3 pl-8">
+              <span
+                aria-hidden="true"
+                className="absolute left-[11px] top-3 bottom-3 w-px bg-slate-200"
+              />
               <Row done={t.sentOk} label="① 화면이 보냈다" />
               <Row done={t.aliveAt !== null} label="② 연결은 살아 있다" />
 
               {t.ackAt !== null ? (
                 <Row done label="③ Pico 가 받아서 적용했다" />
               ) : waiting ? (
-                <Row done={false} label="③ Pico 가 받아서 적용했다" />
+                <Row done={false} label="③ Pico 가 받아서 적용했다" progress={pct} />
               ) : t.appliedSeen ? (
-                <li data-row-three className="flex items-start gap-2 text-amber-700">
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span>
-                    ③ Pico 가 받아서 적용했다 — <b>응답은 왔는데 값이 다릅니다.</b> 보낸 값과
-                    되돌아온 값이 어긋납니다. Pico 쪽에서 그 키를 다른 이름으로 읽고 있지 않은지
-                    보세요.
-                  </span>
-                </li>
+                <TrailStep rowThree tone="warn" icon="warn">
+                  ③ Pico 가 받아서 적용했다 — <b>응답은 왔는데 값이 다릅니다.</b> 보낸 값과
+                  되돌아온 값이 어긋납니다. Pico 쪽에서 그 키를 다른 이름으로 읽고 있지 않은지
+                  보세요.
+                </TrailStep>
               ) : (
-                <li data-row-three className="flex items-start gap-2 text-slate-500">
-                  <CircleHelp className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span>
-                    ③ Pico 가 받아서 적용했다 — <b>아직 응답 없음.</b> 이 Pico 는 적용값을
-                    되돌려 보내지 않습니다 (<b>10주차</b>에서 고칩니다). <b>고장이 아닙니다.</b>
-                  </span>
-                </li>
+                <TrailStep rowThree tone="muted" icon="help">
+                  ③ Pico 가 받아서 적용했다 — <b>아직 응답 없음.</b> 이 Pico 는 적용값을
+                  되돌려 보내지 않습니다 (<b>10주차</b>에서 고칩니다). <b>고장이 아닙니다.</b>
+                </TrailStep>
               )}
 
-              {/* ★ 이 줄은 어떤 상태로도 체크되지 않습니다. 하드코딩입니다. */}
-              <li data-row-four className="flex items-start gap-2 text-slate-500">
-                <CircleHelp className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                <span>
-                  ④ 실물이 실제로 움직였다 — <b>이 화면은 알 수 없습니다.</b> ③ 은{" "}
-                  <i>Pico 안의 값이 바뀌었다</i>는 뜻이지 <i>장치가 돌았다</i>는 뜻이 아닙니다.
-                  선이 빠져 있어도 ③ 은 체크됩니다. <b>눈과 귀로 확인하세요.</b>
-                </span>
-              </li>
+              {/* ★ 이 줄은 어떤 상태로도 체크되지 않습니다. 하드코딩입니다.
+                  **모양만** 타임라인이 되었을 뿐, 성질은 그대로입니다. */}
+              <TrailStep rowFour tone="muted" icon="help">
+                ④ 실물이 실제로 움직였다 — <b>이 화면은 알 수 없습니다.</b> ③ 은{" "}
+                <i>Pico 안의 값이 바뀌었다</i>는 뜻이지 <i>장치가 돌았다</i>는 뜻이 아닙니다.
+                선이 빠져 있어도 ③ 은 체크됩니다. <b>눈과 귀로 확인하세요.</b>
+              </TrailStep>
             </ol>
           </li>
         );
@@ -455,18 +620,143 @@ function CommandTrail({ trail, now }: { trail: TrailItem[]; now: number }) {
   );
 }
 
-function Row({ done, label }: { done: boolean; label: string }) {
+/* 타임라인 한 칸. 왼쪽 동그라미가 세로 레일 위에 얹힙니다. */
+function TrailStep({
+  tone,
+  icon,
+  children,
+  rowThree,
+  rowFour,
+}: {
+  tone: "ok" | "warn" | "muted";
+  icon: "check" | "help" | "warn" | "dot";
+  children: React.ReactNode;
+  rowThree?: boolean;
+  rowFour?: boolean;
+}) {
+  const ring =
+    tone === "ok"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-600"
+      : tone === "warn"
+        ? "border-amber-200 bg-amber-50 text-amber-600"
+        : "border-slate-200 bg-white text-slate-400";
+  const text =
+    tone === "ok" ? "text-slate-700" : tone === "warn" ? "text-amber-700" : "text-slate-500";
   return (
-    <li className="flex items-start gap-2">
-      {done ? (
-        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
-      ) : (
-        <CircleHelp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-      )}
-      <span className={done ? "text-slate-700" : "text-slate-500"}>
-        {label} {done ? "✓" : "— 아직"}
+    <li
+      {...(rowThree ? { "data-row-three": true } : {})}
+      {...(rowFour ? { "data-row-four": true } : {})}
+      className="relative text-xs leading-5"
+    >
+      <span
+        aria-hidden="true"
+        className={`absolute -left-8 top-0 flex h-[22px] w-[22px] items-center justify-center rounded-full border ${ring}`}
+      >
+        {icon === "check" ? (
+          <CheckCircle2 className="h-3 w-3" />
+        ) : icon === "warn" ? (
+          <AlertTriangle className="h-3 w-3" />
+        ) : icon === "dot" ? (
+          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+        ) : (
+          <CircleHelp className="h-3 w-3" />
+        )}
       </span>
+      <span className={text}>{children}</span>
     </li>
+  );
+}
+
+/* ★ 승인 말풍선을 **그 장치 옆**에 띄웁니다.
+ *
+ *  화면 아래 고정이면 *무엇을* 승인하는지 눈으로 이어 붙여야 합니다.
+ *  장치 옆에 뜨면 「이것을 켠다」가 한눈에 보입니다.
+ *
+ *  🚨 **보이는 자리만 옮긴 것입니다.** 승인 전에는 여전히 아무것도 보내지 않고,
+ *     「나중에」와 ESC 로 취소됩니다. 안전 동작은 한 줄도 바뀌지 않았습니다. */
+function PendingBubble({
+  device,
+  onApprove,
+  onCancel,
+  portal,
+}: {
+  device: Device;
+  onApprove: () => void;
+  onCancel: () => void;
+  portal: RefObject<HTMLElement>;
+}) {
+  const pos = SPOTS[device.spot];
+  /* ★ 장치가 화면 **왼쪽**에 있으면 말풍선을 오른쪽으로 펼칩니다 (그 반대도).
+     가운데 맞춤으로 두면 가장자리 장치에서 **말풍선이 캔버스 밖으로 잘립니다** —
+     실측으로 확인했습니다. 방이 원점 기준이므로 x 부호만 보면 됩니다. */
+  const toRight = pos[0] < 0;
+  return (
+    <Html
+      portal={portal}
+      position={[pos[0], pos[1] + 0.95, pos[2]]}
+      zIndexRange={[40, 30]}
+      style={{ transform: toRight ? "translate(-8%, -100%)" : "translate(-92%, -100%)" }}
+    >
+      <div className="pointer-events-auto w-[17rem] rounded-2xl border border-black/[0.08] bg-white p-3.5 shadow-[0_12px_32px_-12px_rgba(16,24,40,0.35)]">
+        <div className="mb-1.5 flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700">
+            <ShieldAlert className="h-3 w-3" aria-hidden="true" /> 승인 필요
+          </span>
+          <span className={UI.mono}>{device.key}</span>
+        </div>
+        <b className="block text-sm tracking-tight text-[#141414]">
+          {device.label}
+          {josa(device.label, "을", "를")} 켤까요?
+        </b>
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          물 · 열 · 움직임이 있는 장치입니다. <b className="text-slate-700">승인하기 전에는
+          아무것도 보내지 않습니다.</b>
+        </p>
+        <div className="mt-3 flex justify-end gap-1.5">
+          <button
+            type="button"
+            onClick={onCancel}
+            className={`inline-flex items-center gap-1 rounded-lg border border-black/[0.08] bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 ${UI.focus}`}
+          >
+            <X className="h-3.5 w-3.5" aria-hidden="true" /> 나중에
+          </button>
+          <button
+            type="button"
+            onClick={onApprove}
+            className={`inline-flex items-center gap-1 rounded-lg bg-[#141414] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2a2a2a] ${UI.focus}`}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> 승인
+          </button>
+        </div>
+      </div>
+    </Html>
+  );
+}
+
+function Row({
+  done,
+  label,
+  progress,
+}: {
+  done: boolean;
+  label: string;
+  progress?: number;
+}) {
+  return (
+    <TrailStep
+      tone={done ? "ok" : "muted"}
+      icon={done ? "check" : progress === undefined ? "help" : "dot"}
+    >
+      {label} {done ? "✓" : "— 아직"}
+      {!done && progress !== undefined && (
+        <span className="mt-1.5 block h-1 w-full overflow-hidden rounded-full bg-slate-100">
+          <span
+            className="block h-full rounded-full bg-slate-300 transition-[width] duration-500"
+            style={{ width: `${progress}%` }}
+          />
+        </span>
+      )}
+    </TrailStep>
   );
 }
 
@@ -841,39 +1131,71 @@ export default function TwinPage() {
       >
         {/* ── 왼쪽 · 장치 목록 ──────────────────────────────── */}
         {!kiosk && (
-          <aside className={`${UI.card} ${UI.cardPadding} space-y-2`}>
-            <h2 className={UI.cardTitle}>우리 팀 장치</h2>
+          <aside className={`${UI.card} ${UI.cardPadding} space-y-3`}>
+            <div className="flex items-baseline justify-between">
+              <h2 className={UI.eyebrow}>우리 팀 장치</h2>
+              <span className="text-xs tabular-nums text-slate-400">{TWIN.devices.length}</span>
+            </div>
             <ul className="space-y-1.5">
-              {TWIN.devices.map((d) => {
+              {TWIN.devices.map((d, i) => {
                 const lvl =
                   d.kind === "sensor" ? sensorLevel(d, sensor?.[d.key], sensor) : "ok";
                 const on = (actuator[d.key] ?? 0) > 0;
+                /* 3D 안의 덩어리와 **같은 색**을 칩에 씁니다 — 목록과 방을 눈으로 잇는 끈입니다 */
+                const tint =
+                  d.kind === "sensor"
+                    ? CLAY[sensors.indexOf(d) % CLAY.length]
+                    : CLAY[(actuators.indexOf(d) + 3) % CLAY.length];
                 return (
                   <li key={d.key}>
                     <button
                       type="button"
                       onClick={() => {
                         setSelected(d.key);
-                        setTab("detail");
+                        setTab(d.kind === "sensor" ? "detail" : "control");
                       }}
-                      className={`flex w-full items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-sm ${UI.focus} ${
+                      className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left ${UI.focus} ${
                         selected === d.key
-                          ? "border-blue-300 bg-blue-50"
-                          : "border-slate-200 bg-white hover:bg-slate-50"
+                          ? "border-[#141414]/15 bg-[#F6F5F2]"
+                          : "border-transparent hover:bg-[#F6F5F2]"
                       }`}
                     >
-                      <span className="flex items-center gap-2">
+                      {/* 아이콘 칩 — 장치 고유색을 옅게 깔아 둡니다 */}
+                      <span
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]"
+                        style={{ backgroundColor: `${tint}33` }}
+                      >
                         {d.kind === "sensor" ? (
-                          <Thermometer className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                          <Thermometer className="h-4 w-4" style={{ color: tint }} aria-hidden="true" />
                         ) : (
-                          <Boxes className="h-4 w-4 text-slate-400" aria-hidden="true" />
-                        )}
-                        <span className="font-medium">{d.label}</span>
-                        {d.risk === "high" && (
-                          <ShieldAlert className="h-3.5 w-3.5 text-rose-500" aria-label="위험한 장치" />
+                          <Boxes className="h-4 w-4" style={{ color: tint }} aria-hidden="true" />
                         )}
                       </span>
-                      <span className="text-xs text-slate-500">
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-1.5">
+                          <span className="truncate text-sm font-semibold text-[#141414]">
+                            {d.label}
+                          </span>
+                          {d.risk === "high" && (
+                            <ShieldAlert
+                              className="h-3.5 w-3.5 shrink-0 text-rose-500"
+                              aria-label="위험한 장치"
+                            />
+                          )}
+                        </span>
+                        {/* ★ JSON 키를 같이 보여 줍니다. 「key 를 한글로 적음」이라는
+                            가장 흔한 실수를 학생이 **스스로** 발견하는 자리입니다. */}
+                        <span className={`block truncate ${UI.mono}`}>{d.key}</span>
+                      </span>
+                      <span
+                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                          d.kind === "sensor"
+                            ? LEVEL_CLASS[lvl]
+                            : on
+                              ? "border-amber-200 bg-amber-50 text-amber-700"
+                              : "border-slate-200 bg-slate-50 text-slate-500"
+                        }`}
+                      >
                         {d.kind === "sensor" ? LEVEL_TEXT[lvl] : on ? "켜짐" : "꺼짐"}
                       </span>
                     </button>
@@ -900,7 +1222,13 @@ export default function TwinPage() {
           />
           <div className="absolute inset-0">
             {webgl === null ? null : (
-              <Canvas shadows camera={{ position: [4.6, 4.6, 5.3], fov: 40 }}>
+              <Canvas
+                shadows
+                camera={{ position: [4.6, 4.6, 5.3], fov: 40 }}
+                /* ★ 픽셀 비율 상한. 레티나 화면에서 이게 없으면 픽셀을 4배로 그립니다 —
+                   성능에서 가장 크게 손해 보는 자리입니다. */
+                dpr={[1, 1.75]}
+              >
                 {/* ★ 조명은 **카메라 쪽**에서 비춰야 합니다. 반대편([-4,7,-4])에 두면
                     우리가 보는 면이 전부 그늘이라, 흰 벽(#eef6ef)도 **짙은 회색**으로
                     나옵니다. groundColor 도 너무 어두우면(#1e293b) 옆면을 끌어내립니다. */}
@@ -908,20 +1236,38 @@ export default function TwinPage() {
                     주광을 낮추고 주변광을 올리면 그림자가 옅어집니다. */}
                 <hemisphereLight intensity={1.2} groundColor="#cbd5e1" />
                 <ambientLight intensity={1.15} />
-                <directionalLight
-                  position={[4, 9, 4]}
-                  intensity={1.5}
-                  castShadow
-                  shadow-mapSize={[2048, 2048]}
-                  shadow-camera-left={-6}
-                  shadow-camera-right={6}
-                  shadow-camera-top={6}
-                  shadow-camera-bottom={-6}
+                {/* 🐞 이 빛은 **그림자를 던지지 않습니다** (castShadow 없음).
+                    한때 던졌는데, ① 매 프레임 모든 물체를 한 번 더 그려 프레임이
+                    12.4 → 15.4fps 로 깎였고 ② 바닥에 **검은 사각형**처럼 보이는
+                    긴 그림자가 생겼습니다. 접지 그림자(<ContactShadows>)가
+                    물체를 바닥에 붙이는 일을 이미 하고 있습니다. */}
+                <directionalLight position={[4, 9, 4]} intensity={1.5} />
+
+                {/* 🐞 여기에 한때 `<Environment>` + `<Lightformer>` 가 있었습니다.
+                    점토 느낌의 반사를 주려던 것인데, **실측해 보니 프레임이 2.4배 느려지면서
+                    그림은 사실상 똑같았습니다** (4.9fps → 11.6fps, 캡처 비교 차이 없음).
+                    모든 재질이 픽셀마다 큐브맵을 뒤지기 때문입니다.
+                    아래 세 조명만으로 충분합니다. **다시 넣지 마세요.** */}
+
+                {/* 물체가 바닥에 **붙어** 보이게 하는 접지 그림자.
+                    평행광 그림자만으로는 장치가 떠 보입니다. */}
+                <ContactShadows
+                  position={[0, 0.012, 0]}
+                  opacity={0.34}
+                  scale={11}
+                  blur={2.6}
+                  far={3.2}
+                  /* ★ 기본값이 frames=Infinity 라 **매 프레임 장면을 한 번 더** 그립니다.
+                     방은 가만히 있으므로 처음 몇 장만 구우면 충분합니다. */
+                  frames={1}
+                  resolution={256}
+                  color="#4A3B2A"
                 />
                 <RoomShell room={room} />
-                {sensors.map((d) => (
+                {sensors.map((d, i) => (
                   <SensorNode
                     key={d.key}
+                    index={i}
                     device={d}
                     value={sensor?.[d.key]}
                     level={sensorLevel(d, sensor?.[d.key], sensor)}
@@ -935,9 +1281,10 @@ export default function TwinPage() {
                     }}
                   />
                 ))}
-                {actuators.map((d) => (
+                {actuators.map((d, i) => (
                   <ActuatorNode
                     key={d.key}
+                    index={i}
                     device={d}
                     on={(applied?.[d.key] ?? actuator[d.key] ?? 0) > 0}
                     pending={pending?.device.key === d.key}
@@ -951,6 +1298,14 @@ export default function TwinPage() {
                     }}
                   />
                 ))}
+                {pending && (
+                  <PendingBubble
+                    device={pending.device}
+                    onApprove={approvePending}
+                    onCancel={() => setPending(null)}
+                    portal={labelRef}
+                  />
+                )}
                 <OrbitControls
                   enablePan={false}
                   /* 바닥(y=0)이 아니라 **사람 눈높이**를 봅니다. 원점을 보면 바닥이
@@ -965,39 +1320,6 @@ export default function TwinPage() {
             )}
           </div>
 
-          {/* 승인 말풍선 — 위험한 장치는 먼저 묻습니다 */}
-          {pending && (
-            <div className="absolute inset-x-0 bottom-0 z-30 p-4">
-              <div className="mx-auto max-w-md rounded-2xl border border-rose-200 bg-white p-4 shadow-lg">
-                <div className="mb-2 flex items-center gap-2">
-                  <ShieldAlert className="h-5 w-5 text-rose-500" aria-hidden="true" />
-                  <b className="text-sm">
-                    {pending.device.label}
-                    {josa(pending.device.label, "을", "를")} 켤까요?
-                  </b>
-                </div>
-                <p className={`${UI.description} mb-3`}>
-                  물 · 열 · 움직임이 있는 장치입니다. <b>승인하기 전에는 아무것도 보내지 않습니다.</b>
-                </p>
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPending(null)}
-                    className={`${UI.secondaryButton} ${UI.focus}`}
-                  >
-                    <X className="h-4 w-4" aria-hidden="true" /> 나중에
-                  </button>
-                  <button
-                    type="button"
-                    onClick={approvePending}
-                    className={`${UI.primaryButton} ${UI.focus}`}
-                  >
-                    <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> 승인
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </section>
 
         {/* ── 오른쪽 · 상세 / 제어 / 기록 ───────────────────── */}

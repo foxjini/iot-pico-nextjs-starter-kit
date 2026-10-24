@@ -80,21 +80,31 @@ const BASE_ACTUATOR: Record<string, number> = {
   led_r: 0, led_g: 0, led_b: 0, servo_angle: 90,
 };
 
+/* 🚨 3D 화면(`twin/page.tsx`)의 CLAY 와 **같은 배열**이어야 합니다 —
+   두 화면에서 같은 장치가 다른 색이면 관람객이 다른 작품으로 느낍니다. */
+const CLAY = ["#7FC8E8", "#F2A3B3", "#F2CE7A", "#A7B6F2", "#8FD9B6", "#F2B289"];
+
 const UI = {
-  page: "min-h-screen bg-slate-50 text-slate-900",
-  card: "rounded-2xl border border-slate-200 bg-white",
+  /* 🚨 **3D 화면(`twin/page.tsx`)의 `const UI` 와 같은 값이어야 합니다.**
+     3D 가 깨져 이 화면으로 떨어졌을 때, 관람객이 「전혀 다른 작품」으로 느끼면 안 됩니다. */
+  page: "min-h-screen bg-[#F6F5F2] text-[#141414]",
+  card:
+    "rounded-2xl border border-black/[0.06] bg-white " +
+    "shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-18px_rgba(16,24,40,0.28)]",
   cardPadding: "p-5",
-  sectionTitle: "text-lg font-semibold tracking-tight text-slate-900",
-  cardTitle: "text-sm font-semibold text-slate-900",
+  sectionTitle: "text-lg font-semibold tracking-tight text-[#141414]",
+  cardTitle: "text-sm font-semibold tracking-tight text-[#141414]",
+  eyebrow: "text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400",
+  mono: "font-mono text-[11px] tracking-tight text-slate-400",
   description: "text-sm leading-6 text-slate-500",
   focus:
     "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
   primaryButton:
-    "inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 " +
-    "text-sm font-semibold text-white transition-colors hover:bg-slate-800 " +
+    "inline-flex items-center justify-center gap-2 rounded-xl bg-[#141414] px-4 py-2.5 " +
+    "text-sm font-semibold text-white transition-colors hover:bg-[#2a2a2a] " +
     "disabled:cursor-not-allowed disabled:opacity-50",
   secondaryButton:
-    "inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 " +
+    "inline-flex items-center justify-center gap-2 rounded-xl border border-black/[0.08] " +
     "bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50",
 };
 
@@ -684,11 +694,12 @@ export default function OfficePage() {
         <div className="grid gap-4 lg:grid-cols-[250px_minmax(0,1fr)_330px]">
           {/* ── 왼쪽 · 장치 목록 ──────────────────────────── */}
           <aside className={`${UI.card} p-3`}>
-            <h2 className="px-2 pb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
-              우리 팀 장치 {TWIN.devices.length}
-            </h2>
+            <div className="flex items-baseline justify-between px-2 pb-2">
+              <h2 className={UI.eyebrow}>우리 팀 장치</h2>
+              <span className="text-xs tabular-nums text-slate-400">{TWIN.devices.length}</span>
+            </div>
             <ul className="space-y-1">
-              {TWIN.devices.map((d) => {
+              {TWIN.devices.map((d, i) => {
                 const st = deskState(d, sensor, actuator);
                 const Icon = iconFor(d);
                 const on = selectedKey === d.key;
@@ -697,18 +708,33 @@ export default function OfficePage() {
                     <button
                       type="button"
                       onClick={() => setSelectedKey(d.key)}
-                      className={`flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors
-                                  ${on ? "bg-slate-900 text-white" : "hover:bg-slate-50"} ${UI.focus}`}
+                      className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition-colors ${UI.focus} ${
+                        on
+                          ? "border-[#141414]/15 bg-[#F6F5F2]"
+                          : "border-transparent hover:bg-[#F6F5F2]"
+                      }`}
                     >
-                      <Icon className={`h-4 w-4 shrink-0 ${on ? "text-white" : "text-slate-500"}`} aria-hidden="true" />
+                      {/* 아이콘 칩 — 3D 화면의 장치 색과 같습니다 */}
+                      <span
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]"
+                        /* 아이콘은 lucide 라 `currentColor` 를 물려받습니다 —
+                           색을 감싼 칩에 두면 아이콘 쪽에 style 을 줄 필요가 없습니다
+                           (iconFor 가 돌려주는 타입은 style 을 안 받습니다). */
+                        style={{
+                          backgroundColor: `${CLAY[i % CLAY.length]}33`,
+                          color: CLAY[i % CLAY.length],
+                        }}
+                      >
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold">{d.label}</span>
-                        <span className={`block truncate font-mono text-[11px] ${on ? "text-slate-300" : "text-slate-400"}`}>
-                          {d.key}
+                        <span className="block truncate text-sm font-semibold text-[#141414]">
+                          {d.label}
                         </span>
+                        <span className={`block truncate ${UI.mono}`}>{d.key}</span>
                       </span>
                       <span className={`h-2 w-2 shrink-0 rounded-full ${st.dot}`} aria-hidden="true" />
-                      <span className={`shrink-0 text-[11px] font-medium ${on ? "text-slate-200" : st.tone}`}>
+                      <span className={`shrink-0 text-[11px] font-semibold ${st.tone}`}>
                         {st.text}
                       </span>
                     </button>
