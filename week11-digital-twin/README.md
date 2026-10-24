@@ -55,6 +55,15 @@
 | `page_twin_reference.tsx` | `src/app/twin/page.tsx` 로 **그대로 복사** (열어 보지 않습니다) |
 | `page_office_fallback.tsx` | `src/app/office/page.tsx` 로 **그대로 복사** |
 | `team_twin_example.ts` | `src/app/twin/team-twin.ts` 로 복사한 뒤 **여기만 고칩니다** |
+
+> 🚨 **`src/app/office/page.tsx` 는 `../twin/team-twin` 을 읽습니다 — 이 경로를 바꾸지 마세요.**
+> 두 화면이 **같은 설정 파일 하나**를 읽습니다. 그래야 3D 가 깨져 폴백으로 넘어간 순간에도
+> **우리 팀 작품**이 뜹니다. 설정 파일은 `twin/` 폴더에 있으므로 office 쪽에서는 `../twin/` 입니다.
+> `./team-twin` 으로 바꾸면 **빌드가 `Cannot find module` 로 실패하고, 2D 대시보드까지 안 뜹니다.**
+>
+> 🐞 **실측으로 찾은 결함입니다** (2026-10-24). 처음에는 폴백이 자기만의 `team-office.ts` 를
+> 읽게 되어 있었는데, 그 파일을 만들라는 안내가 **어디에도 없었습니다.** 깨끗한 프로젝트에
+> 문서대로 세 파일만 넣고 `next build` 를 돌려서 잡았습니다.
 | `../week08-vibe-coding/프로젝트-규칙.md` | 제미나이에 같이 업로드 — **§13 이 오늘 핵심** |
 
 > ⚠️ **`page_twin_reference.tsx` 는 제미나이에 올리지 않습니다.** 1,100줄이 넘어서
@@ -82,7 +91,7 @@ npm install three@0.182.0 @react-three/fiber@9.8.2 @react-three/drei@10.7.9
 |---|---|
 | Next 16.3.5 / React 19.2.8 에서 peer 충돌 | **0건** (실제 설치로 확인) |
 | 빌드 | **성공** (`next build`) |
-| 되돌리는 법 | `npm uninstall three @react-three/fiber @react-three/drei` 하고 `src/app/twin/` 폴더를 지우면 끝. **2D 는 영향 없습니다.** |
+| 되돌리는 법 | `npm uninstall three @react-three/fiber @react-three/drei` 하고 **`src/app/twin/` 과 `src/app/office/` 두 폴더를 다** 지웁니다. **2D 는 영향 없습니다.** |
 
 > ⚠️ **버전을 올리지 마세요.** `@react-three/fiber` 8.x 는 **React 18 전용**이라 설치 자체가
 > 안 됩니다. 참고하신 다른 3D 프로젝트가 8.x 를 쓰고 있다면 **그 코드는 그대로 못 가져옵니다.**

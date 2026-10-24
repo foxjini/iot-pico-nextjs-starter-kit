@@ -279,7 +279,7 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <div class="fld"><label>팀 이름</label><input data-k="teamName" placeholder="3팀"></div>
       <div class="fld"><label>작품 한 줄 설명</label><input data-k="topic" placeholder="교실 화분을 자동으로 관리하는 스마트 화분"><div class="hint">한 줄로 설명할 수 없으면 주제가 아직 안 정해진 것입니다</div></div>
       <div class="fld"><label>Pico IP 주소</label><input data-k="picoIp" placeholder="192.168.0.42"><div class="hint">시리얼 모니터에 찍힙니다. 가상 Pico면 localhost</div></div>
-      <div class="fld"><label>실물 Pico 가 있습니까</label><select data-k="hasPico"><option value="">고르세요</option><option value="real">있습니다 — 실물 Pico 로 합니다</option><option value="mock">없습니다 — 가상 Pico 로만 합니다</option></select><div class="hint"><b>없다고 고르면</b> 단계 E 에서 가상 Pico 에 칠 명령을 <b>전부 만들어 줍니다.</b> 전시장에는 가상 Pico 가 없으니 전시 전에 <a href="#w10">단계 15</a> 로 꼭 옮기세요</div></div>
+      <div class="fld"><label>실물 Pico 가 있습니까</label><select data-k="hasPico"><option value="">고르세요</option><option value="real">있습니다 — 실물 Pico 로 합니다</option><option value="mock">없습니다 — 가상 Pico 로만 합니다</option></select><div class="hint"><b>없다고 고르면</b> 단계 E 에서 가상 Pico 에 칠 명령을 <b>전부 만들어 줍니다.</b> 전시장에는 가상 Pico 가 없으니 전시 전에 <a href="#w10">10주차 자료</a> 로 꼭 옮기세요</div></div>
     </div>
 
     <h4>새로 붙이는 부품 — 센서와 액추에이터</h4>
@@ -354,6 +354,10 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
           <tr><td><code>mock_pi_08.py</code></td><td>가상 Pico <span class="muted">(실물 Pico 가 없는 팀)</span></td></tr>
         </tbody>
       </table>
+      <div class="note"><span class="hd">🧊 11주차(디지털 트윈)를 할 팀은 <b>세 개를 더</b> 받습니다</span>
+        <code>page_twin_reference.tsx</code> · <code>team_twin_example.ts</code> · <code>page_office_fallback.tsx</code>.
+        <b>지금 당장은 필요 없습니다</b> — 8 · 9주차를 끝내고 <a href="#w11">11주차</a> 에 갈 때 받으면 됩니다.
+      </div>
       <div class="note warn"><span class="hd">가상 Pico 가 최신판인지 한 번만 확인하세요</span>
         <code>py mock_pi_08.py</code> 로 띄우면 <code>[명령]</code> 줄이 찍힙니다.
         그 안에 <b><code>act &lt;키&gt;</code></b> 가 보이면 최신판입니다.
@@ -414,7 +418,7 @@ py mock_pi_08.py        (실물 Pico 가 있으면 생략)</pre>
       <label class="chk"><input type="checkbox" data-c="c06"><span>센서 값이 들어오고, 빨간 오류 줄(<span class="kbd">F12</span> → Console)이 없다</span></label>
       <div class="note warn"><span class="hd">가상 Pico 로 개발해도 됩니다 — 단, <b>전시 전에 실물로 옮겨야</b> 합니다</span>
         8주차는 가상 Pico 로 해도 됩니다. <b>전시장에는 가상 Pico 가 없으므로</b>,
-        <b>단계 K(무인 리허설)에 들어가기 전에</b> 실물 Pico 로 옮기세요 → <a href="#w10">단계 15</a>.
+        <b>단계 K(무인 리허설)에 들어가기 전에</b> 실물 Pico 로 옮기세요 → <a href="#w10">10주차 자료</a>.
       </div>
     </div>
   </div>
@@ -745,7 +749,7 @@ CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 �
           저장되지 않습니다. 이 칸을 열어 두고 <b>복사 버튼</b>을 쓰세요.
         </div>
         <div class="note danger"><span class="hd">🔌 전시장에는 가상 Pico 가 없습니다</span>
-          <b>무인 리허설(단계 K)에 들어가기 전에</b> 실물로 옮겨야 합니다 → <a href="#w10">단계 15</a>
+          <b>무인 리허설(단계 K)에 들어가기 전에</b> 실물로 옮겨야 합니다 → <a href="#w10">10주차 자료</a>
         </div>
       </div>
 
@@ -755,7 +759,7 @@ CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 �
 
       <h4>액추에이터 확인 <span class="muted">(액추에이터가 있는 팀만)</span></h4>
       <label class="chk"><input type="checkbox" data-c="a04"><span>시리얼에 <code>[WS] 수신 메시지</code> 와 <b>명령을 적용했다는 줄</b>이 같이 찍힌다</span></label>
-      <label class="chk"><input type="checkbox" data-c="a05"><span data-pico="real"><b>실물이 실제로 움직인다</b></span><span data-pico="mock">가상 Pico 창에 <code>-&gt; 우리 팀 액추에이터 … (켜짐)</code> 이 찍힌다 <span class="muted">(실물은 단계 15 에서)</span></span></label>
+      <label class="chk"><input type="checkbox" data-c="a05"><span data-pico="real"><b>실물이 실제로 움직인다</b></span><span data-pico="mock">가상 Pico 창에 <code>-&gt; 우리 팀 액추에이터 … (켜짐)</code> 이 찍힌다 <span class="muted">(실물은 10주차 자료 에서)</span></span></label>
       <label class="chk"><input type="checkbox" data-c="a06"><span><b>Pico 전원을 다시 넣었을 때 꺼진 상태로 시작한다</b> — 켜진 채로 시작하면 초기화가 빠진 것</span></label>
 
       <div class="note danger"><span class="hd">🚨 모터와 펌프를 <code>3V3</code> 에서 먹이지 마세요</span>
@@ -1284,7 +1288,7 @@ const toggleKiosk = async () =&gt; {
   </div>
 
   <div class="step must" id="w10">
-    <div class="step-hd"><span class="step-no">15</span><span class="step-title">실물 Pico 로 옮기기 — <b>가상 Pico 로만 개발한 팀은 필수</b></span><span class="step-time">별도 시간</span></div>
+    <div class="step-hd"><span class="step-no">10주차</span><span class="step-title">실물 Pico 로 옮기기 — <b>가상 Pico 로만 개발한 팀은 필수</b></span><span class="step-time">별도 시간</span></div>
     <div class="step-body">
       <div class="note danger"><span class="hd">전시장에는 가상 Pico 가 없습니다</span>
         <b>가상 Pico 는 윈도우 PC 에서 돌던 파이썬 프로그램입니다.</b> 전시장에 가져갈 수 없습니다.
@@ -1489,7 +1493,7 @@ E. 안정성     — 콘솔 오류 · 빌드 · 몇 시간 켜 두기
       <h4>② 무인 리허설 30분 — <b>지금부터 아무도 손대지 않습니다</b></h4>
       <div class="note danger"><span class="hd">전시에 실물로 나가는 팀은 이 리허설도 <b>실물 Pico 로</b> 돌리세요</span>
         <b>가상 Pico 로 통과해도 전시가 안 됩니다.</b> 전시장에는 그 창이 없습니다.
-        아직 실물로 안 옮겼으면 <a href="#w10">단계 15</a> 를 먼저 하세요.
+        아직 실물로 안 옮겼으면 <a href="#w10">10주차 자료</a> 를 먼저 하세요.
       </div>
       <div class="note danger"><span class="hd">리허설 없이 전시에 나가면 당일 아침에 발견합니다</span>
         지금부터 30분 동안 <b>코드를 고치지 않습니다.</b> 고쳤으면 <b>30분을 처음부터</b> 다시 셉니다.
@@ -1665,10 +1669,11 @@ npm run dev</pre>
 - 작품 주제: <span class="f" data-f="topic"></span>
 - 방 종류: farm | home | factory | park 중 하나
 
-우리 팀 장치 (11-1 워크시트에 적은 그대로 옮기세요)
+우리 팀 장치 — JSON 키와 이름은 채워져 있습니다.
+<b>밑줄 친 칸만</b> 11-1 워크시트를 보고 채우세요 (자리 · 주의 · 위험 · 주인공 · 위험장치).
 | JSON 키 | 센서/액추에이터 | 이름 | 자리 | 단위 | 주의 | 위험 | 주인공 | 위험장치 |
 |---|---|---|---|---|---|---|---|---|
-| (워크시트의 표를 그대로 옮겨 적으세요)
+<span class="f" data-f="twinLines"></span>
 
 지켜 주세요
 - TWIN 객체 안의 내용만 바꾸세요. 위쪽 타입 정의(type)는 한 글자도 건드리지 마세요.
@@ -1720,7 +1725,7 @@ npm run dev</pre>
       </div>
       <div class="note"><span class="hd">③ 이 「아직 응답 없음」이면</span>
         우리 팀 Pico 가 적용값을 아직 안 보내는 것입니다. <b>고장이 아닙니다.</b>
-        <a href="#w10">단계 15(실물 Pico)</a> 자료로 <code>main.py</code> 에 <code>applied</code> 를 더하면 체크됩니다.
+        <a href="#w10">10주차 자료(실물 Pico)</a> 자료로 <code>main.py</code> 에 <code>applied</code> 를 더하면 체크됩니다.
         <b>시간이 없으면 그대로 두고 전시해도 됩니다.</b>
       </div>
       <label class="chk"><input type="checkbox" data-c="x15"><span>안전한 장치를 켜면 ① ② 가 <b>금방</b> 체크된다</span></label>
@@ -1825,6 +1830,24 @@ npm run dev</pre>
     <label class="chk"><input type="checkbox" data-c="r12"><span><code>pin.value = True</code> 형태다 (<code>pin.value(1)</code> 이면 MicroPython)</span></label>
     <label class="chk"><input type="checkbox" data-c="r13"><span>읽기 실패 시 <code>None</code> 을 돌려준다</span></label>
   </div>
+
+  <h3>🧊 3D 가 이상할 때 — <b>되돌아가는 순서</b></h3>
+  <div class="note danger"><span class="hd">고치지 말고 내려가세요</span>
+    특히 <b>전시 중에는 코드를 열지 않습니다.</b> 아래 순서로 한 칸씩 내려가면 됩니다.
+  </div>
+  <table>
+    <thead><tr><th style="width:30%">지금 상태</th><th>할 일</th></tr></thead>
+    <tbody>
+      <tr><td><code>/twin</code> 이 이상하다</td><td>주소를 <code>/office</code> 로 — <b>3D 없이 같은 내용</b>입니다</td></tr>
+      <tr><td><code>/office</code> 도 이상하다</td><td>주소를 <code>/dashboard</code> 로 — <b>9주차에 리허설로 통과시킨 화면</b>이라 반드시 돕니다</td></tr>
+      <tr><td>셋 다 안 뜬다 (화면이 하얗다)</td><td><b>빌드가 깨진 것</b>입니다. 터미널의 빨간 줄을 보세요 — <code>Module not found</code> 면 위 <a href="#errors">오류 사전</a> 첫 줄</td></tr>
+      <tr><td>11주차를 아예 되돌리고 싶다</td><td><code>src/app/twin/</code> 과 <code>src/app/office/</code> <b>두 폴더를 다 지우고</b> <code>npm uninstall three @react-three/fiber @react-three/drei</code>. <b>2D 는 영향 없습니다</b></td></tr>
+    </tbody>
+  </table>
+  <div class="note warn"><span class="hd">⚠️ 한 폴더만 지우면 빌드가 계속 깨집니다</span>
+    <code>src/app/office/page.tsx</code> 는 <code>src/app/twin/team-twin.ts</code> 를 읽습니다.
+    <b>twin 만 지우면</b> office 가 없는 파일을 찾아 <code>Module not found</code> 가 납니다. <b>둘 다</b> 지우세요.
+  </div>
 </section>
 
 <!-- ══════════ 오류 사전 ══════════ -->
@@ -1834,6 +1857,14 @@ npm run dev</pre>
   <table>
     <thead><tr><th style="width:40%">증상</th><th>원인과 대처</th></tr></thead>
     <tbody>
+      <tr><td><b>🧊 <code>Module not found: Can't resolve './team-twin'</code></b></td><td><b>화면이 하나도 안 뜹니다 — 2D 까지</b>. <code>src/app/office/page.tsx</code> 의 import 가 <code>../twin/team-twin</code> 인지 보세요. <b><code>./team-twin</code> 으로 바뀌어 있으면 그것이 원인</b>입니다 (설정 파일은 <code>twin/</code> 폴더에 있습니다)</td></tr>
+      <tr><td><b>🧊 <code>Cannot find module 'three'</code></b></td><td><code>npm install three@0.182.0 @react-three/fiber@9.8.2 @react-three/drei@10.7.9</code> 를 안 했습니다</td></tr>
+      <tr><td><b>🧊 설치가 거부되거나 <code>Invalid hook call</code></b></td><td><code>@react-three/fiber</code> 가 <b>8.x</b> 일 것입니다. <b>9.8.2</b> 여야 합니다 — 8.x 는 React 18 전용입니다</td></tr>
+      <tr><td><b>🧊 「이 컴퓨터에서는 3D 를 켤 수 없습니다」</b></td><td><b>고장이 아닙니다.</b> 그 노트북에 WebGL 이 없습니다 → 버튼으로 <code>/office</code> 로 가면 3D 없이 같은 내용</td></tr>
+      <tr><td><b>🧊 <code>/twin</code> 에 장치 하나가 안 보인다</b></td><td><code>spot</code> 이 겹쳤습니다. 여섯 자리 중 <b>서로 다른 것</b>으로 적으세요</td></tr>
+      <tr><td><b>🧊 장치 이름이 「데이터 없음」에서 안 바뀐다</b></td><td><code>key</code> 가 Pico JSON 키와 다릅니다. <b>글자 하나까지</b> 맞추세요</td></tr>
+      <tr><td><b>🧊 기록 ③행이 계속 「아직 응답 없음」</b></td><td><b>고장이 아닙니다.</b> 우리 Pico 가 <code>applied</code> 를 안 보냅니다 → <a href="#w10">10주차 자료</a>. <b>그대로 두고 전시해도 됩니다</b></td></tr>
+      <tr><td><b>🧊 <code>/office</code> 에 다른 팀 이름이 뜬다</b></td><td>옛 파일입니다. <code>src/app/office/page.tsx</code> 를 <b>선생님이 준 최신 <code>page_office_fallback.tsx</code></b> 로 다시 덮으세요 — 지금 판은 <code>team-twin.ts</code> 를 같이 읽습니다</td></tr>
       <tr><td><b>센서를 붙이고 코드도 넣었는데 연결조차 안 된다</b></td><td><b><code>code.py</code> 를 지우지 않았을 겁니다.</b> CircuitPython 은 <code>code.py</code> 가 있으면 <code>main.py</code> 를 실행하지 않습니다 — <b>가장 흔합니다</b></td></tr>
       <tr><td>타입 오류가 나는데 뭘 빼먹었는지 모른다</td><td>위 <a href="#w08">단계 D</a> 의 오류 메시지 표를 보세요. 메시지가 어디를 빼먹었는지 알려 줍니다</td></tr>
       <tr><td><b>오류는 없는데 센서 카드가 안 생긴다</b></td><td><b><code>SENSORS</code> 배열에만 안 들어간 것입니다.</b> 타입만 맞으면 빌드는 성공합니다</td></tr>
@@ -1877,6 +1908,7 @@ npm run dev</pre>
   </div>
   <div class="card">
     <p class="muted" style="margin-top:0"><b>위에서부터 순서대로</b> 하세요. 순서가 있습니다.</p>
+    <label class="chk"><input type="checkbox" data-c="x30"><span><b>오늘 어느 화면으로 전시하는지 팀이 합의했다</b> — <code>/twin</code>(3D) · <code>/office</code>(3D 없이) · <code>/dashboard</code>(2D) 중 하나</span></label>
     <label class="chk"><input type="checkbox" data-c="d01"><span>공유기가 켜져 있고, <b>Pico 와 노트북이 같은 공유기</b>에 붙었다</span></label>
     <label class="chk"><input type="checkbox" data-c="d02"><span>Pico 시리얼 모니터에서 <b>IP 를 확인</b>하고 화면에 넣었다 <span class="muted">(우리 팀 IP: <b class="f-inline" data-f="picoIp"></b>)</span></span></label>
     <label class="chk"><input type="checkbox" data-c="d03"><span><b>배선 사진과 대조</b>해서 빠진 선이 없다</span></label>
@@ -1890,6 +1922,23 @@ npm run dev</pre>
   <div class="note tip"><span class="hd">IP 는 공유기를 다시 켜면 바뀔 수 있습니다</span>
     당일 아침에 <b>다시 확인</b>하세요. 어제 되던 IP 라고 믿고 넘어가면 전시 시작 직후에 발견합니다.
   </div>
+
+  <h3>🧊 3D(<code>/twin</code>)로 전시하는 팀만 — 네 가지 더</h3>
+  <div class="card">
+    <label class="chk"><input type="checkbox" data-c="x31"><span><b>전시에 쓸 그 노트북에서</b> <code>/twin</code> 이 뜬다 <span class="muted">(연습한 노트북 말고 <b>당일 쓸 노트북</b>입니다 — WebGL 은 기기마다 다릅니다)</span></span></label>
+    <label class="chk"><input type="checkbox" data-c="x32"><span><b>3D 로 무인 리허설 30분을 통과했다</b> <span class="muted">(2D 로 통과한 것은 2D 에 대한 통과입니다)</span></span></label>
+    <label class="chk"><input type="checkbox" data-c="x33"><span><code>/office</code> 와 <code>/dashboard</code> 가 <b>지금 이 노트북에서 둘 다 뜬다</b> — 되돌아갈 길을 <b>미리 눌러 봤다</b></span></label>
+    <label class="chk"><input type="checkbox" data-c="x34"><span>두 주소를 <b>브라우저 즐겨찾기나 탭에 미리 열어 뒀다</b></span></label>
+  </div>
+  <div class="note danger"><span class="hd">🚨 전시 중에 3D 가 이상하면 — 고치지 말고 <b>되돌아가세요</b></span>
+    관람객 앞에서 코드를 고치는 일은 <b>없습니다.</b> 주소만 바꿉니다.<br>
+    <b><code>/twin</code> → <code>/office</code> → <code>/dashboard</code></b>. 1초면 됩니다.
+    <b>2D 는 9주차에 리허설로 통과시킨 화면</b>이라 반드시 돕니다.
+  </div>
+  <div class="note"><span class="hd">「이 컴퓨터에서는 3D 를 켤 수 없습니다」가 떴다면</span>
+    <b>작품이 고장 난 것이 아닙니다.</b> 그 노트북에 WebGL 이 없는 것뿐입니다.
+    화면의 버튼으로 <code>/office</code> 에 가면 <b>3D 없이 같은 내용</b>이 나옵니다. 그대로 전시하세요.
+  </div>
 </section>
 
 <!-- ══════════ 금지 ══════════ -->
@@ -1900,9 +1949,12 @@ npm run dev</pre>
     <tbody>
       <tr><td><b>프로젝트 폴더를 통째로 압축해서 올리기</b></td><td><code>.env.local</code>(MySQL 접속 정보)과 <code>settings.toml</code>(공유기 비밀번호)이 같이 올라갑니다. <b>반드시 묶기 스크립트를 쓰세요</b></td></tr>
       <tr><td><b><code>CIRCUITPY/settings.toml</code> 올리기</b></td><td><b>실습실 공유기 비밀번호</b>가 들어 있습니다. <code>main.py</code> 는 <code>os.getenv()</code> 로 읽으니 <b><code>main.py</code> 만 올리면 됩니다</b></td></tr>
-      <tr><td><b>실물로 안 옮기고 전시 나가기</b></td><td><b>전시장에는 가상 Pico 가 없습니다.</b> 리허설을 통과해도 화면에 값이 안 들어옵니다 → <a href="#w10">단계 15</a></td></tr>
+      <tr><td><b>실물로 안 옮기고 전시 나가기</b></td><td><b>전시장에는 가상 Pico 가 없습니다.</b> 리허설을 통과해도 화면에 값이 안 들어옵니다 → <a href="#w10">10주차 자료</a></td></tr>
       <tr><td><b>프롬프트에 비밀번호 · 개인정보 쓰기</b></td><td>Wi-Fi 비밀번호, DB 비밀번호, 이름 · 학번 · 전화번호를 쓰지 마세요. <b>한 번 올라가면 되돌릴 수 없습니다</b></td></tr>
       <tr><td><b><code>프로젝트-규칙-tailwind.md</code> 올리기</b></td><td>[부록] Tailwind UI(참고) 전용입니다. 제미나이가 <b>우리 코드에 없는 색 이름</b>을 쓴 코드를 내놓습니다</td></tr>
+      <tr><td><b>3D 리허설 없이 3D 로 전시 나가기</b></td><td>9주차 리허설은 <b>2D 에 대한 통과</b>입니다. 3D 는 더 무거워서 몇 시간 뒤에 느려집니다. <b>3D 로 30분을 다시</b> 통과해야 합니다 → <a href="#w11">11-6</a></td></tr>
+      <tr><td><b><code>src/app/twin/page.tsx</code> 고치기</b></td><td>선생님이 검증해서 드린 파일입니다. 학생이 고치는 것은 <b><code>team-twin.ts</code> 하나뿐</b>입니다</td></tr>
+      <tr><td><b>3D 를 넣었다고 2D 를 지우기</b></td><td><code>/dashboard</code> 는 <b>전시 중에 되돌아갈 마지막 길</b>입니다. 한 글자도 건드리지 마세요</td></tr>
       <tr><td><b>한 번에 여러 가지 요청하기</b></td><td>안 될 때 <b>어느 쪽이 문제인지 알 수 없습니다.</b> 하나 받으면 붙여넣고 돌려본 뒤 다음으로</td></tr>
       <tr><td><b><code>.bak</code> 없이 고치기</b></td><td>되돌릴 방법이 없어집니다. 복사는 1초, 복구는 1초입니다</td></tr>
       <tr><td><b>확인 안 하고 다음 프롬프트로 넘어가기</b></td><td>세 번째 프롬프트에서 터지면 <b>세 개 중 어느 것이 원인인지</b> 알 수 없습니다</td></tr>
@@ -1959,7 +2011,10 @@ npm run dev</pre>
     // 가상 Pico 로만 하는 팀이 콘솔에 칠 줄. 0단계 설계표에서 그대로 만들어집니다
     mockAddLines:"(0단계 설계표에 센서를 먼저 추가하세요)",
     // 액추에이터가 없는 팀은 이 두 칸이 비는 것이 정상입니다
-    actBlock:"", picoActBlock:""
+    actBlock:"", picoActBlock:"",
+    // 11주차 디지털 트윈 — 0단계 설계표에서 장치 줄을 만듭니다.
+    // 자리(spot)·주인공·위험은 11-1 에서 **손으로** 정하므로 빈칸으로 둡니다
+    twinLines:"| (0단계 설계표에 장치를 먼저 추가하세요) | | | | | | | | |"
   };
   for (var _p in PH_DERIVED) PH[_p] = PH_DERIVED[_p];
 
@@ -2050,6 +2105,20 @@ npm run dev</pre>
       return "- " + (a.name || "(이름)") + " / " + (a.pin || "(핀)") + " / " +
              (a.signal || "(종류)") + ' / JSON 키 "' + (a.key || "(키)") + '"';
     }).join("\n") : "- 없음";
+
+    // ★ 11주차 — team-twin.ts 에 넣을 장치 줄.
+    //   JSON 키를 손으로 다시 적게 하면 오타가 납니다 — 오타 하나로 그 장치는
+    //   영원히 「데이터 없음」이 되므로, 0단계에 적어 둔 키를 그대로 옮겨 줍니다.
+    //   spot · 주의 · 위험 · 주인공 · 위험장치는 11-1 워크시트에서 손으로 채웁니다.
+    d.twinLines = (ss.length || aa.length)
+      ? ss.map(function(s){
+          return "| " + (s.key || "(키)") + " | 센서 | " + (s.name || "(이름)") +
+                 " | ____ | " + (s.unit || "") + " | ____ | ____ | ____ | |";
+        }).concat(aa.map(function(a){
+          return "| " + (a.key || "(키)") + " | 액추에이터 | " + (a.name || "(이름)") +
+                 " | ____ | | | | | ____ |";
+        })).join("\n")
+      : "| (0단계 설계표에 장치를 먼저 추가하세요) | | | | | | | | |";
 
     d.sensorSpecLines = ss.length ? ss.map(function(s){
       // 학생 코드의 SENSORS 항목은 { key, label, unit, icon, max } 입니다.

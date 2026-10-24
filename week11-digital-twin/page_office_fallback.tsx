@@ -1,6 +1,7 @@
 // src/app/office/page.tsx ── 11주차 3D 장치 사무실 모범답안 (선생님용)
 //
-// ⚠️ 이 파일은 **학생이 고치지 않습니다.** 학생이 고치는 것은 team-office.ts 하나뿐입니다.
+// ⚠️ 이 파일은 **학생이 고치지 않습니다.** 학생이 고치는 것은 `team-twin.ts` 하나뿐이고,
+//    이 화면과 /twin 이 **그 한 파일을 같이 읽습니다.**
 //    그대로 나눠 주고, 학생에게는 「열지 마세요」라고 말해 주세요.
 //
 // ─────────────────────────────────────────────────────────────
@@ -37,7 +38,13 @@ import {
   ShieldAlert, Sprout, Sun, Thermometer, Waves, Wifi, WifiOff,
 } from "lucide-react";
 
-import { OFFICE, type Desk } from "./team-office";
+// ★ 11주차 — **트윈과 같은 파일**을 읽습니다.
+//    학생이 고치는 파일은 `team-twin.ts` 하나뿐이어야 합니다. 폴백이 따로
+//    자기 설정 파일을 읽으면, 3D 가 깨져 여기로 넘어온 순간에 **남의 팀 작품**이 뜹니다.
+//    이 파일은 `src/app/office/` 에 있고 설정 파일은 `src/app/twin/` 에 있으므로
+//    경로가 `../twin/team-twin` 입니다. **이 줄을 `./team-twin` 으로 바꾸지 마세요** —
+//    빌드가 `Cannot find module` 로 실패하고, 그러면 2D 대시보드까지 안 뜹니다.
+import { TWIN, type Device, type Spot } from "../twin/team-twin";
 
 // ── 기존 계약 (바꾸지 않습니다) ──────────────────────────────
 type SensorData = Record<string, number | null>;
@@ -92,6 +99,20 @@ const ROT_X = 52;       // 방을 눕히는 각도 (작을수록 앞뒤 줄이 �
 const ROT_Z = -45;      // 방을 돌리는 각도
 const DESK_H = 24;      // 책상 높이
 
+/** ★ 11주차 — `spot` 이름 여섯 개를 이 화면의 자리 번호로 옮깁니다.
+ *  트윈은 3D 좌표를, 이 화면은 바닥 격자를 씁니다. 학생이 적는 것은 `spot` 하나이고
+ *  두 화면이 각자 알아서 자기 방식으로 놓습니다. */
+const SPOT_SEAT: Record<Spot, number> = {
+  shelf: 1, desk: 2, wall: 3,
+  corner: 4, ground: 5, ceiling: 6,
+};
+
+/** 자리마다 캐릭터 색을 정해 둡니다 — 학생이 색까지 고르지 않아도 되게 */
+const SPOT_COLOR: Record<Spot, string> = {
+  shelf: "amber", desk: "pink", wall: "sky",
+  corner: "robot", ground: "mint", ceiling: "sky",
+};
+
 /** 자리 번호 1~6 → 바닥 칸 (가로 3 × 세로 2) */
 function seatCell(seat: number): { c: number; r: number } {
   const i = Math.min(6, Math.max(1, seat)) - 1;
@@ -130,7 +151,7 @@ const DEVICE_ICON: Record<string, ComponentType<{ className?: string }>> = {
   cpu_temp: Cpu, discomfort: CloudSun, soil: Sprout,
   pump: Waves, led_r: Lightbulb, led_g: Lightbulb, led_b: Lightbulb,
 };
-function iconFor(d: Desk) {
+function iconFor(d: Device) {
   return DEVICE_ICON[d.key] ?? (d.kind === "actuator" ? Power : Thermometer);
 }
 
@@ -141,7 +162,7 @@ type DeviceState = {
 };
 
 function deskState(
-  desk: Desk, sensor: SensorData | null, actuator: Record<string, number>,
+  desk: Device, sensor: SensorData | null, actuator: Record<string, number>,
 ): DeviceState {
   // ① 아직 한 번도 못 받았다
   if (sensor === null) {
@@ -208,7 +229,7 @@ function DeskBox({ c, r }: { c: number; r: number }) {
 function DeskCharacter({
   desk, state, value, selected, stale, big, onSelect,
 }: {
-  desk: Desk;
+  desk: Device;
   state: DeviceState;
   value: number | null | undefined;
   selected: boolean;
@@ -216,8 +237,8 @@ function DeskCharacter({
   big: boolean;
   onSelect: () => void;
 }) {
-  const { c, r } = seatCell(desk.seat);
-  const p = PALETTE[desk.character] ?? PALETTE.sky;
+  const { c, r } = seatCell(SPOT_SEAT[desk.spot] ?? 1);
+  const p = PALETTE[SPOT_COLOR[desk.spot]] ?? PALETTE.sky;
   const StatusIcon = state.icon;
 
   // 바깥 div 는 **크기 0 인 기준점**입니다. 안쪽 버튼을 translate(-50%,-100%) 로
@@ -235,6 +256,7 @@ function DeskCharacter({
     <button
       type="button"
       onClick={onSelect}
+      data-device={desk.key}
       aria-label={`${desk.label} — ${state.text}`}
       className={`absolute left-0 top-0 flex flex-col items-center ${UI.focus} ${stale ? "opacity-60" : ""} transition-opacity`}
       style={{ transform: "translate(-50%, -100%)" }}
@@ -286,9 +308,11 @@ function IsoRoom({
   kiosk: boolean;
   onSelect: (key: string) => void;
 }) {
-  const skin = ROOM_SKIN[OFFICE.room] ?? ROOM_SKIN.farm;
+  const skin = ROOM_SKIN[TWIN.room] ?? ROOM_SKIN.farm;
   // 뒷줄(자리 1·2·3)을 먼저 그려야 앞줄이 위에 겹칩니다
-  const ordered = [...OFFICE.desks].sort((a, b) => a.seat - b.seat);
+  const ordered = [...TWIN.devices].sort(
+    (a, b) => (SPOT_SEAT[a.spot] ?? 1) - (SPOT_SEAT[b.spot] ?? 1),
+  );
   const tiles = [];
   for (let r = 0; r < ROOM_ROWS; r++) {
     for (let c = 0; c < ROOM_COLS; c++) {
@@ -318,7 +342,7 @@ function IsoRoom({
         >
           {tiles}
           {ordered.map((d) => {
-            const { c, r } = seatCell(d.seat);
+            const { c, r } = seatCell(SPOT_SEAT[d.spot] ?? 1);
             return <DeskBox key={`d${d.key}`} c={c} r={r} />;
           })}
           {ordered.map((d) => (
@@ -418,15 +442,15 @@ export default function OfficePage() {
   const [kiosk, setKiosk] = useState(false);
 
   // ★ 11주차
-  const actuatorDesks = useMemo(() => OFFICE.desks.filter((d) => d.kind === "actuator"), []);
+  const actuatorDesks = useMemo(() => TWIN.devices.filter((d) => d.kind === "actuator"), []);
   const [actuator, setActuator] = useState<Record<string, number>>(() => {
     const o: Record<string, number> = { ...BASE_ACTUATOR };
     for (const d of actuatorDesks) if (!(d.key in o)) o[d.key] = 0;
     return o;
   });
-  const [selectedKey, setSelectedKey] = useState<string | null>(OFFICE.desks[0]?.key ?? null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(TWIN.devices[0]?.key ?? null);
   const [tab, setTab] = useState<"detail" | "control" | "trail">("detail");
-  const [pending, setPending] = useState<{ desk: Desk; value: number } | null>(null);
+  const [pending, setPending] = useState<{ desk: Device; value: number } | null>(null);
   const [trail, setTrail] = useState<Trail[]>([]);
   const trailId = useRef(0);
 
@@ -558,7 +582,7 @@ export default function OfficePage() {
 
   // ── ★ 11주차 — 명령 보내기 ─────────────────────────────────
   /** 🚨 바뀐 키 하나가 아니라 **액추에이터 묶음 전체**를 보냅니다 (위 BASE_ACTUATOR 주석) */
-  const sendAll = (next: Record<string, number>, desk: Desk, value: number) => {
+  const sendAll = (next: Record<string, number>, desk: Device, value: number) => {
     const ws = wsRef.current;
     let sentOk = false;
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -573,7 +597,7 @@ export default function OfficePage() {
   };
 
   /** 위험한 장치는 바로 보내지 않고 **승인을 먼저** 받습니다 */
-  const requestToggle = (desk: Desk) => {
+  const requestToggle = (desk: Device) => {
     const on = (actuator[desk.key] ?? 0) > 0;
     const value = on ? 0 : (desk.onValue ?? 255);
     if (desk.risk === "high" && value > 0) { setPending({ desk, value }); return; }
@@ -586,7 +610,7 @@ export default function OfficePage() {
     setPending(null);
   };
 
-  const selected = OFFICE.desks.find((d) => d.key === selectedKey) ?? null;
+  const selected = TWIN.devices.find((d) => d.key === selectedKey) ?? null;
   const selectedState = selected ? deskState(selected, sensor, actuator) : null;
   const selectedValue = selected && sensor ? sensor[selected.key] : null;
 
@@ -598,7 +622,7 @@ export default function OfficePage() {
       <div className="mx-auto w-full max-w-[1400px] px-4 py-5 sm:px-6">
         {/* ── 위쪽 띠 ─────────────────────────────────────── */}
         <header className="mb-4 flex flex-wrap items-center gap-3">
-          <h1 className={UI.sectionTitle}>{OFFICE.teamName}</h1>
+          <h1 className={UI.sectionTitle}>{TWIN.teamName}</h1>
 
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
@@ -652,10 +676,10 @@ export default function OfficePage() {
           {/* ── 왼쪽 · 장치 목록 ──────────────────────────── */}
           <aside className={`${UI.card} p-3`}>
             <h2 className="px-2 pb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
-              우리 팀 장치 {OFFICE.desks.length}
+              우리 팀 장치 {TWIN.devices.length}
             </h2>
             <ul className="space-y-1">
-              {OFFICE.desks.map((d) => {
+              {TWIN.devices.map((d) => {
                 const st = deskState(d, sensor, actuator);
                 const Icon = iconFor(d);
                 const on = selectedKey === d.key;

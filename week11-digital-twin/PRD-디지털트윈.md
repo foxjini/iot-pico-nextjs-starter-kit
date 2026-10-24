@@ -188,10 +188,16 @@ Pico 가 1초마다 보내는 센서 JSON 에 `applied` 를 **하나 더** 싣�
 
 ```
 src/app/dashboard/page.tsx   ← 수정 0줄
-src/app/twin/page.tsx        ← 신설 · 교사 검증 배포 (R3F)
-src/app/twin/team-twin.ts    ← 신설 · 학생이 고치는 단 하나의 파일
-src/app/office/page.tsx      ← 신설 · WebGL 없이 도는 폴백 (CSS 3D)
+src/app/twin/page.tsx        ← 신설 · 교사 검증 배포 (R3F)     ─┐ 같은
+src/app/twin/team-twin.ts    ← 신설 · 학생이 고치는 단 하나의 파일 ←┤ 파일을
+src/app/office/page.tsx      ← 신설 · WebGL 없이 도는 폴백 (CSS 3D) ─┘ 같이 읽음
+                                └ import { TWIN } from "../twin/team-twin"
 ```
+
+> 🚨 **설정 파일은 하나뿐이어야 합니다.** 폴백이 자기 설정 파일을 따로 읽으면,
+> 3D 가 깨져 폴백으로 넘어간 **바로 그 순간에 다른 팀 작품**이 뜹니다.
+> 폴더가 달라 상대경로가 `../twin/team-twin` 입니다 — `./team-twin` 으로 바꾸면
+> 빌드가 실패하고 **2D 대시보드까지 안 뜹니다.**
 
 원본 §6 의 `components/scene/` · `features/` · `hooks/` · `public/models/` 는
 **만들지 않습니다** — 규칙 §3-6 과 충돌하고, 1학년이 파일 사이를 오가다 길을 잃습니다.
