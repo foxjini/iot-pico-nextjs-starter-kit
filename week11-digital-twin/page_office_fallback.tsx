@@ -30,11 +30,11 @@
 "use client";
 
 import {
-  useCallback, useEffect, useMemo, useRef, useState, type ComponentType,
+  useCallback, useEffect, useId, useMemo, useRef, useState, type ComponentType,
 } from "react";
 import {
   AlertTriangle, CheckCircle2, Clock, Cpu, CloudSun, Droplets, HelpCircle,
-  LayoutDashboard, Lightbulb, Loader2, Maximize2, Minimize2, Power,
+  Fan, Gauge, LayoutDashboard, Lightbulb, Loader2, Maximize2, Minimize2, Power,
   ShieldAlert, Sprout, Sun, Thermometer, Waves, Wifi, WifiOff,
 } from "lucide-react";
 
@@ -84,38 +84,38 @@ const BASE_ACTUATOR: Record<string, number> = {
    두 화면에서 같은 장치가 다른 색이면 관람객이 다른 작품으로 느낍니다. */
 const CLAY = ["#7FC8E8", "#F2A3B3", "#F2CE7A", "#A7B6F2", "#8FD9B6", "#F2B289"];
 
-/* 3D 화면과 **같은 규칙**으로 색을 고릅니다 — 센서는 센서끼리 순번,
-   액추에이터는 (순번 + 3). 전체 순번으로 고르면 장치 순서가 섞인 팀에서
-   두 화면의 색이 어긋납니다. */
+/* 3D 화면과 **같은 규칙** — 전체 장치 순번으로 색을 고릅니다 (자리가 최대 여섯이라 안 겹침) */
 function tintOf(d: Device) {
-  const list = TWIN.devices.filter((x) => x.kind === d.kind);
-  const k = list.indexOf(d);
-  return CLAY[(d.kind === "sensor" ? k : k + 3) % CLAY.length];
+  return CLAY[TWIN.devices.indexOf(d) % CLAY.length];
 }
 
 const UI = {
-  /* 🚨 **3D 화면(`twin/page.tsx`)의 `const UI` 와 같은 값이어야 합니다.**
-     3D 가 깨져 이 화면으로 떨어졌을 때, 관람객이 「전혀 다른 작품」으로 느끼면 안 됩니다. */
+  /* 🚨 3D 화면(`twin/page.tsx`)의 const UI 와 **같은 값**이어야 합니다 (형제) */
+  /* ★ 다크 관제실 (ui-ux-pro-max · IoT 대시보드 권장: Glassmorphism + Dark).
+     위쪽에 청록·남색 빛이 아주 옅게 번집니다. */
   page:
-    "min-h-screen bg-[#F6F5F2] bg-[radial-gradient(1100px_520px_at_50%_-8%,#FFFFFF,transparent_70%)] text-[#141414]",
-  card:
-    "rounded-2xl border border-black/[0.06] bg-white " +
-    "shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-18px_rgba(16,24,40,0.28)]",
+    "min-h-screen bg-[#0B1120] text-slate-100 " +
+    "bg-[radial-gradient(900px_420px_at_18%_-6%,rgba(34,211,238,0.10),transparent_70%),radial-gradient(900px_480px_at_85%_-10%,rgba(99,102,241,0.12),transparent_70%)]",
+  /* 패널은 **유리** — 반투명 + 흐림 + 머리카락 테두리 */
+  card: "rounded-[14px] border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl",
   cardPadding: "p-5",
-  sectionTitle: "text-lg font-semibold tracking-tight text-[#141414]",
-  cardTitle: "text-sm font-semibold tracking-tight text-[#141414]",
+  sectionTitle: "text-lg font-semibold tracking-tight text-slate-50",
+  cardTitle: "text-sm font-semibold tracking-tight text-slate-100",
   eyebrow: "text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400",
   mono: "font-mono text-[11px] tracking-tight text-slate-400",
-  description: "text-sm leading-6 text-slate-500",
+  /* 🚨 글자에 slate-500 이하를 쓰지 않습니다 — 이 배경에서 4.5:1 이 안 나옵니다 */
+  description: "text-sm leading-6 text-slate-400",
   focus:
-    "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1120]",
+  /* 강조색은 **청록 하나** — 상태색(초록·호박·장미)과 섞이지 않게 */
   primaryButton:
-    "inline-flex items-center justify-center gap-2 rounded-xl bg-[#141414] px-4 py-2.5 " +
-    "text-sm font-semibold text-white transition-colors hover:bg-[#2a2a2a] " +
-    "disabled:cursor-not-allowed disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 rounded-[10px] bg-cyan-400 px-4 py-2.5 " +
+    "text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 " +
+    "disabled:cursor-not-allowed disabled:opacity-40",
   secondaryButton:
-    "inline-flex items-center justify-center gap-2 rounded-xl border border-black/[0.08] " +
-    "bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50",
+    "inline-flex items-center justify-center gap-2 rounded-[10px] border border-white/[0.12] " +
+    "bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/[0.08] " +
+    "disabled:cursor-not-allowed disabled:opacity-40",
 };
 
 // ── ★ 11주차 — 아이소메트릭 좌표 ─────────────────────────────
@@ -169,10 +169,10 @@ const PALETTE: Record<string, { head: string; body: string; ring: string }> = {
 };
 
 const ROOM_SKIN: Record<string, { a: string; b: string; name: string }> = {
-  farm:    { a: "bg-lime-50",  b: "bg-lime-100",  name: "온실" },
-  home:    { a: "bg-amber-50", b: "bg-amber-100", name: "거실" },
-  factory: { a: "bg-slate-100", b: "bg-slate-200", name: "공장" },
-  park:    { a: "bg-sky-50",   b: "bg-sky-100",   name: "공원" },
+  farm:    { a: "bg-[#14262B]", b: "bg-[#18303A]", name: "온실" },
+  home:    { a: "bg-[#1C2133]", b: "bg-[#232A42]", name: "거실" },
+  factory: { a: "bg-[#1A202C]", b: "bg-[#222937]", name: "공장" },
+  park:    { a: "bg-[#14281F]", b: "bg-[#1A3327]", name: "공원" },
 };
 
 const DEVICE_ICON: Record<string, ComponentType<{ className?: string }>> = {
@@ -180,8 +180,86 @@ const DEVICE_ICON: Record<string, ComponentType<{ className?: string }>> = {
   cpu_temp: Cpu, discomfort: CloudSun, soil: Sprout,
   pump: Waves, led_r: Lightbulb, led_g: Lightbulb, led_b: Lightbulb,
 };
-function iconFor(d: Device) {
-  return DEVICE_ICON[d.key] ?? (d.kind === "actuator" ? Power : Thermometer);
+/* ★ 추세선 (스파크라인) — 🚨 3D 화면의 Spark 와 같은 코드 (형제) — 라이브러리 없이 SVG 한 장.
+ *  실시간 모니터링 화면의 기본입니다. 숫자 하나만으로는 「오르는 중인지」가 안 보입니다. */
+function Spark({
+  data,
+  color,
+  w = 64,
+  h = 20,
+  warn,
+  danger,
+  labels = false,
+}: {
+  data: number[];
+  color: string;
+  w?: number;
+  h?: number;
+  warn?: number;
+  danger?: number;
+  labels?: boolean;
+}) {
+  const gid = useId();
+  if (data.length < 2) {
+    return (
+      <svg width={w} height={h} aria-hidden="true" className="shrink-0">
+        <line x1="0" y1={h / 2} x2={w} y2={h / 2} stroke="#64748B" strokeOpacity="0.5" strokeDasharray="2 3" />
+      </svg>
+    );
+  }
+  /* 기준선이 화면 안에 들어오게 범위에 포함합니다 */
+  const extra = [warn, danger].filter((x): x is number => x !== undefined && labels);
+  let lo = Math.min(...data, ...extra);
+  let hi = Math.max(...data, ...extra);
+  if (hi - lo < 1e-6) { hi += 1; lo -= 1; }
+  const pad = (hi - lo) * 0.12;
+  lo -= pad; hi += pad;
+  const x = (i: number) => (i / (data.length - 1)) * w;
+  const y = (v: number) => h - ((v - lo) / (hi - lo)) * h;
+  const pts = data.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const last = data[data.length - 1];
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" className="shrink-0 overflow-visible">
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {labels &&
+        ([
+          ["주의", warn, "#FBBF24"],
+          ["위험", danger, "#FB7185"],
+        ] as const).map(([name, v, c]) =>
+          v === undefined ? null : (
+            <g key={name}>
+              <line x1="0" x2={w} y1={y(v)} y2={y(v)} stroke={c} strokeOpacity="0.55" strokeDasharray="3 3" />
+              <text x={w} y={y(v) - 3} textAnchor="end" fontSize="10" fill={c} fillOpacity="0.9">
+                {name} {v}
+              </text>
+            </g>
+          ),
+        )}
+      <polygon points={`0,${h} ${pts} ${w},${h}`} fill={`url(#${gid})`} />
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={x(data.length - 1)} cy={y(last)} r="2.4" fill={color} />
+    </svg>
+  );
+}
+
+/* 🚨 3D 화면의 iconFor 와 **같은 규칙**입니다 (두 화면은 형제) */
+function iconFor(d: Device): ComponentType<{ className?: string }> {
+  const k = d.key.toLowerCase();
+  if (DEVICE_ICON[k]) return DEVICE_ICON[k];
+  if (/water|level|humid|moist|rain/.test(k)) return Droplets;
+  if (/soil/.test(k)) return Sprout;
+  if (/temp/.test(k)) return Thermometer;
+  if (/led|lamp/.test(k)) return Lightbulb;
+  if (/light|lux/.test(k)) return d.kind === "actuator" ? Lightbulb : Sun;
+  if (/fan/.test(k)) return Fan;
+  if (/pump|motor|valve/.test(k)) return Waves;
+  if (/cpu/.test(k)) return Cpu;
+  return d.kind === "actuator" ? Power : Gauge;
 }
 
 // ── 장치 상태 — 색 · 아이콘 · 글자 **셋 다** ─────────────────
@@ -195,27 +273,27 @@ function deskState(
 ): DeviceState {
   // ① 아직 한 번도 못 받았다
   if (sensor === null) {
-    return { tone: "text-slate-500", dot: "bg-slate-300", text: "연결 대기", icon: Clock };
+    return { tone: "text-slate-400", dot: "bg-slate-300", text: "연결 대기", icon: Clock };
   }
   if (desk.kind === "actuator") {
     const on = (actuator[desk.key] ?? 0) > 0;
     return on
-      ? { tone: "text-emerald-600", dot: "bg-emerald-500", text: "켜짐", icon: CheckCircle2 }
-      : { tone: "text-slate-500", dot: "bg-slate-300", text: "꺼짐", icon: Power };
+      ? { tone: "text-emerald-300", dot: "bg-emerald-500", text: "켜짐", icon: CheckCircle2 }
+      : { tone: "text-slate-400", dot: "bg-slate-300", text: "꺼짐", icon: Power };
   }
   const v = sensor[desk.key];
   // ② 받았는데 그 센서만 없다
   if (v === null || v === undefined) {
-    return { tone: "text-slate-500", dot: "bg-slate-300", text: "데이터 없음", icon: HelpCircle };
+    return { tone: "text-slate-400", dot: "bg-slate-300", text: "데이터 없음", icon: HelpCircle };
   }
   // 팀이 기준을 안 적었으면 늘 「정상」입니다 (지어내지 않습니다)
   const { warn, danger } = desk;
   const low = (danger ?? Infinity) < (warn ?? Infinity);   // 낮을수록 위험한 센서인가
   const isDanger = danger !== undefined && (low ? v <= danger : v >= danger);
   const isWarn = warn !== undefined && (low ? v <= warn : v >= warn);
-  if (isDanger) return { tone: "text-rose-600", dot: "bg-rose-500", text: "위험", icon: AlertTriangle };
-  if (isWarn) return { tone: "text-amber-600", dot: "bg-amber-500", text: "주의", icon: AlertTriangle };
-  return { tone: "text-emerald-600", dot: "bg-emerald-500", text: "정상", icon: CheckCircle2 };
+  if (isDanger) return { tone: "text-rose-300", dot: "bg-rose-500", text: "위험", icon: AlertTriangle };
+  if (isWarn) return { tone: "text-amber-300", dot: "bg-amber-500", text: "주의", icon: AlertTriangle };
+  return { tone: "text-emerald-300", dot: "bg-emerald-500", text: "정상", icon: CheckCircle2 };
 }
 
 // ── ★ 11주차 — 「이 명령이 실제로 간 길」 한 줄 ──────────────
@@ -239,15 +317,15 @@ function DeskBox({ c, r }: { c: number; r: number }) {
   return (
     <div className="absolute" style={{ transform: at(c + 0.1, r + 0.1), transformStyle: "preserve-3d" }}>
       <div
-        className="absolute bg-slate-300"
+        className="absolute bg-[#1E2738]"
         style={{ width: w, height: h, transform: `translate3d(0, ${d}px, 0) rotateX(90deg)`, transformOrigin: "0 0" }}
       />
       <div
-        className="absolute bg-slate-400"
+        className="absolute bg-[#161E2D]"
         style={{ width: h, height: d, transform: `translate3d(${w}px, 0, 0) rotateY(-90deg)`, transformOrigin: "0 0" }}
       />
       <div
-        className="absolute rounded-sm bg-slate-200"
+        className="absolute rounded-sm bg-[#2A3448] ring-1 ring-inset ring-cyan-300/20"
         style={{ width: w, height: d, transform: `translateZ(${h}px)` }}
       />
     </div>
@@ -292,8 +370,8 @@ function DeskCharacter({
     >
       {/* 상태 — 색 + 아이콘 + 글자 셋 다 */}
       <span
-        className={`mb-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white/90 px-2 py-0.5
-                    text-[11px] font-semibold shadow-sm ring-1 ring-slate-200 ${state.tone}`}
+        className={`mb-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-950/75 px-2 py-0.5
+                    text-[11px] font-semibold shadow-sm ring-1 ring-white/10 backdrop-blur ${state.tone}`}
       >
         <StatusIcon className="h-3 w-3" aria-hidden="true" />
         {state.text}
@@ -316,9 +394,9 @@ function DeskCharacter({
       {/* ★ 9주차 — 1m 밖에서 읽히게. 전시 모드의 주인공만 값을 크게 답니다.
           평소에는 왼쪽 목록과 오른쪽 상세에 값이 있으므로 캐릭터는 깔끔하게 둡니다. */}
       {desk.kind === "sensor" && big && (
-        <span className="mt-0.5 font-mono text-4xl font-semibold tabular-nums text-slate-900">
+        <span className="mt-0.5 font-mono text-4xl font-semibold tabular-nums text-slate-50">
           {value === null || value === undefined ? "--" : value.toFixed(1)}
-          <span className="ml-0.5 text-base font-medium text-slate-500">{desk.unit ?? ""}</span>
+          <span className="ml-0.5 text-base font-medium text-slate-400">{desk.unit ?? ""}</span>
         </span>
       )}
     </button>
@@ -348,7 +426,7 @@ function IsoRoom({
       tiles.push(
         <div
           key={`t${c}-${r}`}
-          className={`absolute border border-white/70 ${(c + r) % 2 ? skin.b : skin.a}`}
+          className={`absolute border border-cyan-300/[0.08] ${(c + r) % 2 ? skin.b : skin.a}`}
           style={{ width: TILE, height: TILE, transform: at(c, r) }}
         />,
       );
@@ -357,7 +435,7 @@ function IsoRoom({
 
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-white ${
+      className={`relative w-full overflow-hidden rounded-[14px] border border-white/[0.08] bg-white/[0.02] ${
         kiosk ? "h-[72vh]" : "h-[520px]"
       }`}
     >
@@ -389,7 +467,7 @@ function IsoRoom({
         </div>
       </div>
 
-      <span className="absolute left-4 top-4 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
+      <span className="absolute left-4 top-4 rounded-full bg-slate-950/60 px-3 py-1 text-xs font-semibold text-slate-300 ring-1 ring-white/10">
         {skin.name}
       </span>
     </div>
@@ -414,10 +492,10 @@ function CommandTrail({ trail }: { trail: Trail[] }) {
   return (
     <ol className="space-y-4">
       {trail.map((t) => (
-        <li key={t.id} className="rounded-xl border border-slate-200 p-3">
+        <li key={t.id} className="rounded-xl border border-white/[0.10] p-3">
           <div className="flex items-center gap-2">
             <span className={UI.cardTitle}>{t.label}</span>
-            <span className="font-mono text-xs text-slate-500">{t.value}</span>
+            <span className="font-mono text-xs text-slate-400">{t.value}</span>
             <span className="ml-auto text-xs text-slate-400">
               {new Date(t.at).toLocaleTimeString("ko-KR")}
             </span>
@@ -427,9 +505,9 @@ function CommandTrail({ trail }: { trail: Trail[] }) {
             {/* ① 화면이 보냈다 — 코드가 직접 아는 사실 */}
             <li className="flex items-start gap-2">
               {t.sentOk
-                ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
-                : <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-600" aria-hidden="true" />}
-              <span className={t.sentOk ? "text-slate-700" : "text-rose-700"}>
+                ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" aria-hidden="true" />
+                : <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-300" aria-hidden="true" />}
+              <span className={t.sentOk ? "text-slate-200" : "text-rose-200"}>
                 {t.sentOk ? "화면이 보냈습니다" : "보내지 못했습니다 — 연결이 열려 있지 않습니다"}
               </span>
             </li>
@@ -437,9 +515,9 @@ function CommandTrail({ trail }: { trail: Trail[] }) {
             {/* ② 연결은 아직 살아 있다 */}
             <li className="flex items-start gap-2">
               {t.aliveAt
-                ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
+                ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" aria-hidden="true" />
                 : <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-slate-400" aria-hidden="true" />}
-              <span className="text-slate-700">
+              <span className="text-slate-200">
                 {t.aliveAt ? "보낸 뒤에도 센서값이 또 왔습니다 — 연결은 살아 있습니다"
                            : "센서값이 또 오기를 기다리는 중"}
               </span>
@@ -448,12 +526,12 @@ function CommandTrail({ trail }: { trail: Trail[] }) {
             {/* ③ Pico 가 적용했다 — 화면은 알 수 없습니다. 영원히 ◌ 입니다. */}
             <li className="flex items-start gap-2">
               <HelpCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-              <span className="text-slate-500">
-                <b className="font-semibold text-slate-700">Pico 가 실제로 적용했는지는 이 화면이 알 수 없습니다.</b>
+              <span className="text-slate-400">
+                <b className="font-semibold text-slate-200">Pico 가 실제로 적용했는지는 이 화면이 알 수 없습니다.</b>
                 {" "}지금 통신 규약에 <b>명령에 대한 답장이 없습니다.</b>
                 <br />
                 눈으로 확인하세요 — 실물이면 장치가 움직이는지, 가상 Pico 면 창에
-                {" "}<code className="rounded bg-slate-100 px-1">-&gt; 우리 팀 액추에이터 … 적용</code> 줄이 찍히는지.
+                {" "}<code className="rounded bg-white/[0.06] px-1">-&gt; 우리 팀 액추에이터 … 적용</code> 줄이 찍히는지.
               </span>
             </li>
           </ul>
@@ -470,6 +548,8 @@ export default function OfficePage() {
   const [sensor, setSensor] = useState<SensorData | null>(null);
   /* 3D 화면과 같게 — 값이 **실제로 도착한** 시각 */
   const [lastAt, setLastAt] = useState<number | null>(null);
+  /* 3D 화면과 같게 — 센서마다 최근 40개 값 (추세선용) */
+  const historyRef = useRef<Record<string, number[]>>({});
   const [kiosk, setKiosk] = useState(false);
 
   // ★ 11주차
@@ -515,8 +595,16 @@ export default function OfficePage() {
 
     ws.onmessage = (event) => {
       try {
-        setSensor(JSON.parse(event.data));
+        const data = JSON.parse(event.data);
+        setSensor(data);
         setLastAt(Date.now());
+        for (const d of TWIN.devices) {
+          const v = data?.[d.key];
+          if (d.kind !== "sensor" || typeof v !== "number") continue;
+          const arr = historyRef.current[d.key] ?? (historyRef.current[d.key] = []);
+          arr.push(v);
+          if (arr.length > 40) arr.shift();
+        }
       } catch {
         console.warn("잘못된 메시지 형식:", event.data);
         return;
@@ -665,15 +753,15 @@ export default function OfficePage() {
 
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-              online ? "bg-emerald-50 text-emerald-700"
-              : connecting ? "bg-amber-50 text-amber-700"
-              : "bg-slate-100 text-slate-600"
+              online ? "border border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+              : connecting ? "border border-amber-400/30 bg-amber-400/10 text-amber-300"
+              : "border border-white/[0.12] bg-white/[0.04] text-slate-300"
             }`}
           >
             {online ? <Wifi className="h-3.5 w-3.5" aria-hidden="true" />
               : connecting ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
               : <WifiOff className="h-3.5 w-3.5" aria-hidden="true" />}
-            {online ? "ONLINE" : connecting ? "재연결 중…" : "OFFLINE"}
+            {online ? "실시간" : connecting ? "재연결 중…" : "오프라인"}
           </span>
           {lastAt !== null && !(!online && !connecting) && (
             <span className="text-xs tabular-nums text-slate-400">
@@ -698,12 +786,12 @@ export default function OfficePage() {
         {/* ★ 9주차 — 전시 모드에서는 개발용 설정을 숨깁니다 */}
         {!kiosk && (
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <label htmlFor="picoIp" className="text-sm font-medium text-slate-600">Pico 주소</label>
+            <label htmlFor="picoIp" className="text-sm font-medium text-slate-300">Pico 주소</label>
             <input
               id="picoIp"
               value={picoIp}
               onChange={(e) => setPicoIp(e.target.value)}
-              className={`w-44 rounded-xl border border-slate-300 px-3 py-2 font-mono text-sm ${UI.focus}`}
+              className={`w-44 rounded-xl border border-white/[0.15] px-3 py-2 font-mono text-sm ${UI.focus}`}
             />
             <button type="button" onClick={connect} disabled={status !== "offline"}
                     className={`${UI.primaryButton} ${UI.focus}`}>
@@ -735,8 +823,8 @@ export default function OfficePage() {
                       onClick={() => setSelectedKey(d.key)}
                       className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition-colors ${UI.focus} ${
                         on
-                          ? "border-[#141414]/15 bg-[#F6F5F2]"
-                          : "border-transparent hover:bg-[#F6F5F2]"
+                          ? "border-cyan-400/30 bg-cyan-400/[0.06]"
+                          : "border-transparent hover:bg-white/[0.04]"
                       }`}
                     >
                       {/* 아이콘 칩 — 3D 화면의 장치 색과 같습니다 */}
@@ -753,14 +841,24 @@ export default function OfficePage() {
                         <Icon className="h-4 w-4" aria-hidden="true" />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-[#141414]">
+                        <span className="block truncate text-sm font-semibold text-slate-50">
                           {d.label}
                         </span>
                         <span className={`block truncate ${UI.mono}`}>{d.key}</span>
                       </span>
-                      <span className={`h-2 w-2 shrink-0 rounded-full ${st.dot}`} aria-hidden="true" />
-                      <span className={`shrink-0 text-[11px] font-semibold ${st.tone}`}>
-                        {st.text}
+                      <span className="flex shrink-0 flex-col items-end gap-1">
+                        <span className="flex items-center gap-1.5">
+                          <span className={`h-2 w-2 shrink-0 rounded-full ${st.dot}`} aria-hidden="true" />
+                          <span className={`text-[11px] font-semibold ${st.tone}`}>{st.text}</span>
+                        </span>
+                        {d.kind === "sensor" && (
+                          <Spark
+                            data={historyRef.current[d.key] ?? []}
+                            color={st.text === "위험" ? "#FB7185" : st.text === "주의" ? "#FBBF24" : "#34D399"}
+                            w={44}
+                            h={14}
+                          />
+                        )}
                       </span>
                     </button>
                   </li>
@@ -785,13 +883,13 @@ export default function OfficePage() {
               <div
                 role="alertdialog"
                 aria-label={`${pending.desk.label} 승인 필요`}
-                className="absolute right-4 top-4 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
+                className="absolute right-4 top-4 w-72 rounded-2xl border border-white/[0.10] bg-slate-900/90 p-4 shadow-xl"
               >
-                <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-bold text-rose-200">
                   <ShieldAlert className="h-3 w-3" aria-hidden="true" />
                   승인이 필요합니다 · {pending.desk.label}
                 </span>
-                <p className="mt-2 text-sm leading-6 text-slate-700">
+                <p className="mt-2 text-sm leading-6 text-slate-200">
                   <b>{pending.desk.label}</b>
                   {josa(pending.desk.label, "을", "를")} 켜려고 합니다.
                   물 · 열 · 움직임이 있는 장치라 <b>아직 보내지 않았습니다.</b>
@@ -811,7 +909,7 @@ export default function OfficePage() {
 
             {/* 아직 한 번도 못 받았다 */}
             {sensor === null && !kiosk && (
-              <p className="mt-3 rounded-xl border border-dashed border-slate-300 p-4 text-center text-sm text-slate-500">
+              <p className="mt-3 rounded-xl border border-dashed border-white/[0.15] p-4 text-center text-sm text-slate-400">
                 아직 센서 데이터가 없습니다. 위에서 <b>장치 연결</b>을 눌러 주세요.
               </p>
             )}
@@ -819,14 +917,14 @@ export default function OfficePage() {
 
           {/* ── 오른쪽 · 인스펙터 ─────────────────────────── */}
           <aside className={`${UI.card} p-4`}>
-            <div className="mb-3 flex gap-1 rounded-full bg-[#F1EFEA] p-1">
+            <div className="mb-3 flex gap-1 rounded-full bg-white/[0.05] p-1">
               {([["detail", "상세"], ["control", "제어"], ["trail", "기록"]] as const).map(([k, t]) => (
                 <button
                   key={k}
                   type="button"
                   onClick={() => setTab(k)}
                   className={`flex-1 rounded-full px-2 py-1.5 text-xs font-semibold transition-colors ${UI.focus}
-                              ${tab === k ? "bg-[#141414] text-white shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+                              ${tab === k ? "bg-white/[0.10] text-white shadow-sm ring-1 ring-inset ring-white/10" : "text-slate-400 hover:text-slate-100"}`}
                 >
                   {t}
                 </button>
@@ -839,13 +937,13 @@ export default function OfficePage() {
                   <h3 className={UI.cardTitle}>{selected.label}</h3>
                   <p className="font-mono text-[11px] text-slate-400">{selected.key}</p>
                   <p className={`mt-3 font-mono text-4xl font-semibold tabular-nums ${
-                    selectedValue === null || selectedValue === undefined ? "text-slate-400" : "text-slate-900"
+                    selectedValue === null || selectedValue === undefined ? "text-slate-400" : "text-slate-50"
                   }`}>
                     {selected.kind === "actuator"
                       ? ((actuator[selected.key] ?? 0) > 0 ? "켜짐" : "꺼짐")
                       : selectedValue === null || selectedValue === undefined ? "--" : selectedValue.toFixed(1)}
                     {selected.kind === "sensor" && (
-                      <span className="ml-1 text-base font-medium text-slate-500">{selected.unit ?? ""}</span>
+                      <span className="ml-1 text-base font-medium text-slate-400">{selected.unit ?? ""}</span>
                     )}
                   </p>
                   <p className={`mt-1 inline-flex items-center gap-1 text-sm font-semibold ${selectedState.tone}`}>
@@ -853,7 +951,7 @@ export default function OfficePage() {
                     {selectedState.text}
                   </p>
                   {stale && (
-                    <p className="mt-3 rounded-lg bg-amber-50 p-2 text-xs text-amber-800">
+                    <p className="mt-3 rounded-lg bg-amber-400/10 p-2 text-xs text-amber-200">
                       재연결 중입니다. 위 값은 <b>마지막으로 받은 값</b>이고 지금 값이 아닙니다.
                     </p>
                   )}
@@ -870,11 +968,11 @@ export default function OfficePage() {
                 ) : visibleActuators.map((d) => {
                   const on = (actuator[d.key] ?? 0) > 0;
                   return (
-                    <div key={d.key} className="flex items-center gap-2 rounded-xl border border-slate-200 p-3">
+                    <div key={d.key} className="flex items-center gap-2 rounded-xl border border-white/[0.10] p-3">
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-slate-900">{d.label}</span>
+                        <span className="block truncate text-sm font-semibold text-slate-50">{d.label}</span>
                         {d.risk === "high" && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300">
                             <ShieldAlert className="h-3 w-3" aria-hidden="true" />승인 필요
                           </span>
                         )}
@@ -891,7 +989,7 @@ export default function OfficePage() {
                   );
                 })}
                 {!online && (
-                  <p className="text-xs text-slate-500">연결되어 있지 않아 명령을 보낼 수 없습니다.</p>
+                  <p className="text-xs text-slate-400">연결되어 있지 않아 명령을 보낼 수 없습니다.</p>
                 )}
               </div>
             )}
