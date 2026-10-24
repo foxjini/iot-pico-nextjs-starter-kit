@@ -121,11 +121,24 @@ type TrailItem = {
 const SPOTS: Record<Spot, [number, number, number]> = {
   shelf: [-1.55, 1.05, -2.0],
   desk: [1.5, 0.95, -1.1],
-  wall: [2.6, 1.7, 0.2],
+  // 「벽」은 **뒷벽**입니다. 옆벽(x=-3)은 이 카메라에서 심하게 찌그러져 보여
+  // 장치를 붙이면 거의 안 보입니다. 뒷벽은 화면에서 가장 넓은 면입니다.
+  wall: [-0.95, 1.8, -2.85],
   ground: [0, 0.18, 0.5],
   corner: [-2.1, 0.3, 1.7],
   ceiling: [0, 2.45, -0.4],
 };
+
+/** 「산소 펌프 을(를)」처럼 쓰지 않습니다. 팀마다 장치 이름이 다르니
+ *  **받침이 있는지 계산해서** 조사를 고릅니다.
+ *  한글 음절은 U+AC00 부터 28개씩 묶여 있고, 그 안의 자리가 0 이면 받침이 없습니다.
+ *  (한글이 아닌 이름이면 그냥 받침 없는 쪽으로 둡니다) */
+function josa(word: string, withBatchim: string, without: string) {
+  const last = word.trim().slice(-1);
+  const code = last.charCodeAt(0);
+  if (code < 0xac00 || code > 0xd7a3) return without;
+  return (code - 0xac00) % 28 === 0 ? without : withBatchim;
+}
 
 type RoomPreset = {
   name: string;
@@ -151,8 +164,16 @@ type Level = "none" | "waiting" | "ok" | "warn" | "danger";
 function sensorLevel(d: Device, value: number | null | undefined, sensor: SensorMap | null): Level {
   if (sensor === null) return "waiting";      // 아직 한 번도 못 받음
   if (value === null || value === undefined) return "none"; // 그 센서만 없음
-  if (d.danger !== undefined && value <= d.danger) return "danger";
-  if (d.warn !== undefined && value <= d.warn) return "warn";
+  // 팀이 기준을 안 적었으면 늘 「정상」입니다 (지어내지 않습니다)
+  //
+  // ★ 두 숫자의 **방향**으로 「높을수록 나쁨 / 낮을수록 나쁨」을 읽습니다.
+  //     토양수분  warn 30 · danger 15  → danger 가 더 작다 → **낮을수록** 나쁨
+  //     온도      warn 30 · danger 35  → danger 가 더 크다 → **높을수록** 나쁨
+  //   학생이 새 항목을 적지 않아도 되고, `/office` 폴백도 **같은 규칙**을 씁니다.
+  //   (이 줄이 없으면 온도처럼 높을수록 나쁜 센서가 **늘 「위험」**으로 나옵니다 — 실측)
+  const low = (d.danger ?? Infinity) < (d.warn ?? Infinity);
+  if (d.danger !== undefined && (low ? value <= d.danger : value >= d.danger)) return "danger";
+  if (d.warn !== undefined && (low ? value <= d.warn : value >= d.warn)) return "warn";
   return "ok";
 }
 
@@ -199,8 +220,11 @@ function RoomShell({ room }: { room: RoomPreset }) {
         <boxGeometry args={[6, 3, 0.1]} />
         <meshStandardMaterial color={room.wall} roughness={0.6} />
       </mesh>
-      {/* 오른쪽 벽 */}
-      <mesh position={[3, 1.5, 0]} receiveShadow>
+      {/* 왼쪽 벽 — ★ 카메라가 [+x, +z](앞·오른쪽)에 있으므로 옆벽은 **왼쪽(-x)** 이어야
+          합니다. 오른쪽(+3)에 두면 벽이 카메라와 방 사이를 가로막아 **방이 통째로
+          회색 판때기로 가려집니다** (실측으로 확인한 결함). 뒷벽과 이 벽 둘만 세워
+          「열린 모서리 방」을 만드는 것이 아이소메트릭의 기본 구성입니다. */}
+      <mesh position={[-3, 1.5, 0]} receiveShadow>
         <boxGeometry args={[0.1, 3, 6]} />
         <meshStandardMaterial color={room.wall} roughness={0.6} />
       </mesh>
@@ -861,7 +885,12 @@ export default function TwinPage() {
         )}
 
         {/* ── 가운데 · 3D 방 ────────────────────────────────── */}
-        <section className={`${UI.card} relative overflow-hidden`} style={{ minHeight: 460 }}>
+        {/* 높이를 화면에 맞춥니다. 460px 로 못박아 두면 전시용 노트북(보통 1080p)에서
+            아래 40% 가 **빈 흰 공간**으로 남습니다. 좌우 패널은 그리드가 늘려 줍니다. */}
+        <section
+          className={`${UI.card} relative overflow-hidden`}
+          style={{ minHeight: "min(72vh, 760px)" }}
+        >
           <div
             ref={(el) => {
               labelRef.current = el as HTMLElement;
@@ -871,10 +900,24 @@ export default function TwinPage() {
           />
           <div className="absolute inset-0">
             {webgl === null ? null : (
-              <Canvas shadows camera={{ position: [5.4, 4.2, 6.2], fov: 42 }}>
-                <hemisphereLight intensity={0.55} groundColor="#1e293b" />
-                <ambientLight intensity={0.45} />
-                <directionalLight position={[-4, 7, -4]} intensity={0.8} castShadow />
+              <Canvas shadows camera={{ position: [4.6, 4.6, 5.3], fov: 40 }}>
+                {/* ★ 조명은 **카메라 쪽**에서 비춰야 합니다. 반대편([-4,7,-4])에 두면
+                    우리가 보는 면이 전부 그늘이라, 흰 벽(#eef6ef)도 **짙은 회색**으로
+                    나옵니다. groundColor 도 너무 어두우면(#1e293b) 옆면을 끌어내립니다. */}
+                {/* 그림자가 너무 진하면 바닥에 **구멍이 뚫린 것처럼** 보입니다.
+                    주광을 낮추고 주변광을 올리면 그림자가 옅어집니다. */}
+                <hemisphereLight intensity={1.2} groundColor="#cbd5e1" />
+                <ambientLight intensity={1.15} />
+                <directionalLight
+                  position={[4, 9, 4]}
+                  intensity={1.5}
+                  castShadow
+                  shadow-mapSize={[2048, 2048]}
+                  shadow-camera-left={-6}
+                  shadow-camera-right={6}
+                  shadow-camera-top={6}
+                  shadow-camera-bottom={-6}
+                />
                 <RoomShell room={room} />
                 {sensors.map((d) => (
                   <SensorNode
@@ -910,6 +953,9 @@ export default function TwinPage() {
                 ))}
                 <OrbitControls
                   enablePan={false}
+                  /* 바닥(y=0)이 아니라 **사람 눈높이**를 봅니다. 원점을 보면 바닥이
+                     화면 아래 2/3 를 먹고 장치가 작아집니다. */
+                  target={[0, 0.9, 0]}
                   minPolarAngle={0.4}
                   maxPolarAngle={1.35}
                   minDistance={5}
@@ -925,7 +971,10 @@ export default function TwinPage() {
               <div className="mx-auto max-w-md rounded-2xl border border-rose-200 bg-white p-4 shadow-lg">
                 <div className="mb-2 flex items-center gap-2">
                   <ShieldAlert className="h-5 w-5 text-rose-500" aria-hidden="true" />
-                  <b className="text-sm">{pending.device.label} 을(를) 켤까요?</b>
+                  <b className="text-sm">
+                    {pending.device.label}
+                    {josa(pending.device.label, "을", "를")} 켤까요?
+                  </b>
                 </div>
                 <p className={`${UI.description} mb-3`}>
                   물 · 열 · 움직임이 있는 장치입니다. <b>승인하기 전에는 아무것도 보내지 않습니다.</b>

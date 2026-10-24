@@ -47,6 +47,15 @@ import {
 import { TWIN, type Device, type Spot } from "../twin/team-twin";
 
 // ── 기존 계약 (바꾸지 않습니다) ──────────────────────────────
+/** 「산소 펌프 을(를)」처럼 쓰지 않습니다 — 받침을 계산해 조사를 고릅니다.
+ *  (3D 화면 `twin/page.tsx` 의 같은 함수와 똑같이 동작해야 합니다) */
+function josa(word: string, withBatchim: string, without: string) {
+  const last = word.trim().slice(-1);
+  const code = last.charCodeAt(0);
+  if (code < 0xac00 || code > 0xd7a3) return without;
+  return (code - 0xac00) % 28 === 0 ? without : withBatchim;
+}
+
 type SensorData = Record<string, number | null>;
 type ConnectionStatus = "offline" | "connecting" | "online";
 
@@ -732,7 +741,8 @@ export default function OfficePage() {
                   승인이 필요합니다 · {pending.desk.label}
                 </span>
                 <p className="mt-2 text-sm leading-6 text-slate-700">
-                  <b>{pending.desk.label}</b> 을(를) 켜려고 합니다.
+                  <b>{pending.desk.label}</b>
+                  {josa(pending.desk.label, "을", "를")} 켜려고 합니다.
                   물 · 열 · 움직임이 있는 장치라 <b>아직 보내지 않았습니다.</b>
                 </p>
                 <div className="mt-3 flex gap-2">
