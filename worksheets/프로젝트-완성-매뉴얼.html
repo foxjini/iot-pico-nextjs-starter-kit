@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>우리 팀 작품 완성 매뉴얼 · 11주차 + 14주차</title>
+<title>우리 팀 작품 완성 매뉴얼 · 8주차 + 9주차</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -241,18 +241,18 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
 <header class="hero">
   <div class="wrap">
     <h1>우리 팀 작품 완성 매뉴얼</h1>
-    <div class="sub">11주차 + 14주차로 전시회 작품을 끝까지 만드는 방법</div>
+    <div class="sub">8주차 + 9주차로 전시회 작품을 끝까지 만드는 방법</div>
     <p class="lead">
-      남은 수업은 <b>11주차와 14주차 두 번</b>입니다. 그 다음은 <b>11월 20일 작품 전시회</b>입니다.
+      남은 수업은 <b>8주차와 9주차 두 번</b>입니다. 그 다음은 <b>11월 20일 작품 전시회</b>입니다.
       이 문서는 <b>위에서 아래로 순서대로</b> 따라가면 되도록 만들었습니다.
       먼저 <b>0단계에서 우리 팀 정보를 한 번만 입력</b>하세요. 그러면 아래 모든 프롬프트에
       우리 팀 센서 이름 · 핀 · JSON 키가 <b>자동으로 채워집니다.</b>
     </p>
     <div class="anchor-nav">
       <a href="#s0">0 · 준비</a>
-      <a href="#w11">11주차 · 기능 완성</a>
-      <a href="#w14">14주차 · 다시 디자인 + 전시</a>
-      <a href="#w15">실물 Pico 로 옮기기</a>
+      <a href="#w08">8주차 · 기능 완성</a>
+      <a href="#w09">9주차 · 다시 디자인 + 전시</a>
+      <a href="#w10">실물 Pico 로 옮기기</a>
       <a href="#stuck">막혔을 때</a>
       <a href="#errors">오류 사전</a>
       <a href="#dday-sec">전시 당일</a>
@@ -275,7 +275,7 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <div class="fld"><label>팀 이름</label><input data-k="teamName" placeholder="3팀"></div>
       <div class="fld"><label>작품 한 줄 설명</label><input data-k="topic" placeholder="교실 화분을 자동으로 관리하는 스마트 화분"><div class="hint">한 줄로 설명할 수 없으면 주제가 아직 안 정해진 것입니다</div></div>
       <div class="fld"><label>Pico IP 주소</label><input data-k="picoIp" placeholder="192.168.0.42"><div class="hint">시리얼 모니터에 찍힙니다. 가상 Pico면 localhost</div></div>
-      <div class="fld"><label>실물 Pico 가 있습니까</label><select data-k="hasPico"><option value="">고르세요</option><option value="real">있습니다 — 실물 Pico 로 합니다</option><option value="mock">없습니다 — 가상 Pico 로만 합니다</option></select><div class="hint"><b>없다고 고르면</b> 단계 E 에서 가상 Pico 에 칠 명령을 <b>전부 만들어 줍니다.</b> 전시장에는 가상 Pico 가 없으니 전시 전에 <a href="#w15">단계 15</a> 로 꼭 옮기세요</div></div>
+      <div class="fld"><label>실물 Pico 가 있습니까</label><select data-k="hasPico"><option value="">고르세요</option><option value="real">있습니다 — 실물 Pico 로 합니다</option><option value="mock">없습니다 — 가상 Pico 로만 합니다</option></select><div class="hint"><b>없다고 고르면</b> 단계 E 에서 가상 Pico 에 칠 명령을 <b>전부 만들어 줍니다.</b> 전시장에는 가상 Pico 가 없으니 전시 전에 <a href="#w10">단계 15</a> 로 꼭 옮기세요</div></div>
     </div>
 
     <h4>새로 붙이는 부품 — 센서와 액추에이터</h4>
@@ -328,9 +328,9 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <div class="fld"><label>관람객이 해 볼 것 하나</label><input data-k="visitorAction" placeholder="조도 센서를 손으로 가려 보세요"><div class="hint">전시의 성패를 가르는 한 줄입니다</div></div>
     </div>
 
-    <h4>14주차에 쓸 것 — 우리 작품의 주인공</h4>
+    <h4>9주차에 쓸 것 — 우리 작품의 주인공</h4>
     <div class="grid">
-      <div class="fld" style="grid-column:1/-1"><label>가장 크게, 가장 먼저 보이게 할 것 하나</label><input data-k="hero" placeholder="토양 수분 (흙이 마른 정도)"><div class="hint">14주차에 화면을 다시 디자인할 때 <b>주인공</b>이 됩니다. 센서 하나일 수도 있고 「문이 열린 각도」처럼 동작일 수도 있습니다 — 이것을 안 정하면 AI 가 <b>멋대로 고릅니다</b></div></div>
+      <div class="fld" style="grid-column:1/-1"><label>가장 크게, 가장 먼저 보이게 할 것 하나</label><input data-k="hero" placeholder="토양 수분 (흙이 마른 정도)"><div class="hint">9주차에 화면을 다시 디자인할 때 <b>주인공</b>이 됩니다. 센서 하나일 수도 있고 「문이 열린 각도」처럼 동작일 수도 있습니다 — 이것을 안 정하면 AI 가 <b>멋대로 고릅니다</b></div></div>
     </div>
 
     <div style="margin-top:14px"><button class="btn-ghost" onclick="resetAll()">입력과 체크 전부 지우기</button></div>
@@ -339,19 +339,19 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
   <div class="step">
     <div class="step-hd"><span class="step-no">0-1</span><span class="step-title">선생님이 준 파일을 받았는지 확인합니다</span><span class="step-time">2분</span></div>
     <div class="step-body">
-      <p>선생님이 나눠 준 파일을 한 폴더에 모아 두세요. <b>아래 다섯 개가 11주차에 꼭 필요합니다.</b></p>
+      <p>선생님이 나눠 준 파일을 한 폴더에 모아 두세요. <b>아래 다섯 개가 8주차에 꼭 필요합니다.</b></p>
       <table>
         <thead><tr><th style="width:40%">파일</th><th>무엇에 쓰나</th></tr></thead>
         <tbody>
-          <tr><td>🧭 <b>이 매뉴얼</b> (<code>프로젝트-완성-매뉴얼.html</code>)</td><td>지금 보고 있는 파일 — <b>11 · 14주차를 이 하나로</b> 따라갑니다</td></tr>
+          <tr><td>🧭 <b>이 매뉴얼</b> (<code>프로젝트-완성-매뉴얼.html</code>)</td><td>지금 보고 있는 파일 — <b>8 · 9주차를 이 하나로</b> 따라갑니다</td></tr>
           <tr><td><b><code>프로젝트-규칙.md</code></b></td><td><b>제미나이에 올립니다</b> (소스와 함께 매번)</td></tr>
-          <tr><td><code>bundle-source.js</code></td><td>11주차 — 소스 묶기</td></tr>
-          <tr><td><code>bundle-ui.js</code></td><td>14주차 — 화면 코드만 묶기</td></tr>
-          <tr><td><code>mock_pi_11.py</code></td><td>가상 Pico <span class="muted">(실물 Pico 가 없는 팀)</span></td></tr>
+          <tr><td><code>bundle-source.js</code></td><td>8주차 — 소스 묶기</td></tr>
+          <tr><td><code>bundle-ui.js</code></td><td>9주차 — 화면 코드만 묶기</td></tr>
+          <tr><td><code>mock_pi_08.py</code></td><td>가상 Pico <span class="muted">(실물 Pico 가 없는 팀)</span></td></tr>
         </tbody>
       </table>
       <div class="note warn"><span class="hd">가상 Pico 가 최신판인지 한 번만 확인하세요</span>
-        <code>py mock_pi_11.py</code> 로 띄우면 <code>[명령]</code> 줄이 찍힙니다.
+        <code>py mock_pi_08.py</code> 로 띄우면 <code>[명령]</code> 줄이 찍힙니다.
         그 안에 <b><code>act &lt;키&gt;</code></b> 가 보이면 최신판입니다.
         <b>안 보이면 옛 파일이니 선생님께 다시 받으세요.</b>
       </div>
@@ -372,9 +372,9 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <table>
         <thead><tr><th style="width:38%">파일</th><th>어디서 찾나</th><th style="width:26%">쓰는 때</th></tr></thead>
         <tbody>
-          <tr><td><code>bundle-source.js</code></td><td>선생님이 준 파일 중</td><td>11주차</td></tr>
-          <tr><td><code>bundle-ui.js</code></td><td>선생님이 준 파일 중</td><td>14주차</td></tr>
-          <tr><td><b><code>프로젝트-규칙.md</code></b></td><td><b>선생님이 준 파일 중</b></td><td><b>11주차 · 14주차 둘 다</b></td></tr>
+          <tr><td><code>bundle-source.js</code></td><td>선생님이 준 파일 중</td><td>8주차</td></tr>
+          <tr><td><code>bundle-ui.js</code></td><td>선생님이 준 파일 중</td><td>9주차</td></tr>
+          <tr><td><b><code>프로젝트-규칙.md</code></b></td><td><b>선생님이 준 파일 중</b></td><td><b>8주차 · 9주차 둘 다</b></td></tr>
         </tbody>
       </table>
       <div class="note danger"><span class="hd">규칙 파일을 잘못 가져오면 몇 주 작업이 날아갑니다</span>
@@ -405,20 +405,20 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <p><b>고치기 전에 지금이 되는지 먼저 봐야</b> 합니다. 안 되는 상태에서 고치면 무엇 때문인지 알 수 없습니다.</p>
       <pre class="term">npm run dev
 # 다른 창에서
-py mock_pi_11.py        (실물 Pico 가 있으면 생략)</pre>
+py mock_pi_08.py        (실물 Pico 가 있으면 생략)</pre>
       <label class="chk"><input type="checkbox" data-c="c05"><span>대시보드가 열리고 <b>ONLINE</b> 이 된다</span></label>
       <label class="chk"><input type="checkbox" data-c="c06"><span>센서 값이 들어오고, 빨간 오류 줄(<span class="kbd">F12</span> → Console)이 없다</span></label>
       <div class="note warn"><span class="hd">가상 Pico 로 개발해도 됩니다 — 단, <b>전시 전에 실물로 옮겨야</b> 합니다</span>
-        11주차는 가상 Pico 로 해도 됩니다. <b>전시장에는 가상 Pico 가 없으므로</b>,
-        <b>단계 K(무인 리허설)에 들어가기 전에</b> 실물 Pico 로 옮기세요 → <a href="#w15">단계 15</a>.
+        8주차는 가상 Pico 로 해도 됩니다. <b>전시장에는 가상 Pico 가 없으므로</b>,
+        <b>단계 K(무인 리허설)에 들어가기 전에</b> 실물 Pico 로 옮기세요 → <a href="#w10">단계 15</a>.
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════ 11주차 ══════════ -->
-<section id="w11">
-  <h2>11주차 · 우리 팀 기능을 끝냅니다</h2>
+<!-- ══════════ 8주차 ══════════ -->
+<section id="w08">
+  <h2>8주차 · 우리 팀 기능을 끝냅니다</h2>
   <p class="muted">순서를 꼭 지키세요. <b>계획 → 화면 → Pico → 자동 재연결</b> 입니다.</p>
 
   <div class="flow">
@@ -486,7 +486,7 @@ node bundle-source.js D:\</pre>
         <thead><tr><th style="width:38%">올리는 것</th><th>무엇인가</th></tr></thead>
         <tbody>
           <tr><td><code>우리팀-소스.md</code></td><td>지금 동작하는 우리 코드</td></tr>
-          <tr><td><b><code>프로젝트-규칙.md</code></b></td><td>지켜야 할 규칙 (11주차에 받은 것)</td></tr>
+          <tr><td><b><code>프로젝트-규칙.md</code></b></td><td>지켜야 할 규칙 (8주차에 받은 것)</td></tr>
         </tbody>
       </table>
       <div class="note tip"><span class="hd">왜 「새 대화」인가</span>
@@ -599,7 +599,7 @@ main.py 는 아직 주지 마세요 — Pico 는 다음 대화에서 따로 부�
       <div class="note tip"><span class="hd">가상 Pico 는 안 쓰는 키도 계속 보냅니다 — 정상입니다</span>
         화면에서 온습도를 지워도 <b>가상 Pico 는 늘 다섯 개를 보냅니다.</b> 고정된 프로그램이라
         그렇습니다. <b>화면이 안 쓰는 키는 그냥 무시하므로 아무 문제가 없습니다.</b>
-        실물 Pico 에서는 <a href="#w11">프롬프트 2</a> 가 그 키를 안 보내게 해 줍니다.
+        실물 Pico 에서는 <a href="#w08">프롬프트 2</a> 가 그 키를 안 보내게 해 줍니다.
       </div>
 
       <div class="note danger"><span class="hd">🚨 두 번째 확인을 절대 건너뛰지 마세요 — 실제로 측정한 함정입니다</span>
@@ -730,7 +730,7 @@ CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 �
           <div class="pbox-hd"><span>가상 Pico 창에 한 줄씩 붙여넣기</span><button class="copy">복사</button></div>
 <pre class="prompt"><span class="f" data-f="mockAddLines"></span></pre>
         </div>
-        <label class="chk"><input type="checkbox" data-c="m01"><span><code>py mock_pi_11.py</code> 로 띄우고 위 줄을 <b>전부</b> 쳤다</span></label>
+        <label class="chk"><input type="checkbox" data-c="m01"><span><code>py mock_pi_08.py</code> 로 띄우고 위 줄을 <b>전부</b> 쳤다</span></label>
         <label class="chk"><input type="checkbox" data-c="m02"><span>화면 센서 카드에 <b>값이 들어온다</b> — 「데이터 없음」이 사라졌다</span></label>
         <label class="chk"><input type="checkbox" data-c="m03"><span>액추에이터 버튼을 누르면 <code>-&gt; 우리 팀 액추에이터 …</code> 가 찍힌다</span></label>
         <div class="note tip"><span class="hd">액추에이터는 칠 필요가 없습니다</span>
@@ -741,7 +741,7 @@ CircuitPython 문법만 쓰세요. machine, utime 같은 MicroPython 모듈은 �
           저장되지 않습니다. 이 칸을 열어 두고 <b>복사 버튼</b>을 쓰세요.
         </div>
         <div class="note danger"><span class="hd">🔌 전시장에는 가상 Pico 가 없습니다</span>
-          <b>무인 리허설(단계 K)에 들어가기 전에</b> 실물로 옮겨야 합니다 → <a href="#w15">단계 15</a>
+          <b>무인 리허설(단계 K)에 들어가기 전에</b> 실물로 옮겨야 합니다 → <a href="#w10">단계 15</a>
         </div>
       </div>
 
@@ -880,16 +880,16 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
   </div>
 
   <div class="card">
-    <h3 style="margin-top:0">11주차를 마치며 — 다음 시간에 필요한 것</h3>
-    <label class="chk"><input type="checkbox" data-c="c27"><span>자동 재연결 네 줄이 <b>전부</b> 통과했다 <span class="muted">(안 됐으면 14주차 전에 꼭 끝내세요)</span></span></label>
+    <h3 style="margin-top:0">8주차를 마치며 — 다음 시간에 필요한 것</h3>
+    <label class="chk"><input type="checkbox" data-c="c27"><span>자동 재연결 네 줄이 <b>전부</b> 통과했다 <span class="muted">(안 됐으면 9주차 전에 꼭 끝내세요)</span></span></label>
     <label class="chk"><input type="checkbox" data-c="c28"><span>고친 <code>page.tsx</code> 를 <b>다시 <code>.bak</code> 으로 백업</b>했다 (잘 되는 상태를 저장)</span></label>
     <label class="chk"><input type="checkbox" data-c="c29"><span>AI 가 규칙을 어긴 것이 있었으면 <b>무엇이었는지 적어 뒀다</b></span></label>
   </div>
 </section>
 
-<!-- ══════════ 14주차 ══════════ -->
-<section id="w14">
-  <h2>14주차 · 전시회에 <b>내놓을 수 있게 맞춥니다</b> (120분 · 마지막 수업)</h2>
+<!-- ══════════ 9주차 ══════════ -->
+<section id="w09">
+  <h2>9주차 · 전시회에 <b>내놓을 수 있게 맞춥니다</b> (120분 · 마지막 수업)</h2>
   <p class="muted">새 기능을 배우지 않습니다. 그리고 <b>화면을 다시 디자인하지도 않습니다.</b></p>
 
   <div class="note danger"><span class="hd">🚨 오늘은 <b>심화 19단계를 다시 하지 않습니다</b></span>
@@ -899,7 +899,7 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
     <b>🐞 2026-10-23 3학년 모의 수업에서 실제로 겪은 일입니다.</b> 전에는 오늘 「진단하고 다시
     디자인하자」고 했는데, 제미나이가 <b>"기 작성 내용과 새로 작성하려는 방향이 많은 부분
     충돌한다"</b> 고 답했습니다. <b>제미나이가 맞았습니다</b> — 19단계는 <b>Bento Grid</b>(카드 격자)로
-    가라고 했는데 옛 14주차는 <i>"불필요한 카드와 테두리를 제거하고 비대칭 레이아웃으로"</i> 라고
+    가라고 했는데 옛 9주차는 <i>"불필요한 카드와 테두리를 제거하고 비대칭 레이아웃으로"</i> 라고
     했습니다. 정반대입니다. 그래서 끝까지 해도 <b>19단계 결과물보다 나아지지 않았습니다.</b><br>
     <b>오늘 하는 일은 하나입니다 — 잘 만든 화면을 전시장에서 버티게 만드는 것.</b>
   </div>
@@ -946,9 +946,9 @@ Wi-Fi 가 한 번 끊기면 지금은 사람이 「다시 연결」을 눌러야
     <div class="step-hd"><span class="step-no">H</span><span class="step-title">이번에는 <b>화면 코드만</b> 묶습니다</span><span class="step-time">10분</span></div>
     <div class="step-body">
       <pre class="term">node bundle-ui.js</pre>
-      <p><code>우리팀-UI.md</code> 가 만들어집니다. <b>11주차와 다른 도구</b>입니다.</p>
+      <p><code>우리팀-UI.md</code> 가 만들어집니다. <b>8주차와 다른 도구</b>입니다.</p>
       <table>
-        <thead><tr><th></th><th><code>bundle-source.js</code> (11주차)</th><th><code>bundle-ui.js</code> (오늘)</th></tr></thead>
+        <thead><tr><th></th><th><code>bundle-source.js</code> (8주차)</th><th><code>bundle-ui.js</code> (오늘)</th></tr></thead>
         <tbody>
           <tr><td>넣는 것</td><td>프로젝트 전체 + Pico 코드</td><td><b>화면 파일만</b></td></tr>
           <tr><td>빼는 것</td><td>비밀번호 · <code>node_modules</code></td><td>거기에 더해 <b><code>src/app/api/</code> · <code>src/lib/</code></b></td></tr>
@@ -1109,13 +1109,13 @@ E. 색과 조명
       <div class="note tip"><span class="hd">🎯 왜 이것만 코드를 나눠 주나</span>
         센서와 액추에이터는 팀마다 다르지만, <b>Wake Lock 은 모든 팀이 똑같습니다.</b>
         팀마다 다를 이유가 <b>하나도 없는 코드</b>를 매번 AI 가 새로 쓰면 <b>매번 다르게 틀립니다.</b>
-        그리고 <b>14주차가 마지막 수업이라 전시 모드가 깨지면 되돌릴 기회가 없습니다.</b>
+        그리고 <b>9주차가 마지막 수업이라 전시 모드가 깨지면 되돌릴 기회가 없습니다.</b>
         아래 블록은 Chromium 으로 <b>19가지를 실측해 통과한 것</b>입니다.
       </div>
 
       <div class="pbox">
         <div class="pbox-hd"><span>① 이 블록을 먼저 복사해 두세요 (검증된 코드)</span><button class="copy">복사</button></div>
-<pre class="prompt">// ★ 14주차 — 전시 모드: 화면이 꺼지지 않게 막습니다
+<pre class="prompt">// ★ 9주차 — 전시 모드: 화면이 꺼지지 않게 막습니다
 useEffect(() =&gt; {
   if (!kiosk) return;
   let lock: { release: () =&gt; Promise&lt;void&gt; } | null = null;
@@ -1139,7 +1139,7 @@ useEffect(() =&gt; {
   };
 }, [kiosk]);
 
-// ★ 14주차 — ESC 로 전체화면을 빠져나와도 전시 모드가 같이 꺼지게
+// ★ 9주차 — ESC 로 전체화면을 빠져나와도 전시 모드가 같이 꺼지게
 //   이게 없으면 버튼이 숨겨진 채로 남아 되돌릴 방법이 없어집니다.
 useEffect(() =&gt; {
   const onFsChange = () =&gt; { if (!document.fullscreenElement) setKiosk(false); };
@@ -1237,7 +1237,7 @@ const toggleKiosk = async () =&gt; {
     <div class="step-hd"><span class="step-no">J3</span><span class="step-title">액추에이터 안전 — 관람객이 <b>위험한 것을 못 켜게</b></span><span class="step-time">15분</span></div>
     <div class="step-body">
       <div class="note danger"><span class="hd">🚨 전시 모드는 액추에이터 버튼을 막아 주지 않습니다 — 실측했습니다</span>
-        전시 모드를 켜면 IP 칸과 연결 버튼은 숨지만, <b>11주차에 만든 액추에이터 버튼은
+        전시 모드를 켜면 IP 칸과 연결 버튼은 숨지만, <b>8주차에 만든 액추에이터 버튼은
         그대로 보이고 그대로 눌립니다.</b> 가상 Pico 로 재어 보니 관람객이 누른 명령이
         <b>Pico 까지 가서 적용</b>됐습니다. <b>펌프라면 관람객이 켜 놓고 그냥 갑니다</b> —
         무인 몇 시간이면 화분이 물에 잠깁니다.
@@ -1279,7 +1279,7 @@ const toggleKiosk = async () =&gt; {
     </div>
   </div>
 
-  <div class="step must" id="w15">
+  <div class="step must" id="w10">
     <div class="step-hd"><span class="step-no">15</span><span class="step-title">실물 Pico 로 옮기기 — <b>가상 Pico 로만 개발한 팀은 필수</b></span><span class="step-time">별도 시간</span></div>
     <div class="step-body">
       <div class="note danger"><span class="hd">전시장에는 가상 Pico 가 없습니다</span>
@@ -1319,7 +1319,7 @@ const toggleKiosk = async () =&gt; {
       <label class="chk"><input type="checkbox" data-c="p01"><span><code>CIRCUITPY/lib</code> 에 <b><code>adafruit_httpserver</code>(폴더) · <code>asyncio</code>(폴더) · <code>adafruit_ticks.mpy</code></b> 가 다 있다</span></label>
       <label class="chk"><input type="checkbox" data-c="p02"><span><code>settings.toml</code> 에 Wi-Fi SSID · 비밀번호가 들어 있다</span></label>
       <label class="chk"><input type="checkbox" data-c="p03"><span><b><code>code.py</code> 를 지웠다</b> — 있으면 <code>main.py</code> 가 <b>아예 안 돕니다</b></span></label>
-      <label class="chk"><input type="checkbox" data-c="p04"><span>제미나이에 올릴 파일 <b>세 개</b>를 챙겼다 — <code>mock_pi_11.py</code> · 내 <code>main.py</code> · <code>프로젝트-규칙.md</code></span></label>
+      <label class="chk"><input type="checkbox" data-c="p04"><span>제미나이에 올릴 파일 <b>세 개</b>를 챙겼다 — <code>mock_pi_08.py</code> · 내 <code>main.py</code> · <code>프로젝트-규칙.md</code></span></label>
       <div class="note warn"><span class="hd"><code>asyncio</code> 는 CircuitPython 내장이 아닙니다</span>
         <code>circup install asyncio</code> 를 쓰면 <code>adafruit_ticks</code> 까지 같이 깔립니다.
         <b><code>adafruit_ticks.mpy</code> 를 가장 많이 빠뜨립니다.</b>
@@ -1334,13 +1334,13 @@ const toggleKiosk = async () =&gt; {
         <div class="pbox-hd"><span>프롬프트 0 · 무엇이 다른지 표로 받기 (아직 고치지 않습니다)</span><button class="copy">복사</button></div>
 <pre class="prompt">첨부한 파일 세 개를 먼저 읽어 주세요.
 - 프로젝트-규칙.md : 지켜야 할 규칙입니다. §11 을 특히 잘 읽어 주세요.
-- mock_pi_11.py   : 윈도우 PC 에서 진짜 Pico 를 흉내 내던 프로그램입니다.
+- mock_pi_08.py   : 윈도우 PC 에서 진짜 Pico 를 흉내 내던 프로그램입니다.
 - main.py         : 진짜 Pico 에서 도는 지금 코드입니다.
 
-제 화면(대시보드)은 mock_pi_11.py 가 보내던 JSON 에 맞춰 만들어져 있습니다.
+제 화면(대시보드)은 mock_pi_08.py 가 보내던 JSON 에 맞춰 만들어져 있습니다.
 이제 진짜 Pico 가 그와 똑같은 JSON 을 보내게 하려고 합니다.
 
-★ mock_pi_11.py 에서 가져올 것은 "무엇을 보내는가" 하나뿐입니다.
+★ mock_pi_08.py 에서 가져올 것은 "무엇을 보내는가" 하나뿐입니다.
   그 파일은 PC 용 파이썬(CPython)이라 socket · threading 으로 WebSocket 을 직접 만들었지만,
   진짜 Pico 는 CircuitPython 이고 adafruit_httpserver + asyncio 를 씁니다.
   제 main.py 의 통신 구조(server.route · Websocket · async 태스크 세 개 · run(main()))는
@@ -1350,7 +1350,7 @@ const toggleKiosk = async () =&gt; {
 아직 코드를 고치지 마세요.
 먼저 아래 네 가지만 답해 주세요.
 
-1. mock_pi_11.py 의 build_payload() 가 보내는 JSON 키를 전부 적어 주세요.
+1. mock_pi_08.py 의 build_payload() 가 보내는 JSON 키를 전부 적어 주세요.
 2. 그중에서 제 main.py 가 아직 안 보내고 있는 키는 무엇인지
 3. 그 키를 진짜 Pico 에서는 무엇으로 만들 수 있는지 (부품이 필요한지, 계산인지)
 4. 어떤 순서로 고치면 좋을지</pre>
@@ -1370,7 +1370,7 @@ main.py 의 send_sensor_messages() 가 보내는 payload 에
 cpu_temp 와 discomfort 를 추가해 주세요.
 
 - cpu_temp : 칩에 들어 있는 온도계를 쓰세요. 부품을 새로 붙이지 않습니다.
-- discomfort : mock_pi_11.py 의 _discomfort() 와 같은 식을 쓰세요.
+- discomfort : mock_pi_08.py 의 _discomfort() 와 같은 식을 쓰세요.
   온도나 습도가 None 이면 계산하지 말고 None 을 넣어 주세요.
 
 - 지금 보내고 있는 temperature · humidity · light_percent 는 그대로 두세요
@@ -1433,7 +1433,7 @@ main.py 전체 완성본으로 주세요.</pre>
       </div>
       <label class="chk"><input type="checkbox" data-c="p09"><span><b>가상 Pico 를 끈 채로 30분</b> 동안 시리얼에 <b>Traceback 이 한 번도 안 떴다</b></span></label>
       <div class="note tip"><span class="hd">더 자세한 프롬프트와 오류 사전</span>
-        <code>week15-real-pico/프롬프트-모음-실물Pico.md</code> 에 프롬프트 4(센서가 죽어도 안 멈추게)와
+        <code>week10-real-pico/프롬프트-모음-실물Pico.md</code> 에 프롬프트 4(센서가 죽어도 안 멈추게)와
         시리얼 오류 표가 더 있습니다.
       </div>
     </div>
@@ -1485,7 +1485,7 @@ E. 안정성     — 콘솔 오류 · 빌드 · 몇 시간 켜 두기
       <h4>② 무인 리허설 30분 — <b>지금부터 아무도 손대지 않습니다</b></h4>
       <div class="note danger"><span class="hd">전시에 실물로 나가는 팀은 이 리허설도 <b>실물 Pico 로</b> 돌리세요</span>
         <b>가상 Pico 로 통과해도 전시가 안 됩니다.</b> 전시장에는 그 창이 없습니다.
-        아직 실물로 안 옮겼으면 <a href="#w15">단계 15</a> 를 먼저 하세요.
+        아직 실물로 안 옮겼으면 <a href="#w10">단계 15</a> 를 먼저 하세요.
       </div>
       <div class="note danger"><span class="hd">리허설 없이 전시에 나가면 당일 아침에 발견합니다</span>
         지금부터 30분 동안 <b>코드를 고치지 않습니다.</b> 고쳤으면 <b>30분을 처음부터</b> 다시 셉니다.
@@ -1497,8 +1497,8 @@ E. 안정성     — 콘솔 오류 · 빌드 · 몇 시간 켜 두기
       <label class="chk"><input type="checkbox" data-c="c49"><span>센서 카드에 <b>「데이터 없음」이 없다</b></span></label>
       <label class="chk"><input type="checkbox" data-c="c50"><span>노트북 <b>전원 어댑터가 꽂혀 있다</b></span></label>
       <div class="note warn"><span class="hd">두 번째 줄이 안 되는 팀은</span>
-        <b>11주차 자동 재연결(대화 4)을 아직 안 끝낸 것입니다.</b> 오늘 전시 적응보다 이것이 먼저입니다.
-        위로 올라가 <a href="#w11">단계 F</a> 를 먼저 하세요.
+        <b>8주차 자동 재연결(대화 4)을 아직 안 끝낸 것입니다.</b> 오늘 전시 적응보다 이것이 먼저입니다.
+        위로 올라가 <a href="#w08">단계 F</a> 를 먼저 하세요.
         전시 중에 Wi-Fi 는 <b>반드시 한 번은</b> 끊깁니다.
       </div>
       <div class="note tip"><span class="hd">전시 이틀 전부터는 코드를 그만 고칩니다</span>
@@ -1594,7 +1594,7 @@ E. 안정성     — 콘솔 오류 · 빌드 · 몇 시간 켜 두기
   </div>
   <div class="note tip"><span class="hd">이걸 쓸 줄 아는 것이 오늘 배우는 것 중 하나입니다</span>
     AI 는 틀립니다. <b>틀렸을 때 무엇이 틀렸는지 말해줄 수 있는 사람</b>만 AI 를 제대로 씁니다.
-    그러려면 코드를 읽을 줄 알아야 하고, 그게 8 · 9주차에 한 일입니다.
+    그러려면 코드를 읽을 줄 알아야 하고, 그게 4 · 5주차에 한 일입니다.
   </div>
 
   <h3>붙여넣기 전 검수 — 5분이면 됩니다</h3>
@@ -1626,7 +1626,7 @@ E. 안정성     — 콘솔 오류 · 빌드 · 몇 시간 켜 두기
     <thead><tr><th style="width:40%">증상</th><th>원인과 대처</th></tr></thead>
     <tbody>
       <tr><td><b>센서를 붙이고 코드도 넣었는데 연결조차 안 된다</b></td><td><b><code>code.py</code> 를 지우지 않았을 겁니다.</b> CircuitPython 은 <code>code.py</code> 가 있으면 <code>main.py</code> 를 실행하지 않습니다 — <b>가장 흔합니다</b></td></tr>
-      <tr><td>타입 오류가 나는데 뭘 빼먹었는지 모른다</td><td>위 <a href="#w11">단계 D</a> 의 오류 메시지 표를 보세요. 메시지가 어디를 빼먹었는지 알려 줍니다</td></tr>
+      <tr><td>타입 오류가 나는데 뭘 빼먹었는지 모른다</td><td>위 <a href="#w08">단계 D</a> 의 오류 메시지 표를 보세요. 메시지가 어디를 빼먹었는지 알려 줍니다</td></tr>
       <tr><td><b>오류는 없는데 센서 카드가 안 생긴다</b></td><td><b><code>SENSORS</code> 배열에만 안 들어간 것입니다.</b> 타입만 맞으면 빌드는 성공합니다</td></tr>
       <tr><td>센서값이 계속 <b>0</b> 이다</td><td>전원(3V3)이나 신호선이 안 닿았습니다. <code>code.py</code> 로 센서 하나만 시험해 회로부터 확인하세요</td></tr>
       <tr><td>센서값이 계속 <b>65535</b> 다</td><td><b>GND 가 안 이어졌습니다.</b> 모든 부품의 GND 를 Pico GND 와 이으세요</td></tr>
@@ -1637,24 +1637,24 @@ E. 안정성     — 콘솔 오류 · 빌드 · 몇 시간 켜 두기
       <tr><td>붙여넣었더니 <b>화면이 하얗게</b> 됨</td><td><span class="kbd">F12</span> → Console 에 빨간 오류가 있습니다. 프롬프트 5 로. 급하면 <code>.bak</code> 으로 되돌리세요</td></tr>
       <tr><td>코드가 중간에 잘려서 나옴</td><td>"이어서 주세요" 보다 <b>"그 파일을 처음부터 끝까지 다시 주세요"</b> 가 낫습니다</td></tr>
       <tr><td>대화가 길어지니 규칙을 자꾸 어김</td><td><b>새 대화를 시작</b>하고 파일 두 개를 다시 올리세요. 이게 제일 빠릅니다</td></tr>
-      <tr><td><code>@theme</code> 을 만들라고 한다</td><td>13주차(참고) 자료를 보고 하는 말입니다. 우리 토큰은 <code>const UI</code> 객체 — 프롬프트 6</td></tr>
+      <tr><td><code>@theme</code> 을 만들라고 한다</td><td>[부록] Tailwind UI(참고) 자료를 보고 하는 말입니다. 우리 토큰은 <code>const UI</code> 객체 — 프롬프트 6</td></tr>
       <tr><td><code>tailwind.config.js</code> 를 만들라고 한다</td><td>인터넷에 v3 자료가 훨씬 많아서 자주 나옵니다. <b>v4 에는 없는 파일</b>입니다</td></tr>
-      <tr><td><b>AI 가 「빌드했습니다 · 타입 오류 0건입니다 · 반응형을 확인했습니다」라고 한다</b></td><td>🚨 <b>거짓입니다.</b> 제미나이는 우리 컴퓨터에서 <b>아무것도 실행할 수 없습니다.</b> 올린 파일을 읽은 것이 전부입니다. <code>npm run build</code> 와 <span class="kbd">F12</span> 는 <b>우리가</b> 돌립니다 → <a href="#w14">단계 K</a></td></tr>
+      <tr><td><b>AI 가 「빌드했습니다 · 타입 오류 0건입니다 · 반응형을 확인했습니다」라고 한다</b></td><td>🚨 <b>거짓입니다.</b> 제미나이는 우리 컴퓨터에서 <b>아무것도 실행할 수 없습니다.</b> 올린 파일을 읽은 것이 전부입니다. <code>npm run build</code> 와 <span class="kbd">F12</span> 는 <b>우리가</b> 돌립니다 → <a href="#w09">단계 K</a></td></tr>
       <tr><td>진단만 부탁했는데 <b>코드를 준다</b></td><td><b>「코드는 아직 필요 없습니다. 보고서만 주세요」</b> 라고 하세요. 방향이 틀렸을 때 코드를 먼저 받으면 되돌리기가 어렵습니다 (규칙 9-7)</td></tr>
       <tr style="background:var(--bad-bg)"><td><b>「레이아웃을 다시 짜겠습니다」 / 「기존 내용과 충돌합니다」</b></td><td>🚨 <b>오늘 할 일이 아닙니다.</b> <i>"19단계에서 정한 Bento Grid 를 유지하세요. 전시장 조건에서 고칠 것만 알려 주세요"</i> — 규칙 <b>§3-9 · §12</b></td></tr>
       <tr><td><b>「바뀐 부분만」인데 전체를 준다</b></td><td>길면 플래시가 틀립니다. <i>"바뀐 줄만 before / after 로 주세요"</i> 를 다시 말하세요</td></tr>
       <tr style="background:var(--bad-bg)"><td><b>같은 파일 전체를 네 번째 요구하게 된다</b></td><td>🚨 <b>새 대화를 열고 지금 저장된 파일을 다시 올리세요</b> — 규칙 <b>§9-9</b>. 2026-10-23 모의 수업에서 여기서 오류 코드가 나왔습니다</td></tr>
-      <tr><td><b>전시 모드 코드를 고쳐서 준다</b></td><td><i>"제가 드린 블록은 그대로 쓰세요"</i> — <a href="#w14">단계 J1</a> 의 블록은 <b>검증된 코드</b>입니다</td></tr>
-      <tr><td><b>고치고 나니 전시 모드가 사라졌다</b></td><td>레이아웃을 건드리게 두면 생깁니다. <code>page.tsx.bak</code> 으로 되돌리고 <a href="#w14">단계 J1</a> 부터 다시 하세요 — 전시 모드 블록은 <b>그대로 쓰라고</b> 적혀 있습니다</td></tr>
+      <tr><td><b>전시 모드 코드를 고쳐서 준다</b></td><td><i>"제가 드린 블록은 그대로 쓰세요"</i> — <a href="#w09">단계 J1</a> 의 블록은 <b>검증된 코드</b>입니다</td></tr>
+      <tr><td><b>고치고 나니 전시 모드가 사라졌다</b></td><td>레이아웃을 건드리게 두면 생깁니다. <code>page.tsx.bak</code> 으로 되돌리고 <a href="#w09">단계 J1</a> 부터 다시 하세요 — 전시 모드 블록은 <b>그대로 쓰라고</b> 적혀 있습니다</td></tr>
       <tr><td><b>고치고 나니 자동 재연결이 사라졌다</b></td><td>같은 원인입니다. <b>무인 리허설에서 반드시 걸립니다</b> — 그래서 리허설 30분을 빼면 안 됩니다</td></tr>
       <tr><td><b>어두운 테마로 바꾸자고 한다</b></td><td><i>"올린 코드의 테마를 그대로 쓰세요"</i> — 심화 <b>15단계(Dark Mode &amp; Theme System)</b> 를 한 팀은 테마 전환 구조가 있습니다. <b>테마를 새로 만들거나 한쪽으로 고정하지 않습니다</b> — 규칙 <b>§3-9</b></td></tr>
       <tr><td><b>「데이터 없음」이 <code>0</code> 으로 바뀌었다</b></td><td>🚨 관람객이 <b>틀린 값</b>을 읽습니다. <b>측정 대기와 0 은 다릅니다.</b> 규칙 3-8 의 세 가지 구분을 다시 알려주세요</td></tr>
       <tr><td>그라데이션 · 반투명 유리 효과를 넣어 준다</td><td>규칙 <b>3-9</b> 의 금지 목록입니다. 지금 코드에는 하나도 없습니다 — 프롬프트 6</td></tr>
-      <tr><td><b>전시 모드를 끄려는데 버튼이 안 보인다</b></td><td><code>fullscreenchange</code> 처리가 빠진 것입니다. 일단 <b>새로고침</b>하고, <a href="#w14">단계 J</a> 의 ★ 코드를 넣으세요</td></tr>
+      <tr><td><b>전시 모드를 끄려는데 버튼이 안 보인다</b></td><td><code>fullscreenchange</code> 처리가 빠진 것입니다. 일단 <b>새로고침</b>하고, <a href="#w09">단계 J</a> 의 ★ 코드를 넣으세요</td></tr>
       <tr><td>전시 모드에서 화면이 하얗게 된다</td><td>Wake Lock 을 <code>try/catch</code> 없이 쓴 것입니다</td></tr>
       <tr><td>색을 쟀는데 이상한 값이 나온다</td><td><code>transition</code> 때문에 <b>바뀌는 중</b>일 수 있습니다. 0.5초쯤 기다렸다 보세요</td></tr>
       <tr><td><code>우리팀-UI.md</code> 가 안 만들어진다</td><td><code>package.json</code> 이 있는 폴더에서 실행했는지 확인하세요</td></tr>
-      <tr><td><b><code>x</code> 를 쳤는데 계속 연결됨으로 남는다</b></td><td><b>옛 가상 Pico 입니다.</b> 메뉴에 <code>act</code> 가 보이는지 확인하고, 없으면 <b>선생님께 최신 <code>mock_pi_11.py</code> 를 받으세요</b> (<a href="#s0">0-1단계</a>)</td></tr>
+      <tr><td><b><code>x</code> 를 쳤는데 계속 연결됨으로 남는다</b></td><td><b>옛 가상 Pico 입니다.</b> 메뉴에 <code>act</code> 가 보이는지 확인하고, 없으면 <b>선생님께 최신 <code>mock_pi_08.py</code> 를 받으세요</b> (<a href="#s0">0-1단계</a>)</td></tr>
     </tbody>
   </table>
 </section>
@@ -1691,16 +1691,16 @@ E. 안정성     — 콘솔 오류 · 빌드 · 몇 시간 켜 두기
     <tbody>
       <tr><td><b>프로젝트 폴더를 통째로 압축해서 올리기</b></td><td><code>.env.local</code>(MySQL 접속 정보)과 <code>settings.toml</code>(공유기 비밀번호)이 같이 올라갑니다. <b>반드시 묶기 스크립트를 쓰세요</b></td></tr>
       <tr><td><b><code>CIRCUITPY/settings.toml</code> 올리기</b></td><td><b>실습실 공유기 비밀번호</b>가 들어 있습니다. <code>main.py</code> 는 <code>os.getenv()</code> 로 읽으니 <b><code>main.py</code> 만 올리면 됩니다</b></td></tr>
-      <tr><td><b>실물로 안 옮기고 전시 나가기</b></td><td><b>전시장에는 가상 Pico 가 없습니다.</b> 리허설을 통과해도 화면에 값이 안 들어옵니다 → <a href="#w15">단계 15</a></td></tr>
+      <tr><td><b>실물로 안 옮기고 전시 나가기</b></td><td><b>전시장에는 가상 Pico 가 없습니다.</b> 리허설을 통과해도 화면에 값이 안 들어옵니다 → <a href="#w10">단계 15</a></td></tr>
       <tr><td><b>프롬프트에 비밀번호 · 개인정보 쓰기</b></td><td>Wi-Fi 비밀번호, DB 비밀번호, 이름 · 학번 · 전화번호를 쓰지 마세요. <b>한 번 올라가면 되돌릴 수 없습니다</b></td></tr>
-      <tr><td><b><code>프로젝트-규칙-tailwind.md</code> 올리기</b></td><td>13주차(참고) 전용입니다. 제미나이가 <b>우리 코드에 없는 색 이름</b>을 쓴 코드를 내놓습니다</td></tr>
+      <tr><td><b><code>프로젝트-규칙-tailwind.md</code> 올리기</b></td><td>[부록] Tailwind UI(참고) 전용입니다. 제미나이가 <b>우리 코드에 없는 색 이름</b>을 쓴 코드를 내놓습니다</td></tr>
       <tr><td><b>한 번에 여러 가지 요청하기</b></td><td>안 될 때 <b>어느 쪽이 문제인지 알 수 없습니다.</b> 하나 받으면 붙여넣고 돌려본 뒤 다음으로</td></tr>
       <tr><td><b><code>.bak</code> 없이 고치기</b></td><td>되돌릴 방법이 없어집니다. 복사는 1초, 복구는 1초입니다</td></tr>
       <tr><td><b>확인 안 하고 다음 프롬프트로 넘어가기</b></td><td>세 번째 프롬프트에서 터지면 <b>세 개 중 어느 것이 원인인지</b> 알 수 없습니다</td></tr>
       <tr><td><b>전시 이틀 전에 코드 고치기</b></td><td>마지막에 고친 것이 당일에 터집니다</td></tr>
       <tr><td><b>리허설 중에 코드 고치기</b></td><td>고쳤으면 <b>30분을 처음부터</b> 다시 세야 합니다</td></tr>
       <tr><td><b>펌프 · 모터 버튼을 전시 모드에 열어 두기</b></td><td><b>관람객이 켜 놓고 그냥 갑니다.</b> 무인 몇 시간이면 화분이 물에 잠깁니다 — 숨기거나 <b>몇 초 뒤 자동으로 꺼지게</b></td></tr>
-      <tr><td><b>통신 코드 · DB 코드 건드리기</b></td><td>14주차는 <b>보이는 부분만</b> 고칩니다. <code>bundle-ui.js</code> 가 일부러 빼 놓은 이유입니다</td></tr>
+      <tr><td><b>통신 코드 · DB 코드 건드리기</b></td><td>9주차는 <b>보이는 부분만</b> 고칩니다. <code>bundle-ui.js</code> 가 일부러 빼 놓은 이유입니다</td></tr>
     </tbody>
   </table>
 
@@ -1713,10 +1713,10 @@ E. 안정성     — 콘솔 오류 · 빌드 · 몇 시간 켜 두기
 <footer>
   <div class="wrap" style="padding:0">
     인천전자마이스터고 정보통신과 1학년 · IoT 스마트 제어 시스템 실습 ·
-    11주차 + 14주차 작품 완성 매뉴얼 · 2026-10-11<br>
-    같이 보는 것 — <code>week11-vibe-coding/프롬프트-모음-우리팀.md</code> ·
-    <code>week14-tailwind-vibe/프롬프트-모음-전시.md</code> ·
-    <code>week15-real-pico/프롬프트-모음-실물Pico.md</code> ·
+    8주차 + 9주차 작품 완성 매뉴얼 · 2026-10-11<br>
+    같이 보는 것 — <code>week08-vibe-coding/프롬프트-모음-우리팀.md</code> ·
+    <code>week09-exhibit/프롬프트-모음-전시.md</code> ·
+    <code>week10-real-pico/프롬프트-모음-실물Pico.md</code> ·
     <code>mock-pico/README.md</code>
   </div>
 </footer>

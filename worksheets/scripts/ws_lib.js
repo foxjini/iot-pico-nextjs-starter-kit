@@ -1,4 +1,4 @@
-// 학생 워크시트 공용 헬퍼 — gen_week1.js 에서 추출
+// 학생 워크시트 공용 헬퍼 — gen_week01.js 에서 추출
 const {
   Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
   WidthType, BorderStyle, ShadingType, AlignmentType, PageBreak, VerticalAlign,
