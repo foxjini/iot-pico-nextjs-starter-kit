@@ -9,3 +9,7 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# 파이썬이 만드는 캐시 — 저장소에 넣지 않습니다
+__pycache__/
+*.pyc
