@@ -30,7 +30,7 @@
 "use client";
 
 import {
-  useCallback, useEffect, useId, useMemo, useRef, useState, type ComponentType,
+  useCallback, useEffect, useMemo, useRef, useState, type ComponentType,
 } from "react";
 import {
   AlertTriangle, CheckCircle2, Clock, Cpu, CloudSun, Droplets, HelpCircle,
@@ -91,30 +91,30 @@ function tintOf(d: Device) {
 
 const UI = {
   /* 🚨 3D 화면(`twin/page.tsx`)의 const UI 와 **같은 값**이어야 합니다 (형제) */
-  /* ★ 다크 관제실 (ui-ux-pro-max · IoT 대시보드 권장: Glassmorphism + Dark).
-     위쪽에 청록·남색 빛이 아주 옅게 번집니다. */
-  page:
-    "min-h-screen bg-[#0B1120] text-slate-100 " +
-    "bg-[radial-gradient(900px_420px_at_18%_-6%,rgba(34,211,238,0.10),transparent_70%),radial-gradient(900px_480px_at_85%_-10%,rgba(99,102,241,0.12),transparent_70%)]",
-  /* 패널은 **유리** — 반투명 + 흐림 + 머리카락 테두리 */
-  card: "rounded-[14px] border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl",
+  /* ★ 흑백 + 상태색만. 그라데이션 · 유리 흐림 · 네온 강조색은 **쓰지 않습니다**
+     (파랑·보라 빛 번짐, 청록 발광선, 반투명 흐림은 생성형 UI 의 대표적인 흔적입니다).
+     색은 딱 두 군데에서만 나옵니다 — ① 상태(초록·호박·빨강) ② 캐릭터(누구인지). */
+  page: "min-h-screen bg-[#0E0F11] text-zinc-100",
+  /* 패널은 **불투명** 회색 + 머리카락 테두리 */
+  card: "rounded-[14px] border border-white/[0.07] bg-[#16181B]",
   cardPadding: "p-5",
-  sectionTitle: "text-lg font-semibold tracking-tight text-slate-50",
-  cardTitle: "text-sm font-semibold tracking-tight text-slate-100",
-  eyebrow: "text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400",
-  mono: "font-mono text-[11px] tracking-tight text-slate-400",
-  /* 🚨 글자에 slate-500 이하를 쓰지 않습니다 — 이 배경에서 4.5:1 이 안 나옵니다 */
-  description: "text-sm leading-6 text-slate-400",
+  sectionTitle: "text-lg font-semibold tracking-tight text-zinc-50",
+  cardTitle: "text-sm font-semibold tracking-tight text-zinc-100",
+  eyebrow: "text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400",
+  mono: "font-mono text-[11px] tracking-tight text-zinc-400",
+  /* 🚨 글자에 zinc-500 이하를 쓰지 않습니다 — 이 배경에서 4.5:1 이 안 나옵니다 */
+  description: "text-sm leading-6 text-zinc-400",
+  /* 선택·포커스는 **흰 고리** (강조색 없음) */
   focus:
-    "focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1120]",
-  /* 강조색은 **청록 하나** — 상태색(초록·호박·장미)과 섞이지 않게 */
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-100 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0E0F11]",
+  /* 주 버튼 = 흰 바탕 검은 글자. 보조 버튼 = 테두리만 */
   primaryButton:
-    "inline-flex items-center justify-center gap-2 rounded-[10px] bg-cyan-400 px-4 py-2.5 " +
-    "text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 " +
+    "inline-flex items-center justify-center gap-2 rounded-[10px] bg-zinc-50 px-4 py-2.5 " +
+    "text-sm font-semibold text-zinc-950 transition-colors hover:bg-white " +
     "disabled:cursor-not-allowed disabled:opacity-40",
   secondaryButton:
     "inline-flex items-center justify-center gap-2 rounded-[10px] border border-white/[0.12] " +
-    "bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/[0.08] " +
+    "bg-transparent px-4 py-2.5 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/[0.06] " +
     "disabled:cursor-not-allowed disabled:opacity-40",
 };
 
@@ -165,14 +165,14 @@ const PALETTE: Record<string, { head: string; body: string; ring: string }> = {
   mint:  { head: "bg-emerald-300", body: "bg-emerald-200", ring: "ring-emerald-400" },
   sky:   { head: "bg-sky-300",     body: "bg-sky-200",     ring: "ring-sky-400" },
   amber: { head: "bg-amber-300",   body: "bg-amber-200",   ring: "ring-amber-400" },
-  robot: { head: "bg-slate-400",   body: "bg-slate-300",   ring: "ring-slate-500" },
+  robot: { head: "bg-zinc-400",   body: "bg-zinc-300",   ring: "ring-zinc-500" },
 };
 
 const ROOM_SKIN: Record<string, { a: string; b: string; name: string }> = {
-  farm:    { a: "bg-[#14262B]", b: "bg-[#18303A]", name: "온실" },
-  home:    { a: "bg-[#1C2133]", b: "bg-[#232A42]", name: "거실" },
-  factory: { a: "bg-[#1A202C]", b: "bg-[#222937]", name: "공장" },
-  park:    { a: "bg-[#14281F]", b: "bg-[#1A3327]", name: "공원" },
+  farm:    { a: "bg-[#323337]", b: "bg-[#38393D]", name: "온실" },
+  home:    { a: "bg-[#333337]", b: "bg-[#39393D]", name: "거실" },
+  factory: { a: "bg-[#313134]", b: "bg-[#37373A]", name: "공장" },
+  park:    { a: "bg-[#323433]", b: "bg-[#383A39]", name: "공원" },
 };
 
 const DEVICE_ICON: Record<string, ComponentType<{ className?: string }>> = {
@@ -199,11 +199,10 @@ function Spark({
   danger?: number;
   labels?: boolean;
 }) {
-  const gid = useId();
   if (data.length < 2) {
     return (
       <svg width={w} height={h} aria-hidden="true" className="shrink-0">
-        <line x1="0" y1={h / 2} x2={w} y2={h / 2} stroke="#64748B" strokeOpacity="0.5" strokeDasharray="2 3" />
+        <line x1="0" y1={h / 2} x2={w} y2={h / 2} stroke="#71717A" strokeOpacity="0.5" strokeDasharray="2 3" />
       </svg>
     );
   }
@@ -220,12 +219,6 @@ function Spark({
   const last = data[data.length - 1];
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" className="shrink-0 overflow-visible">
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
       {labels &&
         ([
           ["주의", warn, "#FBBF24"],
@@ -240,7 +233,6 @@ function Spark({
             </g>
           ),
         )}
-      <polygon points={`0,${h} ${pts} ${w},${h}`} fill={`url(#${gid})`} />
       <polyline points={pts} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
       <circle cx={x(data.length - 1)} cy={y(last)} r="2.4" fill={color} />
     </svg>
@@ -273,18 +265,18 @@ function deskState(
 ): DeviceState {
   // ① 아직 한 번도 못 받았다
   if (sensor === null) {
-    return { tone: "text-slate-400", dot: "bg-slate-300", text: "연결 대기", icon: Clock };
+    return { tone: "text-zinc-400", dot: "bg-zinc-300", text: "연결 대기", icon: Clock };
   }
   if (desk.kind === "actuator") {
     const on = (actuator[desk.key] ?? 0) > 0;
     return on
       ? { tone: "text-emerald-300", dot: "bg-emerald-500", text: "켜짐", icon: CheckCircle2 }
-      : { tone: "text-slate-400", dot: "bg-slate-300", text: "꺼짐", icon: Power };
+      : { tone: "text-zinc-400", dot: "bg-zinc-300", text: "꺼짐", icon: Power };
   }
   const v = sensor[desk.key];
   // ② 받았는데 그 센서만 없다
   if (v === null || v === undefined) {
-    return { tone: "text-slate-400", dot: "bg-slate-300", text: "데이터 없음", icon: HelpCircle };
+    return { tone: "text-zinc-400", dot: "bg-zinc-300", text: "데이터 없음", icon: HelpCircle };
   }
   // 팀이 기준을 안 적었으면 늘 「정상」입니다 (지어내지 않습니다)
   const { warn, danger } = desk;
@@ -317,15 +309,15 @@ function DeskBox({ c, r }: { c: number; r: number }) {
   return (
     <div className="absolute" style={{ transform: at(c + 0.1, r + 0.1), transformStyle: "preserve-3d" }}>
       <div
-        className="absolute bg-[#1E2738]"
+        className="absolute bg-[#34353A]"
         style={{ width: w, height: h, transform: `translate3d(0, ${d}px, 0) rotateX(90deg)`, transformOrigin: "0 0" }}
       />
       <div
-        className="absolute bg-[#161E2D]"
+        className="absolute bg-[#26272B]"
         style={{ width: h, height: d, transform: `translate3d(${w}px, 0, 0) rotateY(-90deg)`, transformOrigin: "0 0" }}
       />
       <div
-        className="absolute rounded-sm bg-[#2A3448] ring-1 ring-inset ring-cyan-300/20"
+        className="absolute rounded-sm bg-[#45464C] ring-1 ring-inset ring-white/10"
         style={{ width: w, height: d, transform: `translateZ(${h}px)` }}
       />
     </div>
@@ -370,8 +362,8 @@ function DeskCharacter({
     >
       {/* 상태 — 색 + 아이콘 + 글자 셋 다 */}
       <span
-        className={`mb-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-950/75 px-2 py-0.5
-                    text-[11px] font-semibold shadow-sm ring-1 ring-white/10 backdrop-blur ${state.tone}`}
+        className={`mb-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#17181B] px-2 py-0.5
+                    text-[11px] font-semibold shadow-sm ring-1 ring-white/10 ${state.tone}`}
       >
         <StatusIcon className="h-3 w-3" aria-hidden="true" />
         {state.text}
@@ -388,15 +380,15 @@ function DeskCharacter({
       />
 
       {/* 이름표 — 전시 모드에서는 주인공만 값까지 크게 */}
-      <span className="mt-1 whitespace-nowrap rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">
+      <span className="mt-1 whitespace-nowrap rounded-full bg-zinc-900 px-2 py-0.5 text-[11px] font-bold text-white">
         {desk.label}
       </span>
       {/* ★ 9주차 — 1m 밖에서 읽히게. 전시 모드의 주인공만 값을 크게 답니다.
           평소에는 왼쪽 목록과 오른쪽 상세에 값이 있으므로 캐릭터는 깔끔하게 둡니다. */}
       {desk.kind === "sensor" && big && (
-        <span className="mt-0.5 font-mono text-4xl font-semibold tabular-nums text-slate-50">
+        <span className="mt-0.5 font-mono text-4xl font-semibold tabular-nums text-zinc-50">
           {value === null || value === undefined ? "--" : value.toFixed(1)}
-          <span className="ml-0.5 text-base font-medium text-slate-400">{desk.unit ?? ""}</span>
+          <span className="ml-0.5 text-base font-medium text-zinc-400">{desk.unit ?? ""}</span>
         </span>
       )}
     </button>
@@ -426,7 +418,7 @@ function IsoRoom({
       tiles.push(
         <div
           key={`t${c}-${r}`}
-          className={`absolute border border-cyan-300/[0.08] ${(c + r) % 2 ? skin.b : skin.a}`}
+          className={`absolute border border-white/[0.05] ${(c + r) % 2 ? skin.b : skin.a}`}
           style={{ width: TILE, height: TILE, transform: at(c, r) }}
         />,
       );
@@ -467,7 +459,7 @@ function IsoRoom({
         </div>
       </div>
 
-      <span className="absolute left-4 top-4 rounded-full bg-slate-950/60 px-3 py-1 text-xs font-semibold text-slate-300 ring-1 ring-white/10">
+      <span className="absolute left-4 top-4 rounded-full bg-[#17181B] px-3 py-1 text-xs font-semibold text-zinc-300 ring-1 ring-white/10">
         {skin.name}
       </span>
     </div>
@@ -495,8 +487,8 @@ function CommandTrail({ trail }: { trail: Trail[] }) {
         <li key={t.id} className="rounded-xl border border-white/[0.10] p-3">
           <div className="flex items-center gap-2">
             <span className={UI.cardTitle}>{t.label}</span>
-            <span className="font-mono text-xs text-slate-400">{t.value}</span>
-            <span className="ml-auto text-xs text-slate-400">
+            <span className="font-mono text-xs text-zinc-400">{t.value}</span>
+            <span className="ml-auto text-xs text-zinc-400">
               {new Date(t.at).toLocaleTimeString("ko-KR")}
             </span>
           </div>
@@ -507,7 +499,7 @@ function CommandTrail({ trail }: { trail: Trail[] }) {
               {t.sentOk
                 ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" aria-hidden="true" />
                 : <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-300" aria-hidden="true" />}
-              <span className={t.sentOk ? "text-slate-200" : "text-rose-200"}>
+              <span className={t.sentOk ? "text-zinc-200" : "text-rose-200"}>
                 {t.sentOk ? "화면이 보냈습니다" : "보내지 못했습니다 — 연결이 열려 있지 않습니다"}
               </span>
             </li>
@@ -516,8 +508,8 @@ function CommandTrail({ trail }: { trail: Trail[] }) {
             <li className="flex items-start gap-2">
               {t.aliveAt
                 ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" aria-hidden="true" />
-                : <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-slate-400" aria-hidden="true" />}
-              <span className="text-slate-200">
+                : <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-zinc-400" aria-hidden="true" />}
+              <span className="text-zinc-200">
                 {t.aliveAt ? "보낸 뒤에도 센서값이 또 왔습니다 — 연결은 살아 있습니다"
                            : "센서값이 또 오기를 기다리는 중"}
               </span>
@@ -525,9 +517,9 @@ function CommandTrail({ trail }: { trail: Trail[] }) {
 
             {/* ③ Pico 가 적용했다 — 화면은 알 수 없습니다. 영원히 ◌ 입니다. */}
             <li className="flex items-start gap-2">
-              <HelpCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-              <span className="text-slate-400">
-                <b className="font-semibold text-slate-200">Pico 가 실제로 적용했는지는 이 화면이 알 수 없습니다.</b>
+              <HelpCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
+              <span className="text-zinc-400">
+                <b className="font-semibold text-zinc-200">Pico 가 실제로 적용했는지는 이 화면이 알 수 없습니다.</b>
                 {" "}지금 통신 규약에 <b>명령에 대한 답장이 없습니다.</b>
                 <br />
                 눈으로 확인하세요 — 실물이면 장치가 움직이는지, 가상 Pico 면 창에
@@ -744,7 +736,7 @@ export default function OfficePage() {
         <header className="mb-4 flex flex-wrap items-center gap-3">
           <div className="min-w-0">
             <h1 className={UI.sectionTitle}>{TWIN.teamName}</h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-zinc-400">
               3D 없는 화면 · 장치 {TWIN.devices.length} · 센서{" "}
               {TWIN.devices.filter((d) => d.kind === "sensor").length} · 액추에이터{" "}
               {TWIN.devices.filter((d) => d.kind === "actuator").length}
@@ -755,7 +747,7 @@ export default function OfficePage() {
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
               online ? "border border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
               : connecting ? "border border-amber-400/30 bg-amber-400/10 text-amber-300"
-              : "border border-white/[0.12] bg-white/[0.04] text-slate-300"
+              : "border border-white/[0.12] bg-white/[0.04] text-zinc-300"
             }`}
           >
             {online ? <Wifi className="h-3.5 w-3.5" aria-hidden="true" />
@@ -764,7 +756,7 @@ export default function OfficePage() {
             {online ? "실시간" : connecting ? "재연결 중…" : "오프라인"}
           </span>
           {lastAt !== null && !(!online && !connecting) && (
-            <span className="text-xs tabular-nums text-slate-400">
+            <span className="text-xs tabular-nums text-zinc-400">
               마지막 수신 {new Date(lastAt).toLocaleTimeString("ko-KR")}
             </span>
           )}
@@ -786,7 +778,7 @@ export default function OfficePage() {
         {/* ★ 9주차 — 전시 모드에서는 개발용 설정을 숨깁니다 */}
         {!kiosk && (
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <label htmlFor="picoIp" className="text-sm font-medium text-slate-300">Pico 주소</label>
+            <label htmlFor="picoIp" className="text-sm font-medium text-zinc-300">Pico 주소</label>
             <input
               id="picoIp"
               value={picoIp}
@@ -809,7 +801,7 @@ export default function OfficePage() {
           <aside className={`${UI.card} p-3`}>
             <div className="flex items-baseline justify-between px-2 pb-2">
               <h2 className={UI.eyebrow}>우리 팀 장치</h2>
-              <span className="text-xs tabular-nums text-slate-400">{TWIN.devices.length}</span>
+              <span className="text-xs tabular-nums text-zinc-400">{TWIN.devices.length}</span>
             </div>
             <ul className="space-y-1">
               {TWIN.devices.map((d) => {
@@ -823,7 +815,7 @@ export default function OfficePage() {
                       onClick={() => setSelectedKey(d.key)}
                       className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition-colors ${UI.focus} ${
                         on
-                          ? "border-cyan-400/30 bg-cyan-400/[0.06]"
+                          ? "border-white/25 bg-white/[0.05]"
                           : "border-transparent hover:bg-white/[0.04]"
                       }`}
                     >
@@ -841,7 +833,7 @@ export default function OfficePage() {
                         <Icon className="h-4 w-4" aria-hidden="true" />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-slate-50">
+                        <span className="block truncate text-sm font-semibold text-zinc-50">
                           {d.label}
                         </span>
                         <span className={`block truncate ${UI.mono}`}>{d.key}</span>
@@ -883,13 +875,13 @@ export default function OfficePage() {
               <div
                 role="alertdialog"
                 aria-label={`${pending.desk.label} 승인 필요`}
-                className="absolute right-4 top-4 w-72 rounded-2xl border border-white/[0.10] bg-slate-900/90 p-4 shadow-xl"
+                className="absolute right-4 top-4 w-72 rounded-2xl border border-white/[0.10] bg-[#17181B] p-4 shadow-xl"
               >
                 <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-bold text-rose-200">
                   <ShieldAlert className="h-3 w-3" aria-hidden="true" />
                   승인이 필요합니다 · {pending.desk.label}
                 </span>
-                <p className="mt-2 text-sm leading-6 text-slate-200">
+                <p className="mt-2 text-sm leading-6 text-zinc-200">
                   <b>{pending.desk.label}</b>
                   {josa(pending.desk.label, "을", "를")} 켜려고 합니다.
                   물 · 열 · 움직임이 있는 장치라 <b>아직 보내지 않았습니다.</b>
@@ -909,7 +901,7 @@ export default function OfficePage() {
 
             {/* 아직 한 번도 못 받았다 */}
             {sensor === null && !kiosk && (
-              <p className="mt-3 rounded-xl border border-dashed border-white/[0.15] p-4 text-center text-sm text-slate-400">
+              <p className="mt-3 rounded-xl border border-dashed border-white/[0.15] p-4 text-center text-sm text-zinc-400">
                 아직 센서 데이터가 없습니다. 위에서 <b>장치 연결</b>을 눌러 주세요.
               </p>
             )}
@@ -924,7 +916,7 @@ export default function OfficePage() {
                   type="button"
                   onClick={() => setTab(k)}
                   className={`flex-1 rounded-full px-2 py-1.5 text-xs font-semibold transition-colors ${UI.focus}
-                              ${tab === k ? "bg-white/[0.10] text-white shadow-sm ring-1 ring-inset ring-white/10" : "text-slate-400 hover:text-slate-100"}`}
+                              ${tab === k ? "bg-white/[0.10] text-white shadow-sm ring-1 ring-inset ring-white/10" : "text-zinc-400 hover:text-zinc-100"}`}
                 >
                   {t}
                 </button>
@@ -935,15 +927,15 @@ export default function OfficePage() {
               selected && selectedState ? (
                 <div>
                   <h3 className={UI.cardTitle}>{selected.label}</h3>
-                  <p className="font-mono text-[11px] text-slate-400">{selected.key}</p>
+                  <p className="font-mono text-[11px] text-zinc-400">{selected.key}</p>
                   <p className={`mt-3 font-mono text-4xl font-semibold tabular-nums ${
-                    selectedValue === null || selectedValue === undefined ? "text-slate-400" : "text-slate-50"
+                    selectedValue === null || selectedValue === undefined ? "text-zinc-400" : "text-zinc-50"
                   }`}>
                     {selected.kind === "actuator"
                       ? ((actuator[selected.key] ?? 0) > 0 ? "켜짐" : "꺼짐")
                       : selectedValue === null || selectedValue === undefined ? "--" : selectedValue.toFixed(1)}
                     {selected.kind === "sensor" && (
-                      <span className="ml-1 text-base font-medium text-slate-400">{selected.unit ?? ""}</span>
+                      <span className="ml-1 text-base font-medium text-zinc-400">{selected.unit ?? ""}</span>
                     )}
                   </p>
                   <p className={`mt-1 inline-flex items-center gap-1 text-sm font-semibold ${selectedState.tone}`}>
@@ -970,7 +962,7 @@ export default function OfficePage() {
                   return (
                     <div key={d.key} className="flex items-center gap-2 rounded-xl border border-white/[0.10] p-3">
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-slate-50">{d.label}</span>
+                        <span className="block truncate text-sm font-semibold text-zinc-50">{d.label}</span>
                         {d.risk === "high" && (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300">
                             <ShieldAlert className="h-3 w-3" aria-hidden="true" />승인 필요
@@ -989,7 +981,7 @@ export default function OfficePage() {
                   );
                 })}
                 {!online && (
-                  <p className="text-xs text-slate-400">연결되어 있지 않아 명령을 보낼 수 없습니다.</p>
+                  <p className="text-xs text-zinc-400">연결되어 있지 않아 명령을 보낼 수 없습니다.</p>
                 )}
               </div>
             )}

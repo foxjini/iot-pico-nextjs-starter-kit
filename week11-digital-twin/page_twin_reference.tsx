@@ -37,7 +37,6 @@
 import {
   useCallback,
   useEffect,
-  useId,
   useRef,
   useState,
   type ComponentType,
@@ -87,30 +86,30 @@ import { TWIN, type Device, type RoomKind, type Spot } from "./team-twin";
    ════════════════════════════════════════════════════════════ */
 
 const UI = {
-  /* ★ 다크 관제실 (ui-ux-pro-max · IoT 대시보드 권장: Glassmorphism + Dark).
-     위쪽에 청록·남색 빛이 아주 옅게 번집니다. */
-  page:
-    "min-h-screen bg-[#0B1120] text-slate-100 " +
-    "bg-[radial-gradient(900px_420px_at_18%_-6%,rgba(34,211,238,0.10),transparent_70%),radial-gradient(900px_480px_at_85%_-10%,rgba(99,102,241,0.12),transparent_70%)]",
-  /* 패널은 **유리** — 반투명 + 흐림 + 머리카락 테두리 */
-  card: "rounded-[14px] border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl",
+  /* ★ 흑백 + 상태색만. 그라데이션 · 유리 흐림 · 네온 강조색은 **쓰지 않습니다**
+     (파랑·보라 빛 번짐, 청록 발광선, 반투명 흐림은 생성형 UI 의 대표적인 흔적입니다).
+     색은 딱 두 군데에서만 나옵니다 — ① 상태(초록·호박·빨강) ② 캐릭터(누구인지). */
+  page: "min-h-screen bg-[#0E0F11] text-zinc-100",
+  /* 패널은 **불투명** 회색 + 머리카락 테두리 */
+  card: "rounded-[14px] border border-white/[0.07] bg-[#16181B]",
   cardPadding: "p-5",
-  sectionTitle: "text-lg font-semibold tracking-tight text-slate-50",
-  cardTitle: "text-sm font-semibold tracking-tight text-slate-100",
-  eyebrow: "text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400",
-  mono: "font-mono text-[11px] tracking-tight text-slate-400",
-  /* 🚨 글자에 slate-500 이하를 쓰지 않습니다 — 이 배경에서 4.5:1 이 안 나옵니다 */
-  description: "text-sm leading-6 text-slate-400",
+  sectionTitle: "text-lg font-semibold tracking-tight text-zinc-50",
+  cardTitle: "text-sm font-semibold tracking-tight text-zinc-100",
+  eyebrow: "text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400",
+  mono: "font-mono text-[11px] tracking-tight text-zinc-400",
+  /* 🚨 글자에 zinc-500 이하를 쓰지 않습니다 — 이 배경에서 4.5:1 이 안 나옵니다 */
+  description: "text-sm leading-6 text-zinc-400",
+  /* 선택·포커스는 **흰 고리** (강조색 없음) */
   focus:
-    "focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1120]",
-  /* 강조색은 **청록 하나** — 상태색(초록·호박·장미)과 섞이지 않게 */
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-100 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0E0F11]",
+  /* 주 버튼 = 흰 바탕 검은 글자. 보조 버튼 = 테두리만 */
   primaryButton:
-    "inline-flex items-center justify-center gap-2 rounded-[10px] bg-cyan-400 px-4 py-2.5 " +
-    "text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 " +
+    "inline-flex items-center justify-center gap-2 rounded-[10px] bg-zinc-50 px-4 py-2.5 " +
+    "text-sm font-semibold text-zinc-950 transition-colors hover:bg-white " +
     "disabled:cursor-not-allowed disabled:opacity-40",
   secondaryButton:
     "inline-flex items-center justify-center gap-2 rounded-[10px] border border-white/[0.12] " +
-    "bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/[0.08] " +
+    "bg-transparent px-4 py-2.5 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/[0.06] " +
     "disabled:cursor-not-allowed disabled:opacity-40",
 };
 
@@ -184,13 +183,15 @@ type RoomPreset = {
   accent: string;
 };
 
-/* ★ 다크 관제실. 바닥은 방 성격에 맞춰 **아주 살짝만** 물들인 짙은 색,
-   강조색(accent)은 러그와 발광선에 씁니다. */
+/* ★ 바닥·벽은 **중립 회색**(푸른 기운 없음). 방 성격은 러그 색(accent)으로만 드러냅니다.
+   페이지 바탕(#0E0F11)보다 **확실히 밝게** 둡니다 — 발광선 없이도 방이 바탕에서 떨어져 보여야 합니다
+   (처음엔 너무 어두워 방이 검은 바탕에 묻혔습니다 — 실측).
+   발광선·네온은 쓰지 않습니다 — 빛은 데이터(상태 고리·전구·켜진 장치)에만. */
 const ROOMS: Record<RoomKind, RoomPreset> = {
-  farm: { name: "온실", floor: "#14262B", wall: "#1A2436", accent: "#2DD4BF" },
-  home: { name: "집", floor: "#1C2133", wall: "#1E2538", accent: "#60A5FA" },
-  factory: { name: "공장", floor: "#1A202C", wall: "#1E2533", accent: "#FBBF24" },
-  park: { name: "공원", floor: "#14281F", wall: "#1A2634", accent: "#4ADE80" },
+  farm: { name: "온실", floor: "#323337", wall: "#46474D", accent: "#3F8F6B" },
+  home: { name: "집", floor: "#333337", wall: "#47474D", accent: "#5B7FA8" },
+  factory: { name: "공장", floor: "#313134", wall: "#45454A", accent: "#A88B4A" },
+  park: { name: "공원", floor: "#323433", wall: "#46484A", accent: "#4F8F5A" },
 };
 
 /* ════════════════════════════════════════════════════════════
@@ -225,8 +226,8 @@ const LEVEL_TEXT: Record<Level, string> = {
 };
 
 const LEVEL_CLASS: Record<Level, string> = {
-  none: "bg-white/[0.05] text-slate-300 border-white/[0.12]",
-  waiting: "bg-white/[0.05] text-slate-300 border-white/[0.12]",
+  none: "bg-white/[0.05] text-zinc-300 border-white/[0.12]",
+  waiting: "bg-white/[0.05] text-zinc-300 border-white/[0.12]",
   ok: "bg-emerald-400/10 text-emerald-300 border-emerald-400/25",
   warn: "bg-amber-400/10 text-amber-300 border-amber-400/30",
   danger: "bg-rose-500/15 text-rose-200 border-rose-400/40",
@@ -234,8 +235,8 @@ const LEVEL_CLASS: Record<Level, string> = {
 
 /* 추세선 색 (상태별) */
 const LEVEL_LINE: Record<Level, string> = {
-  none: "#64748B",
-  waiting: "#64748B",
+  none: "#71717A",
+  waiting: "#71717A",
   ok: "#34D399",
   warn: "#FBBF24",
   danger: "#FB7185",
@@ -282,11 +283,10 @@ function Spark({
   danger?: number;
   labels?: boolean;
 }) {
-  const gid = useId();
   if (data.length < 2) {
     return (
       <svg width={w} height={h} aria-hidden="true" className="shrink-0">
-        <line x1="0" y1={h / 2} x2={w} y2={h / 2} stroke="#64748B" strokeOpacity="0.5" strokeDasharray="2 3" />
+        <line x1="0" y1={h / 2} x2={w} y2={h / 2} stroke="#71717A" strokeOpacity="0.5" strokeDasharray="2 3" />
       </svg>
     );
   }
@@ -303,12 +303,6 @@ function Spark({
   const last = data[data.length - 1];
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" className="shrink-0 overflow-visible">
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
       {labels &&
         ([
           ["주의", warn, "#FBBF24"],
@@ -323,7 +317,6 @@ function Spark({
             </g>
           ),
         )}
-      <polygon points={`0,${h} ${pts} ${w},${h}`} fill={`url(#${gid})`} />
       <polyline points={pts} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
       <circle cx={x(data.length - 1)} cy={y(last)} r="2.4" fill={color} />
     </svg>
@@ -333,8 +326,8 @@ function Spark({
 /* 3D 쪽은 **클레이 파스텔**입니다. 화면 글자(LEVEL_CLASS)는 또렷한 색을 쓰지만,
    입체물은 채도를 낮춰야 점토처럼 보입니다 — 형광색은 플라스틱처럼 보입니다. */
 const LEVEL_3D: Record<Level, string> = {
-  none: "#CFD4DC",
-  waiting: "#CFD4DC",
+  none: "#A1A1AA",
+  waiting: "#A1A1AA",
   ok: "#4FC48D",
   warn: "#F2B33D",
   danger: "#F2607A",
@@ -367,87 +360,73 @@ function mix(hex: string, to: string, t: number) {
    계산이 훨씬 무거워, 캐릭터·소품이 늘어난 지금 프레임이 목표(12fps, GPU 없는 환경)
    아래로 떨어졌습니다. 바꿔 보니 **그림은 사실상 같고 11.2 → 14.2fps** 였습니다.
    roughness · metalness 를 다시 쓰자고 하지 마세요. */
-function RoomShell({ room }: { room: RoomPreset }) {
+type WallBar = { key: string; ratio: number | null; color: string };
+
+function RoomShell({ room, bars }: { room: RoomPreset; bars: WallBar[] }) {
   const WALL_H = 1.1;
-  const GLOW = "#22D3EE";
 
   return (
     <group>
-      {/* 떠 있는 단 + **청록 발광 테두리선** — 「떠 있는 디지털 모형」 */}
+      {/* 떠 있는 단 — 발광선 없이 **단색**. 모형이 떠 있는 느낌은 그림자와 두께로 충분합니다 */}
       <RoundedBox args={[6.7, 0.44, 6.7]} radius={0.2} smoothness={2} position={[0, -0.24, 0]}>
-        <meshLambertMaterial color="#121A2B" />
+        <meshLambertMaterial color="#2A2B2F" />
       </RoundedBox>
-      {[
-        { p: [0, 0.006, 3.32], a: [6.64, 0.012, 0.03] },
-        { p: [0, 0.006, -3.32], a: [6.64, 0.012, 0.03] },
-        { p: [3.32, 0.006, 0], a: [0.03, 0.012, 6.64] },
-        { p: [-3.32, 0.006, 0], a: [0.03, 0.012, 6.64] },
-      ].map((e, k) => (
-        <mesh key={k} position={e.p as [number, number, number]}>
-          <boxGeometry args={e.a as [number, number, number]} />
-          <meshLambertMaterial color={GLOW} emissive={GLOW} emissiveIntensity={1.4} />
-        </mesh>
-      ))}
 
       {/* 바닥 + 가는 격자 (three 코어 gridHelper — 새 라이브러리 아님) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]}>
         <planeGeometry args={[6, 6]} />
         <meshLambertMaterial color={room.floor} />
       </mesh>
-      <gridHelper args={[6, 12, "#24485A", "#1B3240"]} position={[0, 0.007, 0]} />
+      <gridHelper args={[6, 12, "#424349", "#3A3B40"]} position={[0, 0.007, 0]} />
 
       {/* 가운데 러그 — 주인공 자리 */}
       <mesh position={[-0.2, 0.012, 0.55]}>
         <cylinderGeometry args={[1.3, 1.3, 0.02, 48]} />
-        <meshLambertMaterial color={mix(room.accent, "#0B1120", 0.78)} />
-      </mesh>
-      <mesh position={[-0.2, 0.024, 0.55]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[1.26, 1.3, 64]} />
-        <meshBasicMaterial color={room.accent} transparent opacity={0.45} />
+        <meshLambertMaterial color={mix(room.accent, "#323337", 0.72)} />
       </mesh>
 
-      {/* 낮은 반벽 + 위 모서리 발광 띠 */}
+      {/* 낮은 반벽 */}
       <RoundedBox args={[6, WALL_H, 0.14]} radius={0.04} smoothness={2} position={[0, WALL_H / 2, -3]}>
         <meshLambertMaterial color={room.wall} />
       </RoundedBox>
       <RoundedBox args={[0.14, WALL_H, 6]} radius={0.04} smoothness={2} position={[-3, WALL_H / 2, 0]}>
         <meshLambertMaterial color={room.wall} />
       </RoundedBox>
-      <mesh position={[0, WALL_H + 0.01, -3]}>
-        <boxGeometry args={[6, 0.02, 0.16]} />
-        <meshLambertMaterial color={GLOW} emissive={GLOW} emissiveIntensity={0.9} />
-      </mesh>
-      <mesh position={[-3, WALL_H + 0.01, 0]}>
-        <boxGeometry args={[0.16, 0.02, 6]} />
-        <meshLambertMaterial color={GLOW} emissive={GLOW} emissiveIntensity={0.9} />
-      </mesh>
-
-      {/* 벽면 디스플레이 — 발광 화면 + 막대 */}
+      {/* 벽면 디스플레이 — ★ **실제 센서 값** 막대 (값 ÷ max, 상태색).
+          꾸밈용 가짜 막대는 정직하지도 않고 생성형 UI 의 흔한 흔적이라 쓰지 않습니다. */}
       <group position={[0.55, 0, -2.72]}>
         <RoundedBox args={[1.58, 0.93, 0.05]} radius={0.03} smoothness={2} position={[0, 1.15, -0.03]}>
-          <meshLambertMaterial color="#2A3448" />
+          <meshLambertMaterial color="#2A2B2F" />
         </RoundedBox>
         <mesh position={[0, 1.15, 0.0]}>
           <boxGeometry args={[1.46, 0.81, 0.01]} />
-          <meshLambertMaterial color="#0A1322" emissive="#0E7490" emissiveIntensity={0.25} />
+          <meshLambertMaterial color="#141518" />
         </mesh>
-        {[0.22, 0.38, 0.3, 0.5, 0.42].map((h, k) => (
-          <mesh key={k} position={[-0.5 + k * 0.25, 0.86 + h / 2, 0.012]}>
-            <boxGeometry args={[0.13, h, 0.01]} />
-            <meshLambertMaterial color={CLAY[k % CLAY.length]} emissive={CLAY[k % CLAY.length]} emissiveIntensity={0.85} />
-          </mesh>
-        ))}
+        {bars.slice(0, 5).map((b, k, arr) => {
+          const h = Math.max(0.03, (b.ratio ?? 0) * 0.62);
+          const gap = 1.2 / Math.max(arr.length, 1);
+          return (
+            <mesh key={b.key} position={[-0.6 + gap * (k + 0.5), 0.8 + h / 2, 0.012]}>
+              <boxGeometry args={[Math.min(0.16, gap * 0.6), h, 0.01]} />
+              <meshLambertMaterial
+                color={b.ratio === null ? "#3F3F46" : b.color}
+                emissive={b.ratio === null ? "#000000" : b.color}
+                emissiveIntensity={b.ratio === null ? 0 : 0.7}
+              />
+            </mesh>
+          );
+        })}
         {[-0.6, 0.6].map((x) => (
           <mesh key={x} position={[x, 0.36, 0.02]}>
             <cylinderGeometry args={[0.025, 0.025, 0.72, 8]} />
-            <meshLambertMaterial color="#3A4660" />
+            <meshLambertMaterial color="#4A4B51" />
           </mesh>
         ))}
       </group>
 
       {/* 뒤쪽 낮은 선반 + 책 */}
       <RoundedBox args={[1.4, 0.56, 0.36]} radius={0.04} smoothness={2} position={[-1.85, 0.28, -2.72]}>
-        <meshLambertMaterial color="#263046" />
+        <meshLambertMaterial color="#36373C" />
       </RoundedBox>
       {[
         { x: -2.3, h: 0.24, c: "#F2A3B3" },
@@ -462,36 +441,36 @@ function RoomShell({ room }: { room: RoomPreset }) {
 
       {/* 오른쪽 뒤 책상 무리 — 모니터 화면이 빛납니다 */}
       <RoundedBox args={[1.5, 0.08, 0.75]} radius={0.03} smoothness={2} position={[2.0, 0.62, -2.35]}>
-        <meshLambertMaterial color="#2B3650" />
+        <meshLambertMaterial color="#3B3C42" />
       </RoundedBox>
       {[1.35, 2.65].map((x) => (
         <mesh key={x} position={[x, 0.3, -2.35]}>
           <boxGeometry args={[0.06, 0.6, 0.65]} />
-          <meshLambertMaterial color="#222B3F" />
+          <meshLambertMaterial color="#303136" />
         </mesh>
       ))}
       {[1.65, 2.35].map((x) => (
         <group key={x}>
           <RoundedBox args={[0.5, 0.32, 0.04]} radius={0.02} smoothness={2} position={[x, 0.86, -2.5]}>
-            <meshLambertMaterial color="#0F1623" />
+            <meshLambertMaterial color="#1C1D20" />
           </RoundedBox>
           <mesh position={[x, 0.86, -2.475]}>
             <boxGeometry args={[0.44, 0.26, 0.005]} />
-            <meshLambertMaterial color="#67E8F9" emissive="#22D3EE" emissiveIntensity={0.7} />
+            <meshLambertMaterial color="#D4D4D8" emissive="#A1A1AA" emissiveIntensity={0.22} />
           </mesh>
           <mesh position={[x, 0.68, -2.5]}>
             <boxGeometry args={[0.16, 0.04, 0.12]} />
-            <meshLambertMaterial color="#0F1623" />
+            <meshLambertMaterial color="#1C1D20" />
           </mesh>
           <RoundedBox args={[0.38, 0.07, 0.38]} radius={0.04} smoothness={2} position={[x, 0.42, -1.85]}>
-            <meshLambertMaterial color="#334063" />
+            <meshLambertMaterial color="#45464D" />
           </RoundedBox>
           <RoundedBox args={[0.38, 0.36, 0.07]} radius={0.04} smoothness={2} position={[x, 0.62, -1.68]}>
-            <meshLambertMaterial color="#334063" />
+            <meshLambertMaterial color="#45464D" />
           </RoundedBox>
           <mesh position={[x, 0.2, -1.85]}>
             <cylinderGeometry args={[0.04, 0.12, 0.4, 10]} />
-            <meshLambertMaterial color="#1E2738" />
+            <meshLambertMaterial color="#2C2D32" />
           </mesh>
         </group>
       ))}
@@ -499,14 +478,14 @@ function RoomShell({ room }: { room: RoomPreset }) {
       {/* 왼쪽 벽 소파 */}
       <group position={[-2.45, 0, -0.25]}>
         <RoundedBox args={[0.75, 0.26, 1.6]} radius={0.08} smoothness={2} position={[0, 0.2, 0]}>
-          <meshLambertMaterial color="#2E3A55" />
+          <meshLambertMaterial color="#3E3F46" />
         </RoundedBox>
         <RoundedBox args={[0.22, 0.5, 1.6]} radius={0.08} smoothness={2} position={[-0.3, 0.42, 0]}>
-          <meshLambertMaterial color="#28334C" />
+          <meshLambertMaterial color="#37383E" />
         </RoundedBox>
         {[-0.74, 0.74].map((z) => (
           <RoundedBox key={z} args={[0.75, 0.36, 0.16]} radius={0.06} smoothness={2} position={[0, 0.27, z]}>
-            <meshLambertMaterial color="#28334C" />
+            <meshLambertMaterial color="#37383E" />
           </RoundedBox>
         ))}
         <RoundedBox args={[0.3, 0.3, 0.3]} radius={0.08} smoothness={2} position={[0.05, 0.45, 0.25]}>
@@ -522,7 +501,7 @@ function RoomShell({ room }: { room: RoomPreset }) {
         <group key={k} position={pl.p as [number, number, number]} scale={pl.s}>
           <mesh position={[0, 0.17, 0]}>
             <cylinderGeometry args={[0.2, 0.15, 0.34, 18]} />
-            <meshLambertMaterial color="#2A3448" />
+            <meshLambertMaterial color="#3A3B41" />
           </mesh>
           {[
             { p: [0, 0.55, 0], r: 0.22 },
@@ -577,8 +556,8 @@ type HairStyle = (typeof HAIR)[number];
 
 /* 이름표의 상태 점 색 */
 const DOT: Record<Level, string> = {
-  none: "#94A3B8",
-  waiting: "#94A3B8",
+  none: "#A1A1AA",
+  waiting: "#A1A1AA",
   ok: "#4ADE80",
   warn: "#FBBF24",
   danger: "#FFFFFF",
@@ -665,7 +644,7 @@ function Hair({ style, color }: { style: HairStyle; color: string }) {
           {cap}
           <mesh position={[0, 0.1, 0.19]} rotation={[-0.25, 0, 0]}>
             <boxGeometry args={[0.26, 0.025, 0.16]} />
-            <meshLambertMaterial color={mix(color, "#0B1120", 0.25)} />
+            <meshLambertMaterial color={mix(color, "#0E0F11", 0.25)} />
           </mesh>
         </group>
       );
@@ -746,10 +725,10 @@ function Toy({
   });
 
   const waiting = mood === "waiting" || mood === "none";
-  const hairC = waiting ? "#64748B" : tint;
-  const skin = waiting ? "#A3A8B4" : SKIN;
-  const outfit = waiting ? "#475569" : mix(tint, "#FFFFFF", 0.18);
-  const pants = waiting ? "#334155" : "#2B3550";
+  const hairC = waiting ? "#71717A" : tint;
+  const skin = waiting ? "#A1A1AA" : SKIN;
+  const outfit = waiting ? "#52525B" : mix(tint, "#FFFFFF", 0.18);
+  const pants = waiting ? "#3F3F46" : "#3E3F46";
   const orbColor = mood === "danger" ? "#FB7185" : mood === "warn" ? "#FBBF24" : null;
 
   return (
@@ -826,7 +805,7 @@ function Toy({
   );
 }
 
-/* 이름표 — 머리 위 유리 알약. **값**을 보여 줍니다 */
+/* 이름표 — 머리 위 불투명 알약. **값**을 보여 줍니다 */
 function NameTag({
   portal,
   deviceKey,
@@ -853,13 +832,13 @@ function NameTag({
         onClick={onSelect}
         data-device={deviceKey}
         aria-label={ariaLabel}
-        className={`pointer-events-auto inline-flex w-max items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(0,0,0,0.6)] backdrop-blur-md transition-colors ${UI.focus} ${
-          danger ? "border-rose-300/50 bg-rose-600/90" : "border-white/[0.12] bg-slate-950/70 hover:bg-slate-900/90"
+        className={`pointer-events-auto inline-flex w-max items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(0,0,0,0.6)] transition-colors ${UI.focus} ${
+          danger ? "border-rose-300/50 bg-rose-600" : "border-white/[0.12] bg-[#1B1C20] hover:bg-[#232428]"
         } ${stale ? "opacity-60" : ""} ${
           ring === "pending"
-            ? "ring-2 ring-rose-400 ring-offset-2 ring-offset-[#0B1120]"
+            ? "ring-2 ring-rose-400 ring-offset-2 ring-offset-[#0E0F11]"
             : ring === "selected"
-              ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0B1120]"
+              ? "ring-2 ring-zinc-100 ring-offset-2 ring-offset-[#0E0F11]"
               : ""
         }`}
       >
@@ -913,11 +892,11 @@ function SensorNode({
         {/* 센서 기둥 + 전구 — 전구 색이 상태입니다 */}
         <mesh position={[0, 0.02, 0]}>
           <cylinderGeometry args={[0.1, 0.11, 0.04, 16]} />
-          <meshLambertMaterial color="#2A3448" />
+          <meshLambertMaterial color="#3A3B41" />
         </mesh>
         <mesh position={[0, 0.27, 0]}>
           <cylinderGeometry args={[0.02, 0.02, 0.5, 8]} />
-          <meshLambertMaterial color="#64748B" />
+          <meshLambertMaterial color="#71717A" />
         </mesh>
         <mesh position={[0, 0.58, 0]}>
           <sphereGeometry args={[0.09, 16, 12]} />
@@ -937,7 +916,7 @@ function SensorNode({
             onClick={onSelect}
             data-device={device.key}
             aria-label={aria}
-            className={`pointer-events-auto flex w-max flex-col items-center gap-0.5 rounded-[14px] border bg-slate-950/80 px-4 py-2 text-center shadow-[0_16px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-md ${UI.focus} ${
+            className={`pointer-events-auto flex w-max flex-col items-center gap-0.5 rounded-[14px] border bg-[#17181B] px-4 py-2 text-center shadow-[0_16px_40px_-12px_rgba(0,0,0,0.7)] ${UI.focus} ${
               LEVEL_CLASS[level]
             } ${stale ? "opacity-60" : ""}`}
           >
@@ -997,11 +976,11 @@ function ActuatorNode({
   const pos = SPOTS[device.spot];
   if (hidden) return null;
   const tint = CLAY[index % CLAY.length];
-  const box = on ? "#F2B33D" : "#334155";
+  const box = on ? "#F2B33D" : "#3F3F46";
 
   return (
     <group position={pos}>
-      <StatusRing color={on ? "#FBBF24" : "#64748B"} speed={on ? 0.8 : 0} calm={calm} />
+      <StatusRing color={on ? "#FBBF24" : "#71717A"} speed={on ? 0.8 : 0} calm={calm} />
       <Toy
         tint={tint}
         hair={HAIR[index % HAIR.length]}
@@ -1021,7 +1000,7 @@ function ActuatorNode({
         <mesh position={[0, 0.28, 0]}>
           <sphereGeometry args={[0.035, 10, 8]} />
           <meshLambertMaterial
-            color={on ? "#FFF3C4" : "#64748B"}
+            color={on ? "#FFF3C4" : "#71717A"}
             emissive={on ? "#FFD666" : "#000000"}
             emissiveIntensity={on ? 1.5 : 0}
           />
@@ -1040,7 +1019,7 @@ function ActuatorNode({
         <span
           aria-hidden="true"
           className="h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: pending ? "#FB7185" : on ? "#FBBF24" : "#94A3B8" }}
+          style={{ backgroundColor: pending ? "#FB7185" : on ? "#FBBF24" : "#A1A1AA" }}
         />
         {device.label}
         <span className="font-normal text-white/70">
@@ -1087,12 +1066,12 @@ function CommandTrail({ trail, now }: { trail: TrailItem[]; now: number }) {
         /* 기다리는 동안만 막대가 찹니다 — 「멈춘 것」과 「기다리는 것」은 다릅니다 */
         const pct = waiting ? Math.min(100, ((now - t.at) / ACK_MS) * 100) : 0;
         return (
-          <li key={t.id} className="rounded-xl border border-white/[0.10] bg-slate-900/90 p-3">
+          <li key={t.id} className="rounded-xl border border-white/[0.10] bg-[#17181B] p-3">
             <div className="mb-3 flex items-center justify-between gap-2">
               <span className="text-sm font-semibold tracking-tight">
                 {t.label} → {t.value > 0 ? "켜기" : "끄기"}
               </span>
-              <span className="text-[11px] tabular-nums text-slate-400">
+              <span className="text-[11px] tabular-nums text-zinc-400">
                 {new Date(t.at).toLocaleTimeString("ko-KR")}
               </span>
             </div>
@@ -1101,7 +1080,7 @@ function CommandTrail({ trail, now }: { trail: TrailItem[]; now: number }) {
             <ol className="relative space-y-3 pl-8">
               <span
                 aria-hidden="true"
-                className="absolute left-[11px] top-3 bottom-3 w-px bg-slate-200"
+                className="absolute left-[11px] top-3 bottom-3 w-px bg-zinc-200"
               />
               <Row done={t.sentOk} label="① 화면이 보냈다" />
               <Row done={t.aliveAt !== null} label="② 연결은 살아 있다" />
@@ -1157,9 +1136,9 @@ function TrailStep({
       ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
       : tone === "warn"
         ? "border-amber-400/30 bg-amber-400/10 text-amber-600"
-        : "border-white/[0.10] bg-slate-900/90 text-slate-400";
+        : "border-white/[0.10] bg-[#17181B] text-zinc-400";
   const text =
-    tone === "ok" ? "text-slate-200" : tone === "warn" ? "text-amber-300" : "text-slate-400";
+    tone === "ok" ? "text-zinc-200" : tone === "warn" ? "text-amber-300" : "text-zinc-400";
   return (
     <li
       {...(rowThree ? { "data-row-three": true } : {})}
@@ -1233,33 +1212,33 @@ function PendingBubble({
       zIndexRange={[40, 30]}
       style={{ transform: toRight ? "translate(-8%, -100%)" : "translate(-92%, -100%)" }}
     >
-      <div className="pointer-events-auto w-[17rem] rounded-2xl border border-white/[0.10] bg-slate-900/90 p-3.5 shadow-[0_12px_32px_-12px_rgba(16,24,40,0.35)]">
+      <div className="pointer-events-auto w-[17rem] rounded-2xl border border-white/[0.10] bg-[#17181B] p-3.5 shadow-[0_12px_32px_-12px_rgba(16,24,40,0.35)]">
         <div className="mb-1.5 flex items-center gap-1.5">
           <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-200">
             <ShieldAlert className="h-3 w-3" aria-hidden="true" /> 승인 필요
           </span>
           <span className={UI.mono}>{device.key}</span>
         </div>
-        <b className="block text-sm tracking-tight text-slate-50">
+        <b className="block text-sm tracking-tight text-zinc-50">
           {device.label}
           {josa(device.label, "을", "를")} 켤까요?
         </b>
-        <p className="mt-1 text-xs leading-5 text-slate-400">
-          물 · 열 · 움직임이 있는 장치입니다. <b className="text-slate-200">승인하기 전에는
+        <p className="mt-1 text-xs leading-5 text-zinc-400">
+          물 · 열 · 움직임이 있는 장치입니다. <b className="text-zinc-200">승인하기 전에는
           아무것도 보내지 않습니다.</b>
         </p>
         <div className="mt-3 flex justify-end gap-1.5">
           <button
             type="button"
             onClick={onCancel}
-            className={`inline-flex items-center gap-1 rounded-lg border border-white/[0.10] bg-slate-900/90 px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/[0.08] ${UI.focus}`}
+            className={`inline-flex items-center gap-1 rounded-lg border border-white/[0.10] bg-[#17181B] px-2.5 py-1.5 text-xs font-semibold text-zinc-200 hover:bg-white/[0.08] ${UI.focus}`}
           >
             <X className="h-3.5 w-3.5" aria-hidden="true" /> 나중에
           </button>
           <button
             type="button"
             onClick={onApprove}
-            className={`inline-flex items-center gap-1 rounded-lg bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-cyan-300 ${UI.focus}`}
+            className={`inline-flex items-center gap-1 rounded-lg bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-white ${UI.focus}`}
           >
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> 승인
           </button>
@@ -1287,7 +1266,7 @@ function Row({
       {!done && progress !== undefined && (
         <span className="mt-1.5 block h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
           <span
-            className="block h-full rounded-full bg-slate-300 transition-[width] duration-500"
+            className="block h-full rounded-full bg-zinc-300 transition-[width] duration-500"
             style={{ width: `${progress}%` }}
           />
         </span>
@@ -1609,20 +1588,20 @@ export default function TwinPage() {
   return (
     <main className={UI.page}>
       {/* ── 머리줄 ─────────────────────────────────────────── */}
-      <header className="border-b border-white/[0.06] bg-[#0B1120]/70 backdrop-blur-xl">
+      <header className="border-b border-white/[0.06] bg-[#0E0F11]">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
             {/* 트윈 로고 마크 — 겹친 두 칸 (실물과 쌍둥이). 이모지 대신 SVG */}
             <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" className="shrink-0">
-              <rect x="2" y="7" width="17" height="17" rx="5" fill="#22D3EE" fillOpacity="0.18" stroke="#22D3EE" strokeOpacity="0.7" />
-              <rect x="11" y="4" width="17" height="17" rx="5" fill="#0B1120" stroke="#A5F3FC" strokeOpacity="0.9" />
-              <circle cx="19.5" cy="12.5" r="2.6" fill="#22D3EE" />
+              <rect x="2.5" y="7.5" width="16" height="16" rx="4.5" fill="none" stroke="#71717A" strokeWidth="1.5" />
+              <rect x="11.5" y="4.5" width="16" height="16" rx="4.5" fill="#0E0F11" stroke="#F4F4F5" strokeWidth="1.5" />
+              <circle cx="19.5" cy="12.5" r="2.2" fill="#F4F4F5" />
             </svg>
             <div className="min-w-0">
-              <h1 className="truncate text-[15px] font-semibold tracking-tight text-slate-50">
+              <h1 className="truncate text-[15px] font-semibold tracking-tight text-zinc-50">
                 {TWIN.teamName}
               </h1>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 디지털 트윈 · {room.name} · 장치 {TWIN.devices.length} · 센서 {sensors.length} ·
                 액추에이터 {actuators.length}
               </p>
@@ -1638,7 +1617,7 @@ export default function TwinPage() {
                   ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
                   : status === "connecting"
                     ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
-                    : "border-white/[0.12] bg-white/[0.04] text-slate-300"
+                    : "border-white/[0.12] bg-white/[0.04] text-zinc-300"
               }`}
             >
               <span className="relative flex h-2 w-2">
@@ -1651,14 +1630,14 @@ export default function TwinPage() {
                 )}
                 <span
                   className={`relative inline-flex h-2 w-2 rounded-full ${
-                    status === "online" ? "bg-emerald-400" : status === "connecting" ? "bg-amber-400" : "bg-slate-400"
+                    status === "online" ? "bg-emerald-400" : status === "connecting" ? "bg-amber-400" : "bg-zinc-400"
                   }`}
                 />
               </span>
               {status === "online" ? "실시간" : status === "connecting" ? "재연결 중" : "오프라인"}
             </span>
             {lastAt !== null && status !== "offline" && (
-              <span className="text-xs tabular-nums text-slate-400">
+              <span className="text-xs tabular-nums text-zinc-400">
                 마지막 수신 {new Date(lastAt).toLocaleTimeString("ko-KR")}
               </span>
             )}
@@ -1674,7 +1653,7 @@ export default function TwinPage() {
                   id="pico-ip"
                   value={picoIp}
                   onChange={(e) => setPicoIp(e.target.value)}
-                  className={`w-36 rounded-[10px] border border-white/[0.12] bg-white/[0.04] px-3 py-2 font-mono text-sm text-slate-100 placeholder:text-slate-500 ${UI.focus}`}
+                  className={`w-36 rounded-[10px] border border-white/[0.12] bg-white/[0.04] px-3 py-2 font-mono text-sm text-zinc-100 placeholder:text-zinc-500 ${UI.focus}`}
                   placeholder="192.168.0.51"
                 />
                 {status === "offline" ? (
@@ -1713,7 +1692,7 @@ export default function TwinPage() {
           <aside className={`${UI.card} space-y-3 p-4`}>
             <div className="flex items-baseline justify-between px-1">
               <h2 className={UI.eyebrow}>우리 팀 장치</h2>
-              <span className="text-xs tabular-nums text-slate-400">{TWIN.devices.length}</span>
+              <span className="text-xs tabular-nums text-zinc-400">{TWIN.devices.length}</span>
             </div>
             <ul className="space-y-1">
               {TWIN.devices.map((d) => {
@@ -1734,7 +1713,7 @@ export default function TwinPage() {
                       }}
                       className={`group flex w-full items-center gap-3 rounded-[10px] border px-2.5 py-2 text-left transition-colors ${UI.focus} ${
                         selected === d.key
-                          ? "border-cyan-400/30 bg-cyan-400/[0.06]"
+                          ? "border-white/25 bg-white/[0.05]"
                           : "border-transparent hover:bg-white/[0.04]"
                       }`}
                     >
@@ -1746,7 +1725,7 @@ export default function TwinPage() {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1.5">
-                          <span className="truncate text-sm font-semibold text-slate-100">{d.label}</span>
+                          <span className="truncate text-sm font-semibold text-zinc-100">{d.label}</span>
                           {d.risk === "high" && (
                             <ShieldAlert className="h-3.5 w-3.5 shrink-0 text-rose-400" aria-label="위험한 장치" />
                           )}
@@ -1756,7 +1735,7 @@ export default function TwinPage() {
                                 ? LEVEL_CLASS[lvl]
                                 : on
                                   ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
-                                  : "border-white/[0.12] bg-white/[0.04] text-slate-300"
+                                  : "border-white/[0.12] bg-white/[0.04] text-zinc-300"
                             }`}
                           >
                             {d.kind === "sensor" ? LEVEL_TEXT[lvl] : on ? "켜짐" : "꺼짐"}
@@ -1767,7 +1746,7 @@ export default function TwinPage() {
                           <span className={`min-w-0 flex-1 truncate ${UI.mono}`}>{d.key}</span>
                           {d.kind === "sensor" && (
                             <>
-                              <span className="shrink-0 text-[11px] font-medium tabular-nums text-slate-300">
+                              <span className="shrink-0 text-[11px] font-medium tabular-nums text-zinc-300">
                                 {v === null || v === undefined ? "—" : `${v}${d.unit ?? ""}`}
                               </span>
                               <Spark data={historyRef.current[d.key] ?? []} color={LEVEL_LINE[lvl]} w={40} h={14} />
@@ -1812,13 +1791,13 @@ export default function TwinPage() {
                 {/* ★ 조명은 **카메라 쪽**에서 비춰야 합니다. 반대편([-4,7,-4])에 두면
                     우리가 보는 면이 전부 그늘이라, 흰 벽(#eef6ef)도 **짙은 회색**으로
                     나옵니다. groundColor 도 너무 어두우면(#1e293b) 옆면을 끌어내립니다. */}
-                {/* ★ 다크 관제실 조명 — 주변광은 낮게, 차가운 주광 + 반대편 **청록 테두리광**.
+                {/* ★ 조명은 **중립 흰빛**만 — 주광 + 반대편 약한 테두리광. 색 조명은 쓰지 않습니다.
                     분위기는 발광 재질(화면·띠·전구)이 만듭니다. 그림자는 던지지 않습니다
                     (castShadow 는 프레임을 깎고 바닥에 검은 사각형을 만듭니다 — 규칙 §13). */}
-                <hemisphereLight intensity={0.55} color="#C7D2FE" groundColor="#0B1120" />
-                <ambientLight intensity={0.35} />
-                <directionalLight position={[4, 9, 4]} intensity={1.25} color="#F1F5F9" />
-                <directionalLight position={[-6, 4, -6]} intensity={0.55} color="#22D3EE" />
+                <hemisphereLight intensity={0.95} color="#F4F4F5" groundColor="#18181B" />
+                <ambientLight intensity={0.5} />
+                <directionalLight position={[4, 9, 4]} intensity={1.7} color="#FAFAFA" />
+                <directionalLight position={[-6, 4, -6]} intensity={0.6} color="#E4E4E7" />
 
                 {/* 🐞 여기에 한때 `<Environment>` + `<Lightformer>` 가 있었습니다.
                     점토 느낌의 반사를 주려던 것인데, **실측해 보니 프레임이 2.4배 느려지면서
@@ -1840,7 +1819,17 @@ export default function TwinPage() {
                   resolution={256}
                   color="#000000"
                 />
-                <RoomShell room={room} />
+                <RoomShell
+                  room={room}
+                  bars={sensors.map((d) => {
+                    const v = sensor?.[d.key];
+                    return {
+                      key: d.key,
+                      ratio: typeof v === "number" ? Math.min(1, Math.max(0, v / (d.max ?? 100))) : null,
+                      color: LEVEL_3D[sensorLevel(d, v, sensor)],
+                    };
+                  })}
+                />
                 {sensors.map((d) => (
                   <SensorNode
                     key={d.key}
@@ -1906,14 +1895,14 @@ export default function TwinPage() {
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex items-center justify-between gap-2 p-3">
               <a
                 href="/dashboard"
-                className={`pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/[0.10] bg-slate-900/80 px-3 py-1.5 text-xs font-semibold text-slate-200 shadow-sm backdrop-blur hover:bg-slate-800 ${UI.focus}`}
+                className={`pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/[0.10] bg-[#17181B] px-3 py-1.5 text-xs font-semibold text-zinc-200 shadow-sm hover:bg-zinc-800 ${UI.focus}`}
               >
                 <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
                 2D 로 돌아가기
               </a>
               <a
                 href="/office"
-                className={`pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/[0.10] bg-slate-900/80 px-3 py-1.5 text-xs font-semibold text-slate-200 shadow-sm backdrop-blur hover:bg-slate-800 ${UI.focus}`}
+                className={`pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/[0.10] bg-[#17181B] px-3 py-1.5 text-xs font-semibold text-zinc-200 shadow-sm hover:bg-zinc-800 ${UI.focus}`}
               >
                 3D 없는 화면
               </a>
@@ -1932,10 +1921,10 @@ export default function TwinPage() {
                 <span className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
                   <ShieldAlert className="h-3 w-3" aria-hidden="true" /> 승인이 필요해요
                 </span>
-                <p className="mt-2 text-sm leading-6 text-slate-200">
+                <p className="mt-2 text-sm leading-6 text-zinc-200">
                   <b>{pending.device.label}</b>
                   {josa(pending.device.label, "을", "를")} 켤지 묻고 있습니다.{" "}
-                  <span className="text-slate-400">방 안 말풍선에서 정하세요.</span>
+                  <span className="text-zinc-400">방 안 말풍선에서 정하세요.</span>
                 </p>
               </div>
             )}
@@ -1952,7 +1941,7 @@ export default function TwinPage() {
                   type="button"
                   onClick={() => setTab(k)}
                   className={`flex-1 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${UI.focus} ${
-                    tab === k ? "bg-white/[0.10] text-white shadow-sm ring-1 ring-inset ring-white/10" : "text-slate-400 hover:text-slate-100"
+                    tab === k ? "bg-white/[0.10] text-white shadow-sm ring-1 ring-inset ring-white/10" : "text-zinc-400 hover:text-zinc-100"
                   }`}
                 >
                   {name}
@@ -1984,9 +1973,9 @@ export default function TwinPage() {
                             {LEVEL_TEXT[lvl]}
                           </span>
                         </div>
-                        <p data-detail-value className="text-5xl font-semibold tracking-tight tabular-nums text-slate-50">
+                        <p data-detail-value className="text-5xl font-semibold tracking-tight tabular-nums text-zinc-50">
                           {v === null || v === undefined ? "—" : v}
-                          <span className="ml-1 text-lg font-medium text-slate-400">{selectedDevice.unit ?? ""}</span>
+                          <span className="ml-1 text-lg font-medium text-zinc-400">{selectedDevice.unit ?? ""}</span>
                         </p>
                         {/* 큰 추세선 + 주의·위험 기준선 (기준선에는 글자를 붙입니다 — 색만으로 알리지 않게) */}
                         <div className="rounded-[10px] border border-white/[0.06] bg-black/20 p-3">
@@ -2008,8 +1997,8 @@ export default function TwinPage() {
                             ["갱신", lastAt ? new Date(lastAt).toTimeString().slice(0, 8) : "—"],
                           ].map(([k, val]) => (
                             <div key={k as string} className="rounded-[10px] border border-white/[0.06] bg-white/[0.03] px-2 py-2">
-                              <dt className="text-[11px] text-slate-400">{k}</dt>
-                              <dd className="mt-0.5 text-sm font-semibold tabular-nums text-slate-100">{val}</dd>
+                              <dt className="text-[11px] text-zinc-400">{k}</dt>
+                              <dd className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-100">{val}</dd>
                             </div>
                           ))}
                         </dl>
@@ -2034,7 +2023,7 @@ export default function TwinPage() {
                             className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
                               on
                                 ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
-                                : "border-white/[0.12] bg-white/[0.04] text-slate-300"
+                                : "border-white/[0.12] bg-white/[0.04] text-zinc-300"
                             }`}
                           >
                             {on ? "켜짐" : "꺼짐"}
@@ -2066,7 +2055,7 @@ export default function TwinPage() {
                         data-control={d.key}
                         className="flex items-center justify-between gap-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] p-3"
                       >
-                        <span className="flex items-center gap-2 text-sm font-medium text-slate-100">
+                        <span className="flex items-center gap-2 text-sm font-medium text-zinc-100">
                           {d.label}
                           {d.risk === "high" && (
                             <ShieldAlert className="h-3.5 w-3.5 text-rose-400" aria-label="위험한 장치" />
@@ -2102,7 +2091,7 @@ export default function TwinPage() {
       </div>
 
       {kiosk && (
-        <p className="pb-4 text-center text-xs text-slate-400">
+        <p className="pb-4 text-center text-xs text-zinc-400">
           <RotateCcw className="mr-1 inline h-3 w-3" aria-hidden="true" />
           끌어서 돌려 보세요 · ESC 를 누르면 조작 화면으로 돌아갑니다
         </p>
