@@ -160,6 +160,23 @@ BASE_ACTUATOR_KEYS = ("led_r", "led_g", "led_b", "servo_angle")
 # 미리 넣어두면 쓰지 않는 팀의 시리얼에 쓸데없는 줄이 한 줄 더 찍힌다.
 TEAM_ACTUATOR = set()
 
+# ★ 11주차 — 적용값 되돌려 보내기 (디지털 트윈의 target ↔ reported)
+#
+#   지금까지의 통신 규약에는 **명령에 대한 답장이 없었습니다.** 화면은 보냈다는 것까지만
+#   알 수 있고, Pico 가 그것을 받아서 적용했는지는 알 수 없었습니다.
+#
+#   그래서 1 초마다 보내는 센서 JSON 에 "applied" 를 하나 더 싣습니다.
+#   키를 **더하기만** 하므로 2D 대시보드는 모르는 키라 그냥 무시하고 그대로 돌아갑니다.
+#
+#       {"temperature": 23.1, ..., "applied": {"led_r": 255, "servo_angle": 90, "pump": 0}}
+#
+#   ⚠️ 이것은 **Pico 안의 변수가 그렇게 바뀌었다**는 뜻이지, 펌프가 실제로 돌았다는
+#      뜻이 아닙니다. 선이 빠져 있어도 applied 는 그대로 돌아옵니다.
+#
+#   콘솔에서 e 를 누르면 **안 보내는 옛 Pico** 를 흉내 냅니다 —
+#   아직 10주차를 안 끝낸 팀의 화면이 어떻게 보이는지 확인할 때 쓰세요.
+SEND_APPLIED = True
+
 
 def _temperature(n):
     if STATE["dht_broken"]:
@@ -283,6 +300,8 @@ def build_payload(n):
         "discomfort": _discomfort(t, h),
     }
     payload.update(_team_values())
+    if SEND_APPLIED:
+        payload["applied"] = dict(ACTUATOR)
     return payload
 
 
@@ -312,11 +331,21 @@ def print_menu():
     print("        add <키> <최소> <최대>   우리 팀 센서 추가   (예: add soil 0 100)")
     print("        del <키> / fail <키>")
     print("        act <키>                 우리 팀 액추에이터 등록 (예: act pump)")
+    print("        e                        적용값 되돌려 보내기 켜기/끄기 (11주차 디지털 트윈)")
 
 
 def handle_key(line):
+    global SEND_APPLIED
     parts = line.split()
     key = parts[0]
+    if key == "e":
+        SEND_APPLIED = not SEND_APPLIED
+        if SEND_APPLIED:
+            print(">> 적용값을 되돌려 보냅니다. 트윈 화면의 ③행이 체크됩니다.")
+        else:
+            print(">> 적용값을 안 보냅니다 (10주차를 아직 안 끝낸 Pico 흉내).")
+            print("   트윈 화면의 ③행은 「아직 응답 없음」으로 남아야 합니다.")
+        return
     if key == "add" and len(parts) >= 2:
         name = parts[1]
         lo = float(parts[2]) if len(parts) > 2 else 0.0

@@ -1,26 +1,33 @@
-// src/app/office/team-office.ts ── 11주차에 학생이 고치는 **단 하나의 파일**
+// src/app/twin/team-twin.ts ── 11주차에 학생이 고치는 **단 하나의 파일**
 //
 // ─────────────────────────────────────────────────────────────
 // 이 파일에는 **코드가 없습니다. 우리 팀 정보만 적습니다.**
 //
-//   · 누가 어느 자리에 앉는가
-//   · 무슨 색 캐릭터인가
+//   · 어떤 방인가
+//   · 어느 장치가 방 어디에 놓이는가
 //   · 무엇이 위험한 장치인가
 //
 // 3D 를 그리는 코드(`page.tsx`)는 선생님이 검증해서 드린 것입니다. 열지 마세요.
-// 이 파일만 고치면 사무실이 우리 팀 작품으로 바뀝니다.
+// 이 파일만 고치면 트윈이 우리 팀 작품으로 바뀝니다.
 // ─────────────────────────────────────────────────────────────
 
-/** 캐릭터 색. 다섯 가지 중에서 고릅니다. */
-export type CharacterColor = "pink" | "mint" | "sky" | "amber" | "robot";
-
-/** 방 종류. 바닥 색과 이름이 바뀝니다. */
+/** 방 종류. 바닥·벽 색과 가구가 바뀝니다. */
 export type RoomKind = "farm" | "home" | "factory" | "park";
 
-export type Desk = {
+/** 장치를 놓을 **이름 있는 자리**. 좌표를 손으로 쓰지 않습니다.
+ *  여섯 자리가 있고, 방 종류마다 그 자리에 어울리는 받침이 놓입니다. */
+export type Spot =
+  | "shelf"        // 창가 선반 — 조도·온도처럼 바깥과 관계있는 센서
+  | "desk"         // 책상 위 — 아무 센서나
+  | "wall"         // 벽에 붙임 — 표시등·경고등
+  | "ground"       // 바닥 한가운데 — 흙·물처럼 바닥에 있는 것
+  | "corner"       // 구석 — 펌프·팬처럼 큰 장치
+  | "ceiling";     // 천장 — 조명
+
+export type Device = {
   /** ★ 가장 중요합니다 — Pico 가 주고받는 **JSON 키 그대로**.
-   *  화면의 SENSORS key 와 글자 하나까지 같아야 합니다.
-   *  여기가 틀리면 그 캐릭터는 **영원히 「데이터 없음」** 입니다. */
+   *  2D 화면의 SENSORS key 와 글자 하나까지 같아야 합니다.
+   *  여기가 틀리면 그 장치는 **영원히 「데이터 없음」** 입니다. */
   key: string;
 
   /** 센서인가 액추에이터인가. 센서는 값을 받기만 하고, 액추에이터는 명령을 보냅니다. */
@@ -29,11 +36,8 @@ export type Desk = {
   /** 관람객에게 보여줄 이름 */
   label: string;
 
-  /** 자리 번호 1~6. 1·2·3 이 뒷줄, 4·5·6 이 앞줄입니다. */
-  seat: 1 | 2 | 3 | 4 | 5 | 6;
-
-  /** 캐릭터 색 */
-  character: CharacterColor;
+  /** 방 안의 어느 자리에 놓을지. **서로 겹치지 않게** 고르세요 */
+  spot: Spot;
 
   /** 단위 (센서만). 없으면 안 적어도 됩니다 */
   unit?: string;
@@ -62,28 +66,27 @@ export type Desk = {
   onValue?: number;
 };
 
-export type OfficeConfig = {
+export type TwinConfig = {
   teamName: string;
   room: RoomKind;
-  desks: Desk[];
+  devices: Device[];
 };
 
 // ─────────────────────────────────────────────────────────────
 // 여기부터가 우리 팀 것입니다. 위는 건드리지 마세요.
 // ─────────────────────────────────────────────────────────────
 
-export const OFFICE: OfficeConfig = {
+export const TWIN: TwinConfig = {
   teamName: "3팀 · 스마트 화분",
   room: "farm",
 
-  desks: [
+  devices: [
     // ── 센서 ──────────────────────────────────────────────
     {
       key: "soil",            // ← Pico 가 보내는 JSON 키
       kind: "sensor",
       label: "토양수분",
-      seat: 2,
-      character: "mint",
+      spot: "ground",
       unit: "%",
       max: 100,
       warn: 30,               // 30 아래면 주의
@@ -94,8 +97,7 @@ export const OFFICE: OfficeConfig = {
       key: "temperature",
       kind: "sensor",
       label: "온도",
-      seat: 1,
-      character: "pink",
+      spot: "desk",
       unit: "°C",
       max: 40,
       warn: 30,
@@ -105,8 +107,7 @@ export const OFFICE: OfficeConfig = {
       key: "light_percent",
       kind: "sensor",
       label: "조도",
-      seat: 3,
-      character: "amber",
+      spot: "shelf",
       unit: "%",
       max: 100,
     },
@@ -116,27 +117,26 @@ export const OFFICE: OfficeConfig = {
       key: "pump",            // ← 화면이 Pico 로 보내는 JSON 키
       kind: "actuator",
       label: "물 펌프",
-      seat: 5,
-      character: "robot",
+      spot: "corner",
       risk: "high",           // 물이 나옵니다 → 승인 + 전시 모드에서 숨김
     },
     {
       key: "led_r",
       kind: "actuator",
       label: "빨강 LED",
-      seat: 4,
-      character: "sky",
+      spot: "ceiling",
       // risk 없음 — 관람객이 눌러 봐도 안전합니다
     },
   ],
 };
 
 // ─────────────────────────────────────────────────────────────
-// 자주 틀리는 것 세 가지
+// 자주 틀리는 것 네 가지
 //
 //  ① key 를 한글로 적음          → "토양수분" ❌ / "soil" ✅  (Pico 가 보내는 이름 그대로)
 //  ② hero 를 여러 개 적음        → 하나만 적습니다
-//  ③ 자리 번호가 겹침            → seat 는 1~6 중 **서로 다른** 번호
+//  ③ 같은 spot 에 둘을 놓음      → 장치가 겹쳐 보입니다. 여섯 자리 중 서로 다른 것으로
+//  ④ risk 를 LED 에도 붙임       → 전시 모드에서 관람객이 만질 것이 하나도 안 남습니다
 //
-// 적고 나면 브라우저에서 /office 를 새로고침하세요. 빌드를 다시 안 해도 바뀝니다.
+// 적고 나면 브라우저에서 /twin 을 새로고침하세요. 빌드를 다시 안 해도 바뀝니다.
 // ─────────────────────────────────────────────────────────────

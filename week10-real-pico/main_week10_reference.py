@@ -134,6 +134,18 @@ async def handle_http_requests():
         await async_sleep(0)
 
 
+# ★ 11주차 — 지금 실제로 적용되어 있는 액추에이터 값
+#
+#   지금까지의 통신 규약에는 **명령에 대한 답장이 없었습니다.** 화면은 「보냈다」까지만
+#   알 수 있었고, Pico 가 받아서 적용했는지는 알 방법이 없었습니다.
+#   그래서 1 초마다 보내는 센서 JSON 에 "applied" 를 하나 더 싣습니다.
+#
+#   ⚠️ 이것은 **Pico 안의 변수가 그렇게 바뀌었다**는 뜻입니다.
+#      펌프가 실제로 돌았다는 뜻이 아닙니다 — 선이 빠져 있어도 applied 는 돌아옵니다.
+#      실물이 움직였는지는 끝까지 **눈과 귀로** 확인해야 합니다.
+applied = {"led_r": 0, "led_g": 0, "led_b": 0, "servo_angle": 90, "pump": 0}
+
+
 async def handle_websocket_requests():
     """브라우저가 보낸 제어 명령(JSON)을 받아 즉시 반영"""
     global websocket
@@ -161,6 +173,13 @@ async def handle_websocket_requests():
 
                     # ★ 10주차 ④ — 우리 팀 액추에이터. 켜짐은 255, 꺼짐은 0 입니다
                     pump.value = command.get("pump", 0) > 0
+
+                    # ★ 11주차 — 방금 적용한 값을 기억해 둡니다 (아래에서 되돌려 보냅니다)
+                    applied["led_r"] = command.get("led_r", 0)
+                    applied["led_g"] = command.get("led_g", 0)
+                    applied["led_b"] = command.get("led_b", 0)
+                    applied["servo_angle"] = command.get("servo_angle", 90)
+                    applied["pump"] = 255 if pump.value else 0
 
                     print("[WS] 명령 적용 완료 -> LED:({}, {}, {}) 서보:{}도 펌프:{}".format(
                         command.get("led_r", 0),
@@ -201,6 +220,7 @@ async def send_sensor_messages():
                 "cpu_temp": get_cpu_temp(),                        # ①
                 "discomfort": get_discomfort(last_temp, last_humidity),  # ②
                 "soil": get_soil_percent(),                        # ③ 우리 팀 센서
+                "applied": applied,                                # ④ ★ 11주차 — 적용값 되돌려 보내기
             })
             print("[WS] 송신 메시지:", payload)
             try:
