@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>우리 팀 작품 완성 매뉴얼 · 8주차 + 9주차</title>
+<title>우리 팀 작품 완성 매뉴얼 · 8 · 9주차 + 디지털 트윈</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -241,9 +241,12 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
 <header class="hero">
   <div class="wrap">
     <h1>우리 팀 작품 완성 매뉴얼</h1>
-    <div class="sub">8주차 + 9주차로 전시회 작품을 끝까지 만드는 방법</div>
+    <div class="sub">8 · 9주차로 작품을 완성하고, 11주차에 디지털 트윈으로 한 번 더</div>
     <p class="lead">
-      남은 수업은 <b>8주차와 9주차 두 번</b>입니다. 그 다음은 <b>11월 20일 작품 전시회</b>입니다.
+      남은 수업은 <b>8주차와 9주차 두 번</b>이고, 거기까지가 <b>1차 완성</b>입니다.
+      그 뒤 <b>10 · 11주차는 차시가 아니라 작품 제작 시간에 쓰는 자료</b>입니다 —
+      실물 Pico 로 옮기고, UI 를 <b>디지털 트윈</b>으로 한 번 더 올립니다(2차 완성).
+      그리고 <b>11월 20일 작품 전시회</b>입니다.
       이 문서는 <b>위에서 아래로 순서대로</b> 따라가면 되도록 만들었습니다.
       먼저 <b>0단계에서 우리 팀 정보를 한 번만 입력</b>하세요. 그러면 아래 모든 프롬프트에
       우리 팀 센서 이름 · 핀 · JSON 키가 <b>자동으로 채워집니다.</b>
@@ -253,6 +256,7 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-si
       <a href="#w08">8주차 · 기능 완성</a>
       <a href="#w09">9주차 · 다시 디자인 + 전시</a>
       <a href="#w10">실물 Pico 로 옮기기</a>
+      <a href="#w11">11주차 · 디지털 트윈</a>
       <a href="#stuck">막혔을 때</a>
       <a href="#errors">오류 사전</a>
       <a href="#dday-sec">전시 당일</a>
@@ -1555,6 +1559,211 @@ E. 안정성     — 콘솔 오류 · 빌드 · 몇 시간 켜 두기
       <div class="note danger"><span class="hd">🚨 화면을 더 손댔으면 <b>무인 리허설 30분을 다시</b> 통과해야 전시에 나갑니다</span>
         화면을 바꾸면 <b>지난번 리허설 결과는 무효</b>입니다. 전시 모드와 자동 재연결이
         아직 살아 있는지 확인할 방법은 <b>다시 30분 돌려 보는 것</b> 하나뿐입니다.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════ 11주차 · 디지털 트윈 ══════════ -->
+<section id="w11">
+  <h2>11주차 · UI 를 디지털 트윈으로 <span class="muted">(차시가 아니라 작품 제작 시간에 쓰는 자료 · 2차 완성)</span></h2>
+
+  <div class="note danger"><span class="hd">🚩 1차 완성을 먼저 끝낸 팀만 합니다</span>
+    <b>9주차 무인 리허설 30분을 통과한 팀</b>만 여기로 옵니다. 2D 가 아직 흔들리는데
+    3D 를 얹으면 <b>둘 다 못 쓰게 됩니다.</b><br>
+    그리고 <b>3D 로 전시하려면 무인 리허설을 3D 로 다시 통과</b>해야 합니다.
+    못 하면 <b>2D 로 전시합니다 — 그것도 완성입니다.</b>
+  </div>
+
+  <div class="note"><span class="hd">오늘 하는 일은 한 문장입니다</span>
+    2D 화면은 <b>한 글자도 건드리지 않고</b>, 새 주소 <code>/twin</code> 에
+    <b>같은 데이터를 3D 방으로</b> 보여 줍니다. 여러분이 고치는 파일은
+    <b><code>team-twin.ts</code> 하나</b>뿐입니다.
+  </div>
+
+  <table>
+    <thead><tr><th style="width:30%">화면</th><th>무엇</th></tr></thead>
+    <tbody>
+      <tr><td><code>/twin</code></td><td><b>3D 디지털 트윈</b> — 전시 기본 화면</td></tr>
+      <tr><td><code>/office</code></td><td>3D 가 안 뜨는 컴퓨터용 — <b>WebGL 없이</b> 같은 내용</td></tr>
+      <tr><td><code>/dashboard</code></td><td>9주차까지 만든 <b>2D</b> — 검증이 끝난 마지막 길</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 준비 -->
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">11-0</span><span class="step-title">준비 — 파일 놓고 라이브러리 받기</span><span class="step-time">10분</span></div>
+    <div class="step-body">
+      <table>
+        <thead><tr><th style="width:52%">선생님이 준 파일</th><th>어디에 놓나</th></tr></thead>
+        <tbody>
+          <tr><td><code>page_twin_reference.tsx</code></td><td><code>src/app/twin/page.tsx</code></td></tr>
+          <tr><td><code>team_twin_example.ts</code></td><td><code>src/app/twin/team-twin.ts</code> <b>← 여기만 고칩니다</b></td></tr>
+          <tr><td><code>page_office_fallback.tsx</code></td><td><code>src/app/office/page.tsx</code></td></tr>
+        </tbody>
+      </table>
+<pre class="prompt">npm install three@0.182.0 @react-three/fiber@9.8.2 @react-three/drei@10.7.9
+npm run dev</pre>
+      <div class="note warn"><span class="hd">⚠️ 버전을 바꾸지 마세요</span>
+        <code>@react-three/fiber</code> <b>8.x 는 React 18 전용</b>이라 우리 프로젝트에서는
+        <b>설치 자체가 실패합니다.</b> 다른 3D 예제가 8.x 를 쓰고 있어도 그대로 못 가져옵니다.
+      </div>
+      <label class="chk"><input type="checkbox" data-c="x01"><span><code>/twin</code> 에 <b>방이 보인다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="x02"><span><code>/dashboard</code> 가 <b>예전 그대로</b> 뜬다 ← 제일 중요합니다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x03"><span><code>src/app/dashboard/page.tsx</code> 를 <b>한 글자도 안 고쳤다</b></span></label>
+      <div class="note"><span class="hd">「이 컴퓨터에서는 3D 를 켤 수 없습니다」 가 뜨면</span>
+        그 컴퓨터는 WebGL 이 꺼져 있는 것입니다. <b>고장이 아닙니다.</b>
+        버튼을 눌러 <code>/office</code> 로 가면 3D 없이 같은 내용을 봅니다. <b>전시는 그 화면으로 해도 됩니다.</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11-1 -->
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">11-1</span><span class="step-title">자리 배치도 — <b>손으로</b> 먼저 그립니다</span><span class="step-time">15분</span></div>
+    <div class="step-body">
+      <p class="muted">💻 이 단계에는 컴퓨터를 쓰지 않습니다. 워크시트에 연필로 적습니다.</p>
+      <table>
+        <thead><tr><th style="width:20%">자리 이름</th><th style="width:26%">어디</th><th>어울리는 것</th></tr></thead>
+        <tbody>
+          <tr><td><code>shelf</code></td><td>창가 선반</td><td>조도 · 온도처럼 바깥과 관계있는 센서</td></tr>
+          <tr><td><code>desk</code></td><td>책상 위</td><td>아무 센서나</td></tr>
+          <tr><td><code>wall</code></td><td>벽</td><td>표시등 · 경고등</td></tr>
+          <tr><td><code>ground</code></td><td>바닥 한가운데</td><td>흙 · 물처럼 바닥에 있는 것</td></tr>
+          <tr><td><code>corner</code></td><td>구석</td><td>펌프 · 팬처럼 큰 장치</td></tr>
+          <tr><td><code>ceiling</code></td><td>천장</td><td>조명</td></tr>
+        </tbody>
+      </table>
+      <div class="note warn"><span class="hd">⚠️ 위험한 장치를 가르는 기준 (9주차 J3 과 같습니다)</span>
+        <b>물</b>이 나오거나(펌프·밸브) <b>열</b>이 나거나(히터) <b>움직이는</b> 것(서보·모터)은 위험입니다.<br>
+        <b>LED · 부저는 위험이 아닙니다.</b> 전부 위험으로 적으면 전시 모드에서
+        <b>관람객이 만질 것이 하나도 안 남습니다.</b>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="x04"><span>장치마다 <b>Pico JSON 키</b>를 그대로 적었다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x05"><span>자리를 <b>서로 겹치지 않게</b> 골랐다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x06"><span><b>주인공 하나</b>에 동그라미, <b>위험한 장치</b>에 ⚠️ 를 쳤다</span></label>
+    </div>
+  </div>
+
+  <!-- 11-2 -->
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">11-2</span><span class="step-title">팀 테마 파일 — 대화 1 <b>(전체 완성본 1회)</b></span><span class="step-time">25분</span></div>
+    <div class="step-body">
+      <div class="note warn"><span class="hd">⚠️ 올릴 파일은 <b>두 개</b>뿐입니다</span>
+        <code>team-twin.ts</code> 와 <code>프로젝트-규칙.md</code>.
+        <b><code>page.tsx</code> 는 올리지 마세요</b> — 1,100줄이 넘어 제미나이가 중간부터 무너지고,
+        어차피 <b>우리가 고칠 파일이 아닙니다.</b>
+      </div>
+      <div class="pbox">
+        <div class="pbox-hd"><span>프롬프트 11-A · 우리 팀 테마 파일</span><button class="copy">복사</button></div>
+<pre class="prompt">올려드린 team-twin.ts 는 3D 디지털 트윈 화면이 읽는 설정 파일입니다.
+이 파일의 TWIN 객체만 우리 팀 작품에 맞게 바꿔 주세요.
+
+우리 팀 정보
+- 팀 이름: <span class="f" data-f="teamName"></span>
+- 작품 주제: <span class="f" data-f="topic"></span>
+- 방 종류: farm | home | factory | park 중 하나
+
+우리 팀 장치 (11-1 워크시트에 적은 그대로 옮기세요)
+| JSON 키 | 센서/액추에이터 | 이름 | 자리 | 단위 | 주의 | 위험 | 주인공 | 위험장치 |
+|---|---|---|---|---|---|---|---|---|
+| (워크시트의 표를 그대로 옮겨 적으세요)
+
+지켜 주세요
+- TWIN 객체 안의 내용만 바꾸세요. 위쪽 타입 정의(type)는 한 글자도 건드리지 마세요.
+- key 는 Pico 가 주고받는 JSON 키 그대로입니다. 한글로 바꾸지 마세요.
+- hero 는 하나만 적습니다. spot 은 서로 겹치지 않게 합니다.
+- 올려드린 프로젝트-규칙.md 의 §13 을 지켜 주세요.
+- team-twin.ts 전체 완성본을 한 번만 주세요.</pre>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="x07"><span><code>type</code> 으로 시작하는 윗부분이 <b>그대로</b>다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x08"><span><code>key</code> 가 전부 영어이고 2D 화면의 <code>SENSORS</code> key 와 <b>글자 하나까지</b> 같다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x09"><span><code>hero: true</code> 가 <b>딱 하나</b>다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x10"><span>새로고침하니 <b>우리 팀 장치가 전부</b> 방에 보인다</span></label>
+      <div class="note"><span class="hd">🐞 장치 하나가 안 보이면</span>
+        <code>spot</code> 이 겹친 것입니다. 이름이 <b>「데이터 없음」</b>에서 안 바뀌면 <code>key</code> 가 틀린 것입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- 11-3 -->
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">11-3</span><span class="step-title">승인 게이트 — 위험한 장치는 <b>먼저 묻습니다</b></span><span class="step-time">15분</span></div>
+    <div class="step-body">
+      <p>코드는 이미 들어 있습니다. 오늘은 <b>그게 진짜로 막는지</b> 가상 Pico 창을 <b>보면서</b> 확인합니다.</p>
+      <label class="chk"><input type="checkbox" data-c="x11"><span>안전한 장치(LED) 켜기 → <code>[WS] 수신 메시지</code> 가 <b>1줄</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="x12"><span><b>위험한 장치 켜기 → 가상 Pico 창에 새 줄이 하나도 안 생긴다</b> ← 핵심</span></label>
+      <label class="chk"><input type="checkbox" data-c="x13"><span>[승인] 을 누른 뒤에야 <code>-&gt; 우리 팀 액추에이터 … (켜짐)</code> 이 찍힌다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x14"><span>[나중에] 를 누르면 <b>아무것도 안 보낸다</b></span></label>
+    </div>
+  </div>
+
+  <!-- 11-4 -->
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">11-4</span><span class="step-title">「이 명령이 실제로 간 길」 — <b>오늘의 핵심</b></span><span class="step-time">15분</span></div>
+    <div class="step-body">
+      <table>
+        <thead><tr><th style="width:38%">줄</th><th>뜻</th></tr></thead>
+        <tbody>
+          <tr><td>① 화면이 보냈다</td><td>우리 브라우저가 <code>send()</code> 를 끝냈다</td></tr>
+          <tr><td>② 연결은 살아 있다</td><td>보낸 뒤 2초 안에 센서값이 또 왔다</td></tr>
+          <tr><td>③ Pico 가 받아서 적용했다</td><td>Pico 가 <b>적용값을 되돌려 보냈고</b> 그 값이 보낸 값과 같다</td></tr>
+          <tr><td><b>④ 실물이 실제로 움직였다</b></td><td><b>이 화면은 끝까지 알 수 없습니다</b></td></tr>
+        </tbody>
+      </table>
+      <div class="note danger"><span class="hd">🚨 ④ 가 왜 영원히 안 체크됩니까</span>
+        ③ 이 체크되었다는 말은 <b>「Pico 안의 변수가 바뀌었다」</b>는 뜻입니다.
+        펌프 선이 <b>빠져 있어도</b>, 펌프가 <b>타 버렸어도</b> ③ 은 체크됩니다.<br>
+        <b>④ 를 확인하는 방법은 하나뿐입니다 — 눈과 귀.</b>
+        ④ 가 체크되게 코드를 고치면 <b>그건 거짓말입니다.</b>
+      </div>
+      <div class="note"><span class="hd">③ 이 「아직 응답 없음」이면</span>
+        우리 팀 Pico 가 적용값을 아직 안 보내는 것입니다. <b>고장이 아닙니다.</b>
+        <a href="#w10">단계 15(실물 Pico)</a> 자료로 <code>main.py</code> 에 <code>applied</code> 를 더하면 체크됩니다.
+        <b>시간이 없으면 그대로 두고 전시해도 됩니다.</b>
+      </div>
+      <label class="chk"><input type="checkbox" data-c="x15"><span>안전한 장치를 켜면 ① ② 가 <b>금방</b> 체크된다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x16"><span><b>④ 는 어떤 경우에도 체크되지 않는다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="x17"><span>가상 Pico 창에서 <code>e</code> 를 누르면 ③ 이 <b>「아직 응답 없음」</b>으로 바뀐다</span></label>
+    </div>
+  </div>
+
+  <!-- 11-5 -->
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">11-5</span><span class="step-title">전시 모드와 <b>되돌아갈 길 두 겹</b></span><span class="step-time">20분</span></div>
+    <div class="step-body">
+      <label class="chk"><input type="checkbox" data-c="x18"><span>전시 모드에서 IP 칸과 버튼이 <b>사라진다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="x19"><span><b>위험한 장치가 아예 안 보인다</b> · 안전한 장치는 <b>남아 있다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="x20"><span><b>주인공 값이 크게</b> 나온다 — <b>1m 떨어져서</b> 실제로 읽어 봤다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x21"><span>몇 분 두어도 화면이 <b>저절로 안 꺼진다</b> · <b>ESC</b> 로 돌아온다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x22"><span><code>/twin</code> → [3D 없는 화면] → <code>/office</code> 가 뜬다</span></label>
+      <label class="chk"><input type="checkbox" data-c="x23"><span><code>/office</code> → [2D 로 돌아가기] → <code>/dashboard</code> 가 <b>9주차 그대로</b>다</span></label>
+      <div class="note"><span class="hd">💡 전시 당일 아침에 3D 가 이상하면 주소만 바꾸면 됩니다</span>
+        1초면 됩니다. <b>그러려고 2D 를 안 건드린 것입니다.</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11-6 -->
+  <div class="step must">
+    <div class="step-hd"><span class="step-no">11-6</span><span class="step-title">무인 리허설 30분 — <b>3D 로 다시</b></span><span class="step-time">30분</span></div>
+    <div class="step-body">
+      <div class="note danger"><span class="hd">🚩 이것을 통과해야 3D 로 전시합니다</span>
+        통과 못 하면 <b>2D 로 전시합니다 — 그것도 완성입니다.</b> 9주차에 이미 통과했으니까요.<br>
+        <b>전시장에서 멈춘 3D 보다 끝까지 도는 2D 가 좋은 작품입니다.</b>
+      </div>
+      <p><code>/twin</code> 을 열고 <b>전시 모드</b>를 켠 뒤 타이머 <b>30분</b>.
+      <b>아무도 키보드와 마우스를 만지지 않습니다.</b> 중간에 <b>한 번</b> 가상 Pico 창에
+      <code>x</code> 를 치거나 실물 Pico 의 USB 를 5초 뽑았다 꽂습니다.</p>
+      <label class="chk"><input type="checkbox" data-c="x24"><span>화면이 <b>안 꺼졌다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="x25"><span>끊겼다가 <b>아무도 안 눌렀는데 저절로 돌아왔다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="x26"><span>값이 <b>멈춰 있지 않다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="x27"><span>브라우저가 <b>안 느려졌다</b> (3D 는 2D 보다 무겁습니다 — 여기서 걸러집니다)</span></label>
+      <label class="chk"><input type="checkbox" data-c="x28"><span>위험한 장치가 <b>끝까지 안 보였다</b></span></label>
+      <label class="chk"><input type="checkbox" data-c="x29"><span>열이 많이 나거나 팬이 계속 돌지 <b>않는다</b></span></label>
+      <div class="note warn"><span class="hd">⚠️ 하나라도 못 지키면 2D 로 전시합니다</span>
+        아쉬워하지 마세요. <b>전시 이틀 전부터는 코드를 그만 고칩니다</b> — 9주차에 정한 그대로입니다.
       </div>
     </div>
   </div>

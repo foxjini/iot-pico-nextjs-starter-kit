@@ -21,6 +21,7 @@ node gen_week08.js   # → ../8주차_학생워크시트.docx
 | `gen_week04.js` `gen_week05.js` | `../4 · 5주차_학생워크시트.docx` |
 | `gen_week08.js` | `../8주차_학생워크시트.docx` — 바이브 코딩 |
 | `gen_week09.js` | `../9주차_학생워크시트.docx` — 전시장에 맞추기 |
+| `gen_week11.js` | `../11주차_학생워크시트.docx` — 디지털 트윈 (2차 완성) |
 | `gen_appendix_redesign.js` | `../appendix/4주차_학생워크시트.docx` *(옛 4주차 · 부록)* |
 | `gen_appendix_design_styles.js` | `../appendix/12주차_학생워크시트.docx` *(옛 12주차 · 부록)* |
 | `gen_appendix_tailwind_ui.js` | `../appendix/13주차_학생워크시트.docx` *(옛 13주차 · 부록)* |
