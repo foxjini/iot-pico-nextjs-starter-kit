@@ -30,6 +30,8 @@
 
 1. **`code_hardware_selftest.py`** 를 `CIRCUITPY` 루트에 **`code.py`** 로 저장
    (`main.py` 보다 먼저 실행됩니다. Wi-Fi 를 안 쓰므로 `settings.toml` 은 필요 없습니다)
+   `lib/` 의 `adafruit_dht.mpy` · `adafruit_motor/` 는 **펌웨어와 같은 주 버전(10.x) 번들**에서 꺼내야 합니다 —
+   다르면 `Incompatible .mpy file` 오류가 납니다.
 2. VS Code 시리얼 모니터로 Pico 포트를 엽니다
 3. 아래가 맞는지 봅니다 (한 바퀴씩 계속 반복, 멈추려면 `Ctrl+C`)
 

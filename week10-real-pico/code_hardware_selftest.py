@@ -10,14 +10,15 @@
 #     ③ 점검이 끝나면 code.py 를 지우거나 code.py.bak 으로 바꿉니다
 #        ← 안 지우면 main.py 가 영영 실행되지 않습니다 (가장 흔한 함정)
 #
-#   핀 · 라이브러리 · 읽는 방식은 main_week10_reference.py 와 같습니다.
-#   lib/ 에 adafruit_dht 와 adafruit_motor 가 있어야 합니다 (1주차부터 쓰던 것).
+#   준비물: CircuitPython 10.x 펌웨어 + **같은 10.x 번들**의 lib/adafruit_dht.mpy,
+#           lib/adafruit_motor/ 폴더. 번들의 주 버전이 펌웨어와 다르면
+#           「Incompatible .mpy file」 오류가 납니다.
+#   핀은 main_week10_reference.py 와 같습니다.
 
 import time
 import board
 import analogio
 import pwmio
-import microcontroller
 import adafruit_dht
 from adafruit_motor import servo
 
@@ -29,6 +30,7 @@ HUMI_REF, HUMI_TOL = 50, 15     # 50 % 기준, 35~65 % 면 정상 (DHT11 오차 
 #   CdS 가 약 1~2kΩ → GP26 전압 0.3~0.55V → raw 약 6000~11000 → 약 83~91 %.
 #   처음 실행 때 찍히는 조도 값을 보고 LIGHT_REF 를 우리 교실 값으로 고쳐 적으세요.
 LIGHT_REF, LIGHT_TOL = 85, 15   # 70 % 아래면 경고
+LIGHT_SAMPLES = 8               # ADC 는 한 번 읽으면 흔들립니다 — 여러 번 읽어 평균
 
 # 서보 동작 순서와, 그 각도에 「도착하면」 켤 LED 색
 SERVO_STEPS = [90, 180, 90, 0, 90]
@@ -61,78 +63,60 @@ def set_color(r, g, b):
 
 def read_dht():
     """온도·습도. 3번 시도해도 안 되면 (None, None) — 0 으로 때우지 않습니다.
-    DHT11 은 규격상 2초 간격이 필요해서 실패하면 2초 쉬고 다시 읽습니다."""
-    for attempt in range(3):
+    adafruit_dht 는 2초 안에 다시 물으면 센서를 깨우지 않고 직전 값을 돌려줍니다.
+    그래서 실패하면 2초 쉬고 다시 읽어야 진짜로 다시 잽니다."""
+    for attempt in range(1, 4):
         try:
             t = dht.temperature
             h = dht.humidity
             if t is not None and h is not None:
                 return t, h
-        except Exception as e:   # DHT11 은 가끔 RuntimeError 를 냅니다
-            print("  (DHT11 읽기 재시도 {}/3: {})".format(attempt + 1, e))
+        except RuntimeError as e:   # 「Checksum did not validate」 등 — DHT11 은 가끔 실패합니다
+            print(f"  (DHT11 읽기 재시도 {attempt}/3: {e})")
         time.sleep(2)
     return None, None
 
 
 def read_light():
-    """조도 % 와 raw 값. 읽기에 실패하면 (None, None)."""
+    """조도 % 와 raw 평균값. 읽기에 실패하면 (None, None)."""
     try:
-        raw = cds.value
-        return round(100 - (raw / 65535 * 100), 1), raw
+        raw = sum(cds.value for _ in range(LIGHT_SAMPLES)) // LIGHT_SAMPLES
+        return round(100 - raw / 65535 * 100, 1), raw
     except Exception as e:
-        print("  (조도 읽기 실패: {})".format(e))
+        print(f"  (조도 읽기 실패: {e})")
         return None, None
 
 
-def judge(value, ref, tol):
+def check_range(name, value, unit, ref, tol):
     if value is None:
-        return "[실패]"
-    return "[OK]" if abs(value - ref) <= tol else "[경고]"
+        print(f"[센서] {name}    ---          [실패] DHT11 응답 없음 — DATA=GP16 · VCC=3V3 · GND 확인")
+        return
+    if abs(value - ref) <= tol:
+        mark = "[OK]"
+    else:
+        mark = f"[경고] 기준({ref}{unit})보다 {'높습니다' if value > ref else '낮습니다'}"
+    print(f"[센서] {name}    {value:5.1f} {unit}     (기준 {ref} ±{tol})  {mark}")
 
 
 def check_sensors():
     t, h = read_dht()
-    light, raw = read_light()
-
-    # 온도
-    if t is None:
-        print("[센서] 온도    ---          [실패] DHT11 응답 없음 — DATA=GP16 · VCC=3V3 · GND 확인")
-    else:
-        mark = judge(t, TEMP_REF, TEMP_TOL)
-        hint = ""
-        if mark == "[경고]":
-            hint = " 기준({}℃)보다 {}".format(TEMP_REF, "높습니다" if t > TEMP_REF else "낮습니다")
-        print("[센서] 온도    {:5.1f} ℃     (기준 {} ±{})  {}{}".format(t, TEMP_REF, TEMP_TOL, mark, hint))
-
-    # 습도
-    if h is None:
-        print("[센서] 습도    ---          [실패] DHT11 응답 없음 — 위와 같은 배선 확인")
-    else:
-        mark = judge(h, HUMI_REF, HUMI_TOL)
-        hint = ""
-        if mark == "[경고]":
-            hint = " 기준({}%)보다 {}".format(HUMI_REF, "높습니다" if h > HUMI_REF else "낮습니다")
-        print("[센서] 습도    {:5.1f} %     (기준 {} ±{}) {}{}".format(h, HUMI_REF, HUMI_TOL, mark, hint))
+    check_range("온도", t, "℃", TEMP_REF, TEMP_TOL)
+    check_range("습도", h, "%", HUMI_REF, HUMI_TOL)
 
     # 조도 — 값이 이상하면 숫자보다 「어디가 빠졌는지」를 먼저 알려 줍니다
+    light, raw = read_light()
     if light is None:
         print("[센서] 조도    ---          [실패] GP26 읽기 실패")
-    elif raw >= 64000:
-        print("[센서] 조도    {:5.1f} %  raw={:5d}  [실패] CdS 가 빠졌거나 CdS 의 GND 쪽이 끊겼습니다".format(light, raw))
+        return
+    head = f"[센서] 조도    {light:5.1f} %  raw={raw:5d} "
+    if raw >= 64000:
+        print(head + " [실패] CdS 가 빠졌거나 CdS 의 GND 쪽이 끊겼습니다")
     elif raw <= 1000:
-        print("[센서] 조도    {:5.1f} %  raw={:5d}  [실패] 10kΩ 가 빠졌거나 CdS 와 자리가 바뀌었습니다".format(light, raw))
+        print(head + " [실패] 10kΩ 가 빠졌거나 CdS 와 자리가 바뀌었습니다")
     elif light < LIGHT_REF - LIGHT_TOL:
-        print("[센서] 조도    {:5.1f} %  raw={:5d}  (기준 {} -{}) [경고] 너무 어둡습니다 — 조명·CdS 위치 확인".format(
-            light, raw, LIGHT_REF, LIGHT_TOL))
+        print(head + f" (기준 {LIGHT_REF} -{LIGHT_TOL}) [경고] 너무 어둡습니다 — 조명·CdS 위치 확인")
     else:
-        print("[센서] 조도    {:5.1f} %  raw={:5d}  (기준 {} -{}) [OK] 손으로 가리면 값이 내려가야 정상".format(
-            light, raw, LIGHT_REF, LIGHT_TOL))
-
-    # 칩 온도 — 부품 없이 읽히는 참고값
-    try:
-        print("[센서] 칩 온도 {:5.1f} ℃     (참고)".format(microcontroller.cpu.temperature))
-    except Exception as e:
-        print("[센서] 칩 온도 ---          (읽기 실패: {})".format(e))
+        print(head + f" (기준 {LIGHT_REF} -{LIGHT_TOL}) [OK] 손으로 가리면 값이 내려가야 정상")
 
 
 def move_to(target, current):
@@ -146,13 +130,13 @@ def move_to(target, current):
 
     name, rgb = COLOR_AT[target]
     set_color(*rgb)
-    print("[서보] {:3d}° 도착 -> LED {}".format(target, name))
+    print(f"[서보] {target:3d}° 도착 -> LED {name}")
     time.sleep(HOLD)
     return target
 
 
 def check_actuators():
-    print("[서보] 순서 " + " -> ".join("{}°".format(a) for a in SERVO_STEPS))
+    print("[서보] 순서 " + " -> ".join(f"{a}°" for a in SERVO_STEPS))
     angle = 90
     for target in SERVO_STEPS:
         angle = move_to(target, angle)
@@ -164,14 +148,14 @@ print("Pico 하드웨어 단독 점검을 시작합니다 (멈추려면 Ctrl+C)"
 print("서보 전원은 외부 5V 어댑터, 왼쪽 파랑 <-> 오른쪽 파랑 공통 GND 를 먼저 확인하세요.")
 my_servo.angle = 90          # 90° 에서 시작
 set_color(*COLOR_AT[90][1])  # 초록
-time.sleep(1)
+time.sleep(1)                # DHT11 은 전원이 들어온 뒤 1초는 기다려야 읽힙니다
 
 round_no = 0
 try:
     while True:
         round_no += 1
         print()
-        print("==== 점검 {}회차 ====".format(round_no))
+        print(f"==== 점검 {round_no}회차 ====")
         check_sensors()
         check_actuators()
 except KeyboardInterrupt:
@@ -179,4 +163,5 @@ except KeyboardInterrupt:
 finally:
     set_color(0, 0, 0)       # LED 끄기
     my_servo.angle = 90      # 서보는 가운데로
+    dht.exit()               # DHT11 이 쓰던 PulseIn 을 돌려줍니다 (다음 code.py/main.py 를 위해)
     print("LED 끔 · 서보 90° 로 돌려 둠. 점검이 끝났으면 code.py 를 지우세요.")
