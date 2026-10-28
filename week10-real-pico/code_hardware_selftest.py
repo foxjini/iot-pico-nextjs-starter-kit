@@ -42,7 +42,13 @@ COLOR_AT = {
     90: ("초록", (False, True, False)),
     180: ("파랑", (False, False, True)),
 }
-STEP_DELAY = 0.015   # 1° 움직일 때마다 쉬는 시간 — 천천히 돌려야 순간 전류가 작습니다
+# 서보 속도 — 서보는 빨리 돌수록(특히 출발·정지 순간) 전류를 많이 끌어
+#   5V 가 순간적으로 떨어지고, 그러면 서보가 멈추거나 떨거나 Pico 가 리셋됩니다.
+#   그래서 ① 평균 45°/초로 천천히 ② 출발·도착은 부드럽게(가속·감속) 돌립니다.
+#   (SG90 최고 속도는 약 600°/초 — 지금은 그 1/10 도 안 됩니다)
+#   그래도 멈추거나 떨면 SERVO_SPEED 를 30 정도로 낮추세요.
+SERVO_SPEED = 45     # 평균 속도 (°/초)
+FRAME = 0.02         # 각도를 고치는 간격 = 서보 PWM 한 주기(50Hz). 이보다 자주 고쳐도 소용없습니다
 HOLD = 1.0           # 도착한 각도에서 머무는 시간
 BLINK_NS = 500_000_000   # 내장 LED 를 0.5초마다 뒤집습니다 (1초에 한 번 깜빡임)
 
@@ -165,36 +171,51 @@ def check_sensors():
         print(head + f" (기준 {LIGHT_REF} -{LIGHT_TOL}) [OK] 손으로 가리면 값이 내려가야 정상")
 
 
-def move_to(target, current):
-    """current → target 으로 1°씩 이동. 「도착한 뒤에」 LED 색을 바꿉니다.
-    이동하는 동안에는 직전 색이 그대로 켜져 있습니다."""
-    step = 1 if target > current else -1
-    for angle in range(current, target, step):
-        my_servo.angle = angle
-        wait(STEP_DELAY)
-    my_servo.angle = target
+servo_now = 90   # 서보가 지금 있는 각도 (서보는 위치를 알려 주지 않으므로 코드가 기억합니다)
 
+
+def glide(target):
+    """servo_now → target 으로 부드럽게 이동합니다.
+    smoothstep(3x² − 2x³) 곡선이라 출발할 때 천천히 빨라지고 도착할 때 천천히 멈춥니다.
+    한 번에 확 돌리지 않으므로 순간 전류(전압 강하)가 작습니다."""
+    global servo_now
+    start = servo_now
+    frames = max(1, round(abs(target - start) / SERVO_SPEED / FRAME))
+    for i in range(1, frames + 1):
+        x = i / frames
+        servo_now = start + (target - start) * x * x * (3 - 2 * x)
+        my_servo.angle = servo_now
+        wait(FRAME)
+    my_servo.angle = target
+    servo_now = target
+
+
+def move_to(target):
+    """target 까지 움직인 「뒤에」 LED 색을 바꿉니다. 이동 중에는 직전 색이 그대로입니다."""
+    glide(target)
     name, rgb = COLOR_AT[target]
     set_color(*rgb)
     print(f"[서보] {target:3d}° 도착 -> LED {name}")
     wait(HOLD)
-    return target
 
 
 def check_actuators():
     print("[서보] 순서 " + " -> ".join(f"{a}°" for a in SERVO_STEPS))
-    angle = 90
     for target in SERVO_STEPS:
-        angle = move_to(target, angle)
+        move_to(target)
 
 
 # ── 시작 ──
 print()
 print("Pico 하드웨어 단독 점검을 시작합니다 (멈추려면 Ctrl+C)")
 print("서보 전원은 외부 5V 어댑터, 왼쪽 파랑 <-> 오른쪽 파랑 공통 GND 를 먼저 확인하세요.")
-my_servo.angle = 90          # 90° 에서 시작
+# ⚠️ 서보가 처음에 어디 있는지는 알 수 없어서 첫 90° 만은 한 번에 움직입니다.
+#    전압 강하가 이때 가장 크므로, 다른 일을 하지 않고 1.5초 기다려 자리를 잡게 합니다.
+#    (이 순간 Pico 가 리셋되면 서보 전원이 외부 5V · 커패시터 · 공통 GND 인지 다시 보세요)
+print("[서보] 시작 위치 90° 로 맞추는 중...")
+my_servo.angle = 90
 set_color(*COLOR_AT[90][1])  # 초록
-wait(1)                      # DHT11 은 전원이 들어온 뒤 1초는 기다려야 읽힙니다
+wait(1.5)                    # DHT11 도 전원이 들어온 뒤 1초는 기다려야 읽힙니다
 
 round_no = 0
 try:
@@ -209,15 +230,15 @@ except KeyboardInterrupt:
 finally:
     # 정리 단계는 하나가 실패해도 나머지가 진행되게 따로따로 감쌉니다
     try:
+        glide(90)         # 멈춘 자리에서 90° 까지도 부드럽게 (한 번에 돌리면 전압이 떨어집니다)
+        wait(0.3)         # 코드가 끝나면 PWM 이 바로 끊기므로 자리 잡을 시간을 줍니다
+    except Exception as e:
+        print("서보 되돌리기 실패:", e)
+    try:
         set_color(False, False, False)   # RGB LED 끄기
         status_led.value = False         # 내장 LED 끄기
     except Exception as e:
         print("LED 끄기 실패:", e)
-    try:
-        my_servo.angle = 90
-        time.sleep(0.5)   # 코드가 끝나면 PWM 이 바로 끊기므로 90° 까지 갈 시간을 줍니다
-    except Exception as e:
-        print("서보 되돌리기 실패:", e)
     try:
         dht.exit()        # DHT11 이 쓰던 PulseIn 을 돌려줍니다 (다음 code.py/main.py 를 위해)
     except Exception as e:
