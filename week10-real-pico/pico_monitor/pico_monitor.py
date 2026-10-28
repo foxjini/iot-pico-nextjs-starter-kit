@@ -391,8 +391,13 @@ class MonitorApp:
         self.auto_port = auto_port
 
         root.title("Pico 시리얼 모니터")
-        root.geometry("1200x720")
-        root.minsize(1000, 600)
+        root.minsize(900, 560)
+        if sys.platform == "win32":
+            root.state("zoomed")          # 최대화 — 노트북 화면 크기·배율과 상관없이 다 보이게
+        else:
+            w = min(1200, root.winfo_screenwidth() - 40)
+            h = min(720, root.winfo_screenheight() - 80)
+            root.geometry(f"{w}x{h}")
         root.configure(bg=C_BG)
         self._style()
         self._build_top()
@@ -594,6 +599,8 @@ class MonitorApp:
             self.worker.stop()
             self.worker = None
             self.connected = False
+            self.probe = None                       # 검사 도중 끊어도 버튼이 다시 살아나게
+            self.probe_btn.state(["!disabled"])
             self.conn_btn.configure(text="연결")
             self.set_status("○ 연결 끊음", C_SUB)
             self.app_line("연결을 끊었습니다.")
@@ -607,6 +614,8 @@ class MonitorApp:
             messagebox.showinfo("포트 선택", "포트를 먼저 고르세요. 목록이 비어 있으면 「새로고침」을 누르세요.")
             return
         self.parser.reset()
+        # 연결마다 새 큐 — 방금 끊은 옛 스레드가 늦게 넣는 「연결됨」이 화면에 섞이지 않게
+        self.q = queue.Queue()
         self.worker = SerialWorker(dev, self.q)
         self.worker.start()
         self.conn_btn.configure(text="끊기")
@@ -670,7 +679,10 @@ class MonitorApp:
                 self.worker.write(b"\x04")
                 self.probe = None
         elif p["step"] == "wait_prompt":
-            if (line and "Press any key" in line) or now > p["until"]:
+            if self.parser.code_state == "repl":
+                # 이미 REPL 로 들어와 있으면(배너 · 「>>>」가 보임) 기다릴 것 없이 바로 진행
+                p.update(step="wait_repl", until=now + 0.5)
+            elif (line and "Press any key" in line) or now > p["until"]:
                 self.worker.write(b"\r")                 # REPL 로 들어갑니다
                 p.update(step="wait_repl", until=now + 1.2)
         elif p["step"] == "wait_repl":
@@ -699,6 +711,8 @@ class MonitorApp:
                     tag = self.parser.feed(line)
                     if not line.startswith("@@"):
                         self.add_line(line, tag)
+                    if line.strip().startswith("KeyboardInterrupt"):
+                        self.app_line("↑ Ctrl+C 로 멈춘 것입니다 — 오류가 아닙니다.")
                     if self.probe:
                         self.probe_step(line)
                 elif kind == "title":
@@ -836,12 +850,8 @@ def main():
         i = sys.argv.index("--port")
         if i + 1 < len(sys.argv):
             port = sys.argv[i + 1]
-    if sys.platform == "win32":
-        try:   # 고해상도 화면에서 글자가 흐리지 않게
-            import ctypes
-            ctypes.windll.shcore.SetProcessDpiAwareness(1)
-        except Exception:
-            pass
+    # DPI 인식(SetProcessDpiAwareness)은 일부러 켜지 않습니다. 켜면 125~150% 배율에서 글자만 커지고
+    # 창 · 그림 크기(픽셀)는 그대로라 카드가 잘립니다. 끄면 Windows 가 창 전체를 같은 비율로 키웁니다.
     root = tk.Tk()
     MonitorApp(root, auto_port=port)
     root.mainloop()

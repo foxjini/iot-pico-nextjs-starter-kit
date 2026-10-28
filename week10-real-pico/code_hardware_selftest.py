@@ -1,6 +1,6 @@
 # code.py — 실물 하드웨어 단독 점검 (백엔드와 연동하기 전에)
 #
-#   worksheets/최종_배선도.pdf 대로 조립한 Pico 2 W(또는 Pico W)가
+#   worksheets/수정 배선도.pdf 대로 조립한 Pico 2 W(또는 Pico W)가
 #   센서 · 액추에이터와 함께 제대로 도는지 **Pico 혼자서** 확인합니다.
 #   Wi-Fi · WebSocket 을 쓰지 않으므로 settings.toml(공유기 비밀번호)이 필요 없습니다.
 #
@@ -89,14 +89,14 @@ def wait(seconds):
         time.sleep(min(0.05, left / 1_000_000_000))
 
 
-# ── 센서 초기화 (최종 배선도 핀) ──
+# ── 센서 초기화 (수정 배선도 핀) ──
 cds = analogio.AnalogIn(board.GP26)     # CdS 분압 → ADC0
 dht = adafruit_dht.DHT11(board.GP16)    # DHT11 DATA
 
 # ── 액추에이터 초기화 ──
 # RGB LED — 이 점검은 색을 켜고 끄기만 하므로 디지털 출력이면 됩니다.
 #   (main.py 는 화면에서 0~255 밝기를 받으므로 PWM 을 씁니다. 배선은 같습니다)
-#   모듈 맨 위 핀이 GND 인 공통 음극형이라 True = 켜짐입니다.
+#   GND 핀이 있는 공통 음극형 모듈(핀 순서 R·G·B·GND)이라 True = 켜짐입니다.
 def led_pin(pin):
     p = digitalio.DigitalInOut(pin)
     p.switch_to_output(value=False)   # 꺼진 채로 시작
@@ -219,13 +219,13 @@ print("서보 전원은 외부 5V 어댑터, 왼쪽 파랑 <-> 오른쪽 파랑 
 # ⚠️ 서보가 처음에 어디 있는지는 알 수 없어서 첫 90° 만은 한 번에 움직입니다.
 #    전압 강하가 이때 가장 크므로, 다른 일을 하지 않고 1.5초 기다려 자리를 잡게 합니다.
 #    (이 순간 Pico 가 리셋되면 서보 전원이 외부 5V · 커패시터 · 공통 GND 인지 다시 보세요)
-print("[서보] 시작 위치 90° 로 맞추는 중...")
-my_servo.angle = 90
-set_color(*COLOR_AT[90][1])  # 초록
-wait(1.5)                    # DHT11 도 전원이 들어온 뒤 1초는 기다려야 읽힙니다
-
 round_no = 0
 try:
+    # 시작부도 try 안에 둡니다 — 여기서 멈춰도 아래 finally(LED 끄기 · DHT 해제)가 실행되게
+    print("[서보] 시작 위치 90° 로 맞추는 중...")
+    my_servo.angle = 90
+    set_color(*COLOR_AT[90][1])  # 초록
+    wait(1.5)                    # DHT11 도 전원이 들어온 뒤 1초는 기다려야 읽힙니다
     while True:
         round_no += 1
         print()
