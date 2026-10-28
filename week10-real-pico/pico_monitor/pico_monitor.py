@@ -10,12 +10,14 @@
 #     pyserial 이 설치돼 있지 않으면 같은 폴더의 pyserial-*.whl 파일을 그대로 불러 씁니다.
 #     (pip install 이 막힌 컴퓨터에서도 설치 없이 돕니다)
 #
-#   구조 — 세 부분으로 나눠 두었습니다
+#   구조
 #     PicoParser   : 받은 글자 한 줄을 읽고 「지금 Pico 상태」를 갱신합니다 (화면과 무관, 순수 파이썬)
 #     SerialWorker : 별도 스레드에서 포트를 열고 읽습니다. 뽑혔다 다시 꽂히면 저절로 다시 연결합니다
-#     MonitorApp   : tkinter 화면. 0.05초마다 SerialWorker 가 받은 것을 꺼내 화면에 그립니다
+#     summarize    : 상태를 「한 줄 판정 + 점검표 8칸」으로 바꿉니다 (화면과 무관)
+#     MonitorApp   : tkinter 화면 (밝은 테마). 0.05초마다 받은 것을 꺼내 그립니다
 
 import codecs
+import collections
 import datetime
 import math
 import os
@@ -90,6 +92,9 @@ class PicoParser:
         self.sensors = {"temp": None, "humi": None, "light": None}
         self.servo = None           # 각도 (int)
         self.led = None             # "빨강"/"초록"/"파랑"/"꺼짐"
+        self.arrivals = 0           # 이번 회차에 서보가 도착한 횟수 (0~5) — 순서 점 표시용
+        # 추세선용: 센서마다 최근 30개 실제 값
+        self.history = {k: collections.deque(maxlen=30) for k in ("temp", "humi", "light")}
         self.last_error = ""
         self._in_traceback = False
         self.probe_done = False
@@ -176,6 +181,7 @@ class PicoParser:
         m = RE_ROUND.search(s)
         if m:
             self.round = int(m.group(1))
+            self.arrivals = 0
             self.code_state = "running"
             # 회차가 시작됐다 = import 가 모두 성공했다 = 라이브러리 정상
             for k in self.libs:
@@ -192,11 +198,14 @@ class PicoParser:
             raw = RE_RAW.search(s)
             self.sensors[key] = {"value": value, "mark": mark, "text": text,
                                  "raw": int(raw.group(1)) if raw else None}
+            if value is not None:
+                self.history[key].append(value)
             return {"OK": "ok", "경고": "warn", "실패": "fail"}.get(mark, "")
         m = RE_SERVO.search(s)
         if m:
             self.servo = int(m.group(1))
             self.led = m.group(2)
+            self.arrivals += 1
             return "ok"
         if s.startswith("[서보] 시작 위치"):
             self.servo, self.led = 90, "초록"
@@ -356,41 +365,221 @@ class SerialWorker(threading.Thread):
 
 
 # ════════════════════════════════════════════════════════════════════════
-#  ③ MonitorApp — tkinter 화면
+#  ③ summarize — 지금 상태를 「한 줄 판정 + 점검표 8칸」으로 (화면과 무관, 따로 시험 가능)
 # ════════════════════════════════════════════════════════════════════════
 
-FONT = ("Malgun Gothic", 10)
-FONT_B = ("Malgun Gothic", 10, "bold")
-FONT_BIG = ("Malgun Gothic", 17, "bold")
-FONT_SMALL = ("Malgun Gothic", 9)
-FONT_LOG = ("Consolas", 10)
+CHIPS = ["연결", "코드", "라이브러리", "온도", "습도", "조도", "서보", "LED"]
+SENSOR_LABEL = {"temp": "온도", "humi": "습도", "light": "조도"}
+MARK_LEVEL = {"OK": "ok", "경고": "warn", "실패": "fail"}
+QUIET_SECONDS = 10      # 이만큼 아무 글자도 안 오면 「출력이 멈췄다」고 알립니다
 
-C_BG, C_CARD, C_LINE = "#f4f5f7", "#ffffff", "#dcdfe4"
-C_TEXT, C_SUB = "#1f2328", "#5f6670"
-C_OK, C_WARN, C_FAIL, C_INFO = "#1a7f37", "#b35900", "#cf222e", "#0b5cad"
-MARK_COLOR = {"OK": C_OK, "경고": C_WARN, "실패": C_FAIL, "": C_SUB}
-LED_COLOR = {"빨강": "#ff3b30", "초록": "#34c759", "파랑": "#0a84ff", "꺼짐": "#d0d3d8"}
-STATE_TEXT = {
-    "running": ("● 실행 중", C_OK), "stopped": ("■ 멈춤 (Code done running)", C_WARN),
-    "error": ("✖ 오류로 멈춤", C_FAIL), "repl": ("› REPL (코드 안 도는 중)", C_WARN),
-    "unknown": ("? 아직 모름", C_SUB),
-}
-QUIET_SECONDS = 10      # 이만큼 아무 글자도 안 오면 「멈춘 것 같다」고 알립니다
+
+def summarize(p, link, quiet=False, link_msg=""):
+    """(단계, 제목, 할 일, {칸 이름: 단계}) 를 돌려줍니다.
+    단계: ok(초록) · warn(호박) · fail(빨강) · idle(회색).  link: none / waiting / lost / connected"""
+    chips = dict.fromkeys(CHIPS, "idle")
+    chips["연결"] = {"connected": "ok", "waiting": "warn", "lost": "warn"}.get(link, "idle")
+    chips["코드"] = {"running": "ok", "stopped": "warn", "repl": "warn", "error": "fail"}.get(p.code_state, "idle")
+    libs = list(p.libs.values())
+    if any(isinstance(v, str) for v in libs):
+        chips["라이브러리"] = "fail"
+    elif all(v is True for v in libs):
+        chips["라이브러리"] = "ok"
+    for key, label in SENSOR_LABEL.items():
+        s = p.sensors[key]
+        if s:
+            chips[label] = MARK_LEVEL.get(s["mark"], "idle")
+    if p.servo is not None:
+        chips["서보"] = "ok"
+    if p.led in ("빨강", "초록", "파랑") or (p.led == "꺼짐" and p.servo is not None):
+        chips["LED"] = "ok"      # 멈출 때 점검 코드가 LED 를 끄므로, 색이 바뀌는 걸 이미 봤다면 정상
+    if quiet and chips["코드"] == "ok":
+        chips["코드"] = "warn"
+
+    # ── 가장 중요한 것 하나만, 할 일과 함께 ──
+    if link == "none":
+        return "idle", "Pico 에 연결하세요", "USB 로 Pico 를 꽂고 → 위에서 포트를 고른 뒤 → 「연결」을 누르세요.", chips
+    if link in ("waiting", "lost"):
+        return "warn", "Pico 를 기다리는 중", link_msg or "USB 를 꽂으면 저절로 연결합니다.", chips
+    bad_libs = [k for k, v in p.libs.items() if isinstance(v, str)]
+    if bad_libs:
+        return ("fail", "라이브러리 문제 — " + ", ".join(f"{k}: {p.libs[k]}" for k in bad_libs),
+                p.lib_note or "CIRCUITPY/lib/ 에 라이브러리를 복사하세요.", chips)
+    if p.code_state == "error":
+        return ("fail", "코드가 오류로 멈췄습니다",
+                (p.last_error + " — " if p.last_error else "") + "아래 빨간 줄을 확인하고 code.py 를 고쳐 저장하세요.", chips)
+    if p.code_state in ("stopped", "repl"):
+        return "warn", "점검 코드가 멈춰 있습니다", "「다시 시작」을 누르면 code.py 를 처음부터 다시 실행합니다.", chips
+    if quiet:
+        return ("fail", f"출력이 {QUIET_SECONDS}초 넘게 없습니다",
+                "Pico 가 멈췄거나 리셋됐을 수 있습니다. 내장 LED 가 깜빡이는지 보고 「다시 시작」을 누르세요.", chips)
+    if p.round == 0:
+        return "idle", "점검 결과를 기다리는 중…", "한 바퀴에 약 15초 걸립니다. 계속 비어 있으면 「다시 시작」을 누르세요.", chips
+    for level, word in (("fail", "문제"), ("warn", "주의")):
+        keys = [k for k, lab in SENSOR_LABEL.items() if chips[lab] == level]
+        if keys:
+            names = " · ".join(SENSOR_LABEL[k] for k in keys)
+            action = next((p.sensors[k]["text"] for k in keys if p.sensors[k]["text"]), "")
+            return level, f"{word} {len(keys)}개 — {names}", action or "시리얼 출력의 해당 줄을 확인하세요.", chips
+    return "ok", f"모두 정상 ✓  ({p.round}회차)", "센서 값이 맞는지, 서보 · LED 가 순서대로 움직이는지 눈으로도 확인하세요.", chips
+
+
+# ════════════════════════════════════════════════════════════════════════
+#  ④ 화면 부품 — 평평한 버튼 · 툴팁 · 추세선
+# ════════════════════════════════════════════════════════════════════════
+
+# 밝은 테마 — 색은 상태에만 씁니다 (그라데이션 · 장식 색 없음)
+C_BG, C_CARD, C_LINE = "#F5F6F8", "#FFFFFF", "#E2E5EA"
+C_TEXT, C_SUB, C_FAINT = "#16181D", "#5B616E", "#8A909C"
+LEVEL_FG = {"ok": "#1A7F37", "warn": "#9A6700", "fail": "#C62828", "idle": "#8A909C"}
+LEVEL_BG = {"ok": "#E8F5EC", "warn": "#FFF4D6", "fail": "#FDECEC", "idle": "#EEF0F3"}
+LEVEL_ICON = {"ok": "✔", "warn": "!", "fail": "✖", "idle": "…"}
+LED_COLOR = {"빨강": "#E5484D", "초록": "#30A46C", "파랑": "#3E63DD"}
+SERVO_STEPS = [90, 180, 90, 0, 90]          # 점검 코드의 순서와 같아야 합니다
 MAX_LOG_LINES = 3000
+# 「점검 줄만」 보기에서 남길 줄
+CHECK_PREFIX = ("[센서]", "[서보]", "====", "[준비]", "Traceback", "[모니터]")
+
+
+def pick_font(candidates, fallback):
+    from tkinter import font as tkfont
+    have = set(tkfont.families())
+    for name in candidates:
+        if name in have:
+            return name
+    return fallback
+
+
+class FlatButton(tk.Label):
+    """ttk 기본 버튼 대신 쓰는 평평한 버튼. kind = primary(검정) / secondary(흰 바탕+테두리)."""
+
+    STYLES = {
+        "primary": dict(bg="#16181D", fg="#FFFFFF", hover="#2E323A", border="#16181D"),
+        "secondary": dict(bg="#FFFFFF", fg="#16181D", hover="#F0F2F5", border="#D3D7DE"),
+    }
+
+    def __init__(self, parent, text, command, kind="secondary", font=None, tip=None, padx=12, pady=5):
+        st = self.STYLES[kind]
+        super().__init__(parent, text=text, bg=st["bg"], fg=st["fg"], font=font, padx=padx, pady=pady,
+                         cursor="hand2", highlightthickness=1, highlightbackground=st["border"],
+                         highlightcolor=st["border"])
+        self._st, self._cmd, self._disabled = st, command, False
+        self.bind("<Enter>", lambda e: self._paint(hover=True))
+        self.bind("<Leave>", lambda e: self._paint())
+        self.bind("<ButtonRelease-1>", self._click)
+        if tip:
+            Tooltip(self, tip)
+
+    def _paint(self, hover=False):
+        if self._disabled:
+            self.configure(bg="#F0F2F5", fg="#A3A9B3", cursor="arrow")
+        else:
+            self.configure(bg=self._st["hover"] if hover else self._st["bg"], fg=self._st["fg"], cursor="hand2")
+
+    def _click(self, _e):
+        if not self._disabled and self._cmd:
+            self._cmd()
+
+    def set_text(self, text):
+        self.configure(text=text)
+
+    def state(self, spec=None):
+        """ttk 버튼과 같은 모양으로 씁니다: state(["disabled"]) · state(["!disabled"]) · state()"""
+        if spec:
+            for s in spec:
+                if s == "disabled":
+                    self._disabled = True
+                elif s == "!disabled":
+                    self._disabled = False
+            self._paint()
+        return ("disabled",) if self._disabled else ()
+
+
+class Tooltip:
+    """마우스를 0.5초 올려 두면 한 줄 설명을 띄웁니다."""
+
+    def __init__(self, widget, text):
+        self.widget, self.text, self.win, self.job = widget, text, None, None
+        widget.bind("<Enter>", self._schedule, add="+")
+        widget.bind("<Leave>", self._hide, add="+")
+        widget.bind("<ButtonPress>", self._hide, add="+")
+
+    def _schedule(self, _e):
+        self.job = self.widget.after(500, self._show)
+
+    def _show(self):
+        if self.win:
+            return
+        x = self.widget.winfo_rootx()
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 4
+        self.win = tk.Toplevel(self.widget)
+        self.win.wm_overrideredirect(True)
+        self.win.wm_geometry(f"+{x}+{y}")
+        tk.Label(self.win, text=self.text, bg="#16181D", fg="#FFFFFF", padx=8, pady=4,
+                 font=(FONT_UI, 9), wraplength=320, justify="left").pack()
+
+    def _hide(self, _e=None):
+        if self.job:
+            self.widget.after_cancel(self.job)
+            self.job = None
+        if self.win:
+            self.win.destroy()
+            self.win = None
+
+
+def draw_sparkline(canvas, values, color):
+    """최근 값들을 작은 꺾은선으로 그립니다 (값이 1개면 점 하나)."""
+    canvas.delete("all")
+    w, h = int(canvas["width"]), int(canvas["height"])
+    vals = list(values)
+    if not vals:
+        canvas.create_line(2, h - 3, w - 2, h - 3, fill=C_LINE)
+        return
+    lo, hi = min(vals), max(vals)
+    span = (hi - lo) or 1.0
+    n = len(vals)
+    pts = []
+    for i, v in enumerate(vals):
+        x = 3 + (w - 6) * (i / (n - 1) if n > 1 else 1)
+        y = h - 4 - (h - 8) * ((v - lo) / span if hi != lo else 0.5)
+        pts += [x, y]
+    if n > 1:
+        canvas.create_line(*pts, fill=color, width=2, smooth=False)
+    canvas.create_oval(pts[-2] - 3, pts[-1] - 3, pts[-2] + 3, pts[-1] + 3, fill=color, outline="")
+
+
+# ════════════════════════════════════════════════════════════════════════
+#  ⑤ MonitorApp — tkinter 화면
+# ════════════════════════════════════════════════════════════════════════
+
+FONT_UI = "TkDefaultFont"      # 실제 이름은 창을 만든 뒤 pick_font 로 정합니다
+FONT_MONO = "TkFixedFont"
 
 
 class MonitorApp:
     def __init__(self, root, auto_port=None):
+        global FONT_UI, FONT_MONO
+        FONT_UI = pick_font(["Malgun Gothic", "맑은 고딕", "Noto Sans CJK KR", "NanumGothic"], "TkDefaultFont")
+        FONT_MONO = pick_font(["Consolas", "D2Coding", "NanumGothicCoding", "DejaVu Sans Mono"], "TkFixedFont")
+        self.f = {
+            "title": (FONT_UI, 13, "bold"), "b": (FONT_UI, 10, "bold"), "n": (FONT_UI, 10),
+            "s": (FONT_UI, 9), "verdict": (FONT_UI, 13, "bold"), "icon": (FONT_UI, 16, "bold"),
+            "big": (FONT_UI, 20, "bold"), "mono": (FONT_MONO, 10),
+        }
         self.root = root
         self.q = queue.Queue()
         self.worker = None
         self.parser = PicoParser()
         self.last_rx = None
         self.connected = False
-        self.probe = None           # 「라이브러리 직접 검사」 진행 상태
+        self.link = "none"          # none / waiting / lost / connected
+        self.link_msg = ""
+        self.probe = None           # 「라이브러리 직접 검사」 · 「다시 시작」 진행 상태
         self.auto_port = auto_port
+        self.ports = []
 
         root.title("Pico 시리얼 모니터")
+        root.configure(bg=C_BG)
         root.minsize(900, 560)
         if sys.platform == "win32":
             root.state("zoomed")          # 최대화 — 노트북 화면 크기·배율과 상관없이 다 보이게
@@ -398,182 +587,241 @@ class MonitorApp:
             w = min(1200, root.winfo_screenwidth() - 40)
             h = min(720, root.winfo_screenheight() - 80)
             root.geometry(f"{w}x{h}")
-        root.configure(bg=C_BG)
         self._style()
-        self._build_top()
-        body = tk.Frame(root, bg=C_BG)
-        body.pack(fill="both", expand=True, padx=12, pady=(0, 12))
-        self._build_left(body)
-        self._build_log(body)
+        self._build_header()
+        self._build_statusbar()            # 맨 아래를 먼저 잡아 두어야 로그가 남은 높이를 다 씁니다
+        main = tk.Frame(root, bg=C_BG)
+        main.pack(fill="both", expand=True, padx=14, pady=(10, 0))
+        self._build_verdict(main)
+        self._build_chips(main)
+        self._build_strip(main)
+        self._build_log(main)
 
+        root.bind("<F5>", lambda e: self.refresh_ports())
+        root.bind("<Control-l>", lambda e: self.clear_log())
         self.refresh_ports()
         if auto_port:
             self.port_var.set(auto_port)
             self.toggle_connect()
+        self.render()
         root.protocol("WM_DELETE_WINDOW", self.on_close)
         root.after(50, self.poll)
-        root.after(500, self.tick)
+        root.after(1000, self.tick)
 
     # ── 화면 만들기 ────────────────────────────────────────────────
     def _style(self):
         st = ttk.Style()
         try:
-            st.theme_use("vista" if sys.platform == "win32" else "clam")
+            st.theme_use("clam")           # 어느 PC 에서나 같은 모양
         except tk.TclError:
             pass
-        st.configure("TButton", font=FONT, padding=(10, 4))
-        st.configure("TCheckbutton", font=FONT, background=C_BG)
+        st.configure("TCombobox", fieldbackground=C_CARD, background=C_CARD, bordercolor="#D3D7DE",
+                     lightcolor=C_CARD, darkcolor=C_CARD, arrowcolor=C_SUB, padding=4)
+        st.map("TCombobox", fieldbackground=[("readonly", C_CARD)], selectbackground=[("readonly", C_CARD)],
+               selectforeground=[("readonly", C_TEXT)])
+        st.configure("Vertical.TScrollbar", background="#E6E8EC", troughcolor=C_CARD, bordercolor=C_CARD,
+                     arrowcolor=C_SUB, lightcolor="#E6E8EC", darkcolor="#E6E8EC")
+        self.root.option_add("*TCombobox*Listbox.font", self.f["n"])
 
-    def card(self, parent, title):
-        outer = tk.Frame(parent, bg=C_CARD, highlightbackground=C_LINE, highlightthickness=1)
-        outer.pack(fill="x", pady=(0, 10))
-        tk.Label(outer, text=title, font=FONT_B, bg=C_CARD, fg=C_TEXT, anchor="w").pack(
-            fill="x", padx=12, pady=(10, 4))
-        inner = tk.Frame(outer, bg=C_CARD)
-        inner.pack(fill="x", padx=12, pady=(0, 10))
-        return inner
+    def card(self, parent):
+        return tk.Frame(parent, bg=C_CARD, highlightbackground=C_LINE, highlightthickness=1)
 
-    def row(self, parent, label):
-        f = tk.Frame(parent, bg=C_CARD)
-        f.pack(fill="x", pady=1)
-        tk.Label(f, text=label, font=FONT, bg=C_CARD, fg=C_SUB, width=10, anchor="w").pack(side="left")
-        v = tk.Label(f, text="—", font=FONT_B, bg=C_CARD, fg=C_TEXT, anchor="w")
-        v.pack(side="left", fill="x", expand=True)
-        return v
+    def _build_header(self):
+        bar = tk.Frame(self.root, bg=C_CARD, highlightbackground=C_LINE, highlightthickness=1)
+        bar.pack(fill="x")
+        inner = tk.Frame(bar, bg=C_CARD)
+        inner.pack(fill="x", padx=14, pady=8)
+        tk.Label(inner, text="Pico 시리얼 모니터", font=self.f["title"], bg=C_CARD, fg=C_TEXT).pack(side="left")
+        tk.Label(inner, text="  하드웨어 점검 코드 출력 보기", font=self.f["s"], bg=C_CARD, fg=C_FAINT).pack(
+            side="left", pady=(3, 0))
 
-    def _build_top(self):
-        top = tk.Frame(self.root, bg=C_BG)
-        top.pack(fill="x", padx=12, pady=12)
-        tk.Label(top, text="포트", font=FONT_B, bg=C_BG, fg=C_TEXT).pack(side="left")
+        right = tk.Frame(inner, bg=C_CARD)
+        right.pack(side="right")
+        self.status_lbl = tk.Label(right, text="● 연결 안 됨", font=self.f["b"], bg=LEVEL_BG["idle"],
+                                   fg=LEVEL_FG["idle"], padx=10, pady=4)
+        self.status_lbl.pack(side="right", padx=(10, 0))
+        self.conn_btn = FlatButton(right, "연결", self.toggle_connect, "primary", self.f["b"],
+                                   tip="고른 포트로 Pico 에 연결합니다. 연결 중에는 「끊기」로 바뀝니다.", padx=16)
+        self.conn_btn.pack(side="right", padx=(6, 0))
+        FlatButton(right, "↻", self.refresh_ports, "secondary", self.f["b"],
+                   tip="포트 목록 새로고침 (F5)", padx=8).pack(side="right", padx=(6, 0))
         self.port_var = tk.StringVar()
-        self.port_box = ttk.Combobox(top, textvariable=self.port_var, width=42, state="readonly", font=FONT)
-        self.port_box.pack(side="left", padx=(6, 6))
-        ttk.Button(top, text="새로고침", command=self.refresh_ports).pack(side="left")
-        self.conn_btn = ttk.Button(top, text="연결", command=self.toggle_connect)
-        self.conn_btn.pack(side="left", padx=6)
-        self.status_lbl = tk.Label(top, text="○ 연결 안 됨", font=FONT_B, bg=C_BG, fg=C_SUB, anchor="w")
-        self.status_lbl.pack(side="left", padx=10, fill="x", expand=True)
+        self.port_box = ttk.Combobox(right, textvariable=self.port_var, width=30, state="readonly",
+                                     font=self.f["n"])
+        self.port_box.pack(side="right")
+        tk.Label(right, text="포트", font=self.f["n"], bg=C_CARD, fg=C_SUB).pack(side="right", padx=(0, 6))
 
-    def _build_left(self, body):
-        left = tk.Frame(body, bg=C_BG, width=380)
-        left.pack(side="left", fill="y", padx=(0, 12))
-        left.pack_propagate(False)
+    def _build_verdict(self, parent):
+        self.verdict = tk.Frame(parent, bg=LEVEL_BG["idle"])
+        self.verdict.pack(fill="x")
+        self.v_bar = tk.Frame(self.verdict, bg=LEVEL_FG["idle"], width=5)
+        self.v_bar.pack(side="left", fill="y")
+        self.v_icon = tk.Label(self.verdict, text="…", font=self.f["icon"], bg=LEVEL_BG["idle"],
+                               fg=LEVEL_FG["idle"], width=2)
+        self.v_icon.pack(side="left", padx=(8, 4))
+        txt = tk.Frame(self.verdict, bg=LEVEL_BG["idle"])
+        txt.pack(side="left", fill="x", expand=True, pady=8)
+        self.v_title = tk.Label(txt, text="", font=self.f["verdict"], bg=LEVEL_BG["idle"], fg=C_TEXT, anchor="w")
+        self.v_title.pack(fill="x")
+        self.v_action = tk.Label(txt, text="", font=self.f["n"], bg=LEVEL_BG["idle"], fg=C_SUB, anchor="w",
+                                 justify="left")
+        self.v_action.pack(fill="x")
+        self._verdict_parts = [self.verdict, self.v_icon, txt, self.v_title, self.v_action]
+        self.verdict.bind("<Configure>", lambda e: self.v_action.configure(wraplength=max(200, e.width - 80)))
 
-        c = self.card(left, "Pico")
-        self.v_board = self.row(c, "보드")
-        self.v_fw = self.row(c, "펌웨어")
-        self.v_state = self.row(c, "코드 상태")
-        self.v_rx = self.row(c, "마지막 수신")
-        self.v_round = self.row(c, "점검 회차")
+    def _build_chips(self, parent):
+        row = tk.Frame(parent, bg=C_BG)
+        row.pack(fill="x", pady=(8, 0))
+        self.chip_lbl = {}
+        for name in CHIPS:
+            lbl = tk.Label(row, text=f"● {name}", font=self.f["b"], bg=LEVEL_BG["idle"], fg=LEVEL_FG["idle"],
+                           padx=10, pady=3)
+            lbl.pack(side="left", padx=(0, 6))
+            self.chip_lbl[name] = lbl
 
-        c = self.card(left, "CircuitPython 라이브러리")
-        self.v_libs = {name: self.row(c, name.replace("adafruit_", "")) for name in LIBS}
-        self.v_builtin = self.row(c, "내장 모듈")
-        self.v_libnote = tk.Label(c, text="", font=FONT, bg=C_CARD, fg=C_FAIL, wraplength=320,
-                                  justify="left", anchor="w")
-        self.v_libnote.pack(fill="x", pady=(4, 4))
-        self.probe_btn = ttk.Button(c, text="라이브러리 직접 검사", command=self.start_probe)
-        self.probe_btn.pack(anchor="w")
-
-    def _build_status_strip(self, parent):
-        """센서 3칸 + 액추에이터를 로그 위에 가로로 놓습니다 (1366×768 노트북에서도 다 보이게)"""
+    def _build_strip(self, parent):
         strip = tk.Frame(parent, bg=C_BG)
-        strip.pack(fill="x", pady=(0, 10))
-        act = tk.Frame(strip, bg=C_CARD, highlightbackground=C_LINE, highlightthickness=1)
-        act.pack(side="right", fill="y")
-        tk.Label(act, text="액추에이터", font=FONT_B, bg=C_CARD, fg=C_TEXT, anchor="w").pack(
-            fill="x", padx=10, pady=(8, 0))
-        row = tk.Frame(act, bg=C_CARD)
-        row.pack(padx=10, pady=(0, 8))
-        self.gauge = tk.Canvas(row, width=200, height=100, bg=C_CARD, highlightthickness=0)
-        self.gauge.pack(side="left")
-        led = tk.Frame(row, bg=C_CARD)
-        led.pack(side="left", padx=(6, 0))
-        tk.Label(led, text="RGB LED", font=FONT_SMALL, bg=C_CARD, fg=C_SUB).pack()
-        self.led_canvas = tk.Canvas(led, width=60, height=60, bg=C_CARD, highlightthickness=0)
-        self.led_canvas.pack()
-        self.v_led = tk.Label(led, text="—", font=FONT_B, bg=C_CARD, fg=C_TEXT)
-        self.v_led.pack()
-        self.draw_gauge(None)
-        self.draw_led(None)
+        strip.pack(fill="x", pady=(8, 0))
+        # 오른쪽 두 칸(서보 · LED)을 먼저 붙여 제 폭을 확보하고, 센서 세 칸이 남은 폭을 나눕니다
+        led = self.card(strip)
+        led.pack(side="right", fill="y")
+        tk.Label(led, text="RGB LED", font=self.f["b"], bg=C_CARD, fg=C_TEXT).pack(padx=12, pady=(8, 0))
+        self.led_canvas = tk.Canvas(led, width=56, height=56, bg=C_CARD, highlightthickness=0)
+        self.led_canvas.pack(padx=12)
+        self.v_led = tk.Label(led, text="—", font=self.f["b"], bg=C_CARD, fg=C_SUB)
+        self.v_led.pack(pady=(0, 8))
+
+        servo = self.card(strip)
+        servo.pack(side="right", fill="y", padx=(0, 8))
+        shead = tk.Frame(servo, bg=C_CARD)
+        shead.pack(fill="x", padx=12, pady=(8, 0))
+        tk.Label(shead, text="서보", font=self.f["b"], bg=C_CARD, fg=C_TEXT).pack(side="left")
+        self.v_angle = tk.Label(shead, text="—", font=self.f["b"], bg=C_CARD, fg=C_TEXT)
+        self.v_angle.pack(side="right")
+        self.gauge = tk.Canvas(servo, width=170, height=58, bg=C_CARD, highlightthickness=0)
+        self.gauge.pack(padx=12)
+        self.seq = tk.Canvas(servo, width=170, height=26, bg=C_CARD, highlightthickness=0)
+        self.seq.pack(padx=12, pady=(0, 6))
 
         self.v_sensor = {}
-        for key, label in (("temp", "온도"), ("humi", "습도"), ("light", "조도")):
-            tile = tk.Frame(strip, bg=C_CARD, highlightbackground=C_LINE, highlightthickness=1)
-            tile.pack(side="left", fill="both", expand=True, padx=(0, 10))
-            head = tk.Frame(tile, bg=C_CARD)
-            head.pack(fill="x", padx=10, pady=(8, 0))
-            tk.Label(head, text=label, font=FONT_B, bg=C_CARD, fg=C_TEXT).pack(side="left")
-            mark = tk.Label(head, text="", font=FONT_B, bg=C_CARD, fg=C_SUB)
+        self.spark = {}
+        for key in ("temp", "humi", "light"):
+            tile = self.card(strip)
+            tile.pack(side="left", fill="both", expand=True, padx=(0, 8))
+            accent = tk.Frame(tile, bg=LEVEL_FG["idle"], width=4)
+            accent.pack(side="left", fill="y")
+            body = tk.Frame(tile, bg=C_CARD)
+            body.pack(side="left", fill="both", expand=True, padx=(10, 10), pady=(8, 8))
+            head = tk.Frame(body, bg=C_CARD)
+            head.pack(fill="x")
+            tk.Label(head, text=SENSOR_LABEL[key], font=self.f["b"], bg=C_CARD, fg=C_SUB).pack(side="left")
+            mark = tk.Label(head, text="", font=self.f["s"], bg=C_CARD, fg=C_FAINT, padx=6)
             mark.pack(side="right")
-            val = tk.Label(tile, text="—", font=FONT_BIG, bg=C_CARD, fg=C_TEXT, anchor="w")
-            val.pack(fill="x", padx=10)
-            hint = tk.Label(tile, text="", font=FONT_SMALL, bg=C_CARD, fg=C_SUB, wraplength=170,
-                            justify="left", anchor="nw", height=4)
-            hint.pack(fill="x", padx=10, pady=(0, 8))
+            val = tk.Label(body, text="—", font=self.f["big"], bg=C_CARD, fg=C_TEXT, anchor="w")
+            val.pack(fill="x")
+            foot = tk.Frame(body, bg=C_CARD)
+            foot.pack(fill="x")
+            sp = tk.Canvas(foot, width=110, height=24, bg=C_CARD, highlightthickness=0)
+            sp.pack(side="left")
+            hint = tk.Label(foot, text="", font=self.f["s"], bg=C_CARD, fg=C_FAINT, anchor="e")
+            hint.pack(side="right")
             self.v_sensor[key] = (val, mark, hint)
+            self.spark[key] = (sp, accent)
 
+    def _build_log(self, parent):
+        box = self.card(parent)
+        box.pack(fill="both", expand=True, pady=(8, 10))
+        bar = tk.Frame(box, bg=C_CARD)
+        bar.pack(fill="x", padx=10, pady=(8, 6))
+        tk.Label(bar, text="시리얼 출력", font=self.f["b"], bg=C_CARD, fg=C_TEXT).pack(side="left", padx=(0, 10))
+        FlatButton(bar, "멈춤", self.stop_code, font=self.f["n"],
+                   tip="Ctrl+C 를 보냅니다. 점검 코드가 서보를 90° 로 돌려놓고 멈춥니다.").pack(side="left", padx=(0, 6))
+        FlatButton(bar, "다시 시작", self.restart_code, font=self.f["n"],
+                   tip="code.py 를 처음부터 다시 실행합니다 (돌고 있으면 먼저 멈춘 뒤 Ctrl+D).").pack(side="left", padx=(0, 6))
+        self.probe_btn = FlatButton(bar, "라이브러리 검사", self.start_probe, font=self.f["n"],
+                                    tip="점검 코드를 잠깐 멈추고 REPL 에서 라이브러리 · 내장 모듈을 직접 불러 본 뒤, "
+                                        "보드 · 펌웨어를 표시하고 점검 코드를 다시 시작합니다.")
+        self.probe_btn.pack(side="left")
 
-    def _build_log(self, body):
-        side = tk.Frame(body, bg=C_BG)
-        side.pack(side="left", fill="both", expand=True)
-        self._build_status_strip(side)
-        right = tk.Frame(side, bg=C_CARD, highlightbackground=C_LINE, highlightthickness=1)
-        right.pack(fill="both", expand=True)
-        bar = tk.Frame(right, bg=C_CARD)
-        bar.pack(fill="x", padx=10, pady=8)
-        tk.Label(bar, text="시리얼 출력", font=FONT_B, bg=C_CARD, fg=C_TEXT).pack(side="left")
+        FlatButton(bar, "저장", self.save_log, font=self.f["n"], tip="시리얼 출력을 텍스트 파일로 저장").pack(
+            side="right")
+        FlatButton(bar, "지우기", self.clear_log, font=self.f["n"], tip="화면의 출력 지우기 (Ctrl+L)").pack(
+            side="right", padx=(0, 6))
         self.autoscroll = tk.BooleanVar(value=True)
-        ttk.Checkbutton(bar, text="자동 스크롤", variable=self.autoscroll).pack(side="right")
-        ttk.Button(bar, text="기록 저장", command=self.save_log).pack(side="right", padx=4)
-        ttk.Button(bar, text="화면 지우기", command=self.clear_log).pack(side="right", padx=4)
-        ttk.Button(bar, text="다시 시작 (Ctrl+D)", command=self.restart_code).pack(side="right", padx=4)
-        ttk.Button(bar, text="멈춤 (Ctrl+C)", command=self.stop_code).pack(side="right", padx=4)
+        self.only_checks = tk.BooleanVar(value=False)
+        for text, var, cmd in (("자동 스크롤", self.autoscroll, None),
+                               ("점검 줄만", self.only_checks, self.apply_filter)):
+            tk.Checkbutton(bar, text=text, variable=var, command=cmd, font=self.f["n"], bg=C_CARD, fg=C_SUB,
+                           activebackground=C_CARD, selectcolor=C_CARD, highlightthickness=0, bd=0).pack(
+                side="right", padx=(0, 10))
 
-        frame = tk.Frame(right, bg=C_CARD)
+        frame = tk.Frame(box, bg=C_CARD)
         frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
-        self.log = tk.Text(frame, font=FONT_LOG, bg="#fbfbfc", fg=C_TEXT, wrap="word",
-                           relief="flat", highlightthickness=1, highlightbackground=C_LINE)
+        self.log = tk.Text(frame, font=self.f["mono"], bg="#FBFBFC", fg=C_TEXT, wrap="word", relief="flat",
+                           highlightthickness=1, highlightbackground=C_LINE, padx=8, pady=6, spacing1=1)
         sb = ttk.Scrollbar(frame, command=self.log.yview)
         self.log.configure(yscrollcommand=sb.set, state="disabled")
         sb.pack(side="right", fill="y")
         self.log.pack(side="left", fill="both", expand=True)
-        for tag, color in (("ok", C_OK), ("warn", C_WARN), ("fail", C_FAIL), ("error", C_FAIL),
-                           ("info", C_INFO), ("app", "#8250df"), ("time", "#9aa0a6")):
-            self.log.tag_configure(tag, foreground=color)
-        self.log.tag_configure("error", background="#fff0f0")
+        for tag in ("ok", "warn", "fail", "error"):
+            self.log.tag_configure(tag, foreground=LEVEL_FG["fail" if tag == "error" else tag])
+        self.log.tag_configure("error", background=LEVEL_BG["fail"])
+        self.log.tag_configure("info", foreground="#0B5CAD")
+        self.log.tag_configure("app", foreground=C_SUB, font=(FONT_UI, 9, "italic"))
+        self.log.tag_configure("time", foreground="#B0B5BE")
+        self.log.tag_configure("noise", elide=False)
 
-    # ── 그림 (서보 게이지 · LED) ────────────────────────────────────
+    def _build_statusbar(self):
+        bar = tk.Frame(self.root, bg=C_CARD, highlightbackground=C_LINE, highlightthickness=1)
+        bar.pack(side="bottom", fill="x")
+        self.v_status = tk.Label(bar, text="", font=self.f["s"], bg=C_CARD, fg=C_SUB, anchor="w")
+        self.v_status.pack(side="left", padx=14, pady=4)
+        tk.Label(bar, text="F5 포트 새로고침 · Ctrl+L 지우기", font=self.f["s"], bg=C_CARD, fg=C_FAINT).pack(
+            side="right", padx=14)
+
+    # ── 그림 (서보 게이지 · 순서 · LED) ─────────────────────────────
     def draw_gauge(self, angle):
         g = self.gauge
         g.delete("all")
-        cx, cy, r = 100, 88, 70
-        g.create_arc(cx - r, cy - r, cx + r, cy + r, start=0, extent=180, style="arc",
-                     outline=C_LINE, width=10)
-        # 반원 게이지: 0° 는 오른쪽, 90° 는 위, 180° 는 왼쪽
-        for a, t in ((0, "0°"), (90, "90°"), (180, "180°")):
-            rad = math.radians(a)
-            x, y = cx + r * math.cos(rad), cy - r * math.sin(rad)
-            g.create_text(x + (8 if a == 0 else -8 if a == 180 else 0), y - (10 if a == 90 else -2),
-                          text=t, font=("Malgun Gothic", 8), fill=C_SUB)
-        if angle is not None:
+        cx, cy, r = 85, 52, 44
+        g.create_arc(cx - r, cy - r, cx + r, cy + r, start=0, extent=180, style="arc", outline="#E6E8EC", width=8)
+        if angle is not None:     # 0° 는 오른쪽, 180° 는 왼쪽 — 지나온 만큼 진하게
+            g.create_arc(cx - r, cy - r, cx + r, cy + r, start=0, extent=angle, style="arc",
+                         outline="#C9CED6", width=8)
             rad = math.radians(angle)
-            g.create_line(cx, cy, cx + (r - 12) * math.cos(rad), cy - (r - 12) * math.sin(rad),
-                          width=4, fill=C_INFO, capstyle="round")
-        g.create_oval(cx - 5, cy - 5, cx + 5, cy + 5, fill=C_TEXT, outline="")
-        g.create_text(cx, cy - 26, text="—" if angle is None else f"서보 {angle}°",
-                      font=FONT_B, fill=C_TEXT)
+            g.create_line(cx, cy, cx + (r - 6) * math.cos(rad), cy - (r - 6) * math.sin(rad),
+                          width=3, fill=C_TEXT, capstyle="round")
+        g.create_oval(cx - 4, cy - 4, cx + 4, cy + 4, fill=C_TEXT, outline="")
+        g.create_text(cx - r - 8, cy, text="180°", anchor="e", font=(FONT_UI, 8), fill=C_FAINT)
+        g.create_text(cx + r + 8, cy, text="0°", anchor="w", font=(FONT_UI, 8), fill=C_FAINT)
+        self.v_angle.configure(text="—" if angle is None else f"{angle}°")
+
+    def draw_sequence(self, done):
+        """순서 점 5개 — 이번 회차에 도착한 만큼 채우고, 마지막 도착을 강조합니다."""
+        c = self.seq
+        c.delete("all")
+        n = len(SERVO_STEPS)
+        for i, a in enumerate(SERVO_STEPS):
+            x = 15 + i * (140 / (n - 1))
+            if i < n - 1:
+                c.create_line(x + 6, 8, x + 140 / (n - 1) - 6, 8, fill=C_LINE, width=2)
+            filled = i < done
+            current = i == done - 1
+            col = LEVEL_FG["ok"] if filled else "#D3D7DE"
+            rr = 6 if current else 4
+            c.create_oval(x - rr, 8 - rr, x + rr, 8 + rr, fill=col if filled else C_CARD, outline=col, width=2)
+            c.create_text(x, 21, text=str(a), font=(FONT_UI, 7), fill=C_TEXT if current else C_FAINT)
 
     def draw_led(self, name):
         c = self.led_canvas
         c.delete("all")
-        color = LED_COLOR.get(name, "#d0d3d8")
-        if name in ("빨강", "초록", "파랑"):
-            c.create_oval(4, 4, 56, 56, fill=color, outline="")          # 빛 번짐
-            c.create_oval(14, 14, 46, 46, fill=color, outline="white", width=2)
+        if name in LED_COLOR:
+            col = LED_COLOR[name]
+            c.create_oval(6, 6, 50, 50, fill=col, outline="")
+            self.v_led.configure(text=name, fg=C_TEXT)
         else:
-            c.create_oval(14, 14, 46, 46, fill=color, outline=C_LINE, width=2)
-        self.v_led.configure(text=name or "—")
+            c.create_oval(8, 8, 48, 48, fill=C_CARD, outline="#C9CED6", width=2)
+            self.v_led.configure(text=name or "—", fg=C_FAINT)
 
     # ── 연결 ──────────────────────────────────────────────────────
     def refresh_ports(self):
@@ -583,9 +831,11 @@ class MonitorApp:
         if self.ports and not self.port_var.get():
             self.port_var.set(labels[0])          # Pico 처럼 보이는 포트가 맨 앞
         if serial is None:
-            self.set_status("✖ pyserial 이 없습니다 — pyserial-*.whl 파일을 이 폴더에 두세요", C_FAIL)
-        elif not self.ports and not self.connected:
-            self.set_status("○ 포트가 없습니다 — Pico 를 데이터 USB 케이블로 꽂고 「새로고침」", C_SUB)
+            self.set_status("✖ pyserial 없음", "fail")
+        elif not self.ports and not self.worker:
+            self.set_status("● 포트 없음", "idle")
+            self.link_msg = "데이터 USB 케이블로 Pico 를 꽂고 ↻ 를 누르세요"
+        self.render()
 
     def selected_device(self):
         text = self.port_var.get()
@@ -599,11 +849,13 @@ class MonitorApp:
             self.worker.stop()
             self.worker = None
             self.connected = False
+            self.link = "none"
             self.probe = None                       # 검사 도중 끊어도 버튼이 다시 살아나게
             self.probe_btn.state(["!disabled"])
-            self.conn_btn.configure(text="연결")
-            self.set_status("○ 연결 끊음", C_SUB)
+            self.conn_btn.set_text("연결")
+            self.set_status("○ 연결 끊음", "idle")
             self.app_line("연결을 끊었습니다.")
+            self.render()
             return
         if serial is None:
             messagebox.showerror("pyserial 없음", "pyserial-3.5-py2.py3-none-any.whl 파일을\n"
@@ -611,18 +863,20 @@ class MonitorApp:
             return
         dev = self.selected_device()
         if not dev:
-            messagebox.showinfo("포트 선택", "포트를 먼저 고르세요. 목록이 비어 있으면 「새로고침」을 누르세요.")
+            messagebox.showinfo("포트 선택", "포트를 먼저 고르세요. 목록이 비어 있으면 ↻ 를 누르세요.")
             return
         self.parser.reset()
         # 연결마다 새 큐 — 방금 끊은 옛 스레드가 늦게 넣는 「연결됨」이 화면에 섞이지 않게
         self.q = queue.Queue()
         self.worker = SerialWorker(dev, self.q)
         self.worker.start()
-        self.conn_btn.configure(text="끊기")
-        self.set_status(f"… {dev} 여는 중", C_SUB)
+        self.link, self.link_msg = "waiting", f"{dev} 여는 중…"
+        self.conn_btn.set_text("끊기")
+        self.set_status(f"● {dev} 여는 중", "warn")
+        self.render()
 
-    def set_status(self, text, color):
-        self.status_lbl.configure(text=text, fg=color)
+    def set_status(self, text, level):
+        self.status_lbl.configure(text=text, fg=LEVEL_FG[level], bg=LEVEL_BG[level])
 
     # ── 버튼: Ctrl+C / Ctrl+D / 라이브러리 검사 ─────────────────────
     def send(self, data, note):
@@ -693,6 +947,13 @@ class MonitorApp:
             if self.parser.probe_done or now > p["until"]:
                 if not self.parser.probe_done:
                     self.app_line("라이브러리 검사 응답이 없습니다. USB 를 다시 꽂아 보세요.")
+                else:
+                    bi = self.parser.builtins
+                    ok = all(v is True for v in bi.values())
+                    self.app_line("라이브러리 검사 결과 — " + ", ".join(
+                        f"{k}: {'정상' if v is True else v}" for k, v in {**self.parser.libs, **bi}.items()))
+                    if not ok:
+                        self.app_line("내장 모듈에 문제가 있습니다 — 펌웨어가 이 보드용인지 확인하세요.")
                 self.worker.write(b"\x04")              # code.py 다시 실행
                 self.app_line("라이브러리 검사 끝 — 점검 코드를 다시 시작합니다.")
                 self.probe = None
@@ -730,89 +991,87 @@ class MonitorApp:
 
     def on_status(self, state, msg):
         if state == "connected":
-            self.connected = True
-            self.set_status(f"● 연결됨 — {msg}", C_OK)
-            self.app_line(f"{msg} 에 연결했습니다. (Pico 출력이 안 보이면 「다시 시작」을 누르세요)")
+            self.connected, self.link = True, "connected"
+            self.set_status(f"● 연결됨  {msg}", "ok")
+            self.app_line(f"{msg} 에 연결했습니다. (출력이 안 보이면 「다시 시작」을 누르세요)")
         elif state == "waiting":
-            self.connected = False
-            self.set_status(f"↻ {msg}", C_WARN)
+            self.connected, self.link, self.link_msg = False, "waiting", msg
+            self.set_status("● 기다리는 중", "warn")
         elif state == "lost":
-            self.connected = False
+            self.connected, self.link, self.link_msg = False, "lost", msg
             self.parser.code_state = "unknown"
-            self.render()
-            self.set_status(f"↻ {msg}", C_WARN)
+            self.set_status("● USB 빠짐", "warn")
             self.app_line(msg)
             if self.probe:
                 self.probe = None
                 self.probe_btn.state(["!disabled"])
 
+    def quiet(self):
+        return (self.connected and self.last_rx is not None and self.parser.code_state == "running"
+                and time.monotonic() - self.last_rx > QUIET_SECONDS)
+
     def tick(self):
-        """1초마다: 「마지막 수신 n초 전」 갱신, 너무 조용하면 알림"""
-        if self.connected and self.last_rx is not None:
-            ago = time.monotonic() - self.last_rx
-            quiet = ago > QUIET_SECONDS and self.parser.code_state == "running"
-            self.v_rx.configure(text=f"{ago:.0f}초 전" + ("  — 출력이 멈췄습니다" if quiet else ""),
-                                fg=C_FAIL if quiet else C_TEXT)
-        elif not self.connected:
-            self.v_rx.configure(text="—", fg=C_TEXT)
+        """1초마다: 상태줄의 「마지막 수신」과 판정(10초 무출력) 갱신"""
+        self.render()
         self.root.after(1000, self.tick)
 
     def render(self):
         p = self.parser
-        # 연결하는 순간 그전에 온 글자는 버려지므로, 보드·펌웨어는 재시작이나 직접 검사 때 알 수 있습니다
-        if p.board:
-            self.v_board.configure(text=p.board, fg=C_TEXT)
-        else:
-            self.v_board.configure(text="— (「라이브러리 직접 검사」로 확인)", fg=C_SUB)
-        self.v_fw.configure(text=("CircuitPython " + p.firmware + (f" · {p.chip}" if p.chip else ""))
-                            if p.firmware else "—")
-        text, color = STATE_TEXT.get(p.code_state, STATE_TEXT["unknown"])
-        if p.code_state == "error" and p.last_error:
-            text += "  " + p.last_error[:40]
-        self.v_state.configure(text=text, fg=color)
-        self.v_round.configure(text=f"{p.round}회차" if p.round else "—")
-
-        for name, lbl in self.v_libs.items():
-            st = p.libs[name]
-            if st is True:
-                lbl.configure(text="✔ 정상", fg=C_OK)
-            elif st is None:
-                lbl.configure(text="? 아직 모름 (점검이 시작되면 표시)", fg=C_SUB)
-            else:
-                lbl.configure(text="✖ " + st, fg=C_FAIL)
-        bi = p.builtins
-        if all(v is None for v in bi.values()):
-            self.v_builtin.configure(text="— (「직접 검사」로 확인)", fg=C_SUB)
-        elif all(v is True for v in bi.values()):
-            self.v_builtin.configure(text=f"✔ {len(bi)}개 모두 정상", fg=C_OK)
-        else:
-            bad = [k for k, v in bi.items() if v not in (True, None)]
-            self.v_builtin.configure(text="✖ " + ", ".join(bad) if bad else "…", fg=C_FAIL if bad else C_SUB)
-        self.v_libnote.configure(text=p.lib_note)
+        level, title, action, chips = summarize(p, self.link, self.quiet(), self.link_msg)
+        bg, fg = LEVEL_BG[level], LEVEL_FG[level]
+        for w in self._verdict_parts:
+            w.configure(bg=bg)
+        self.v_bar.configure(bg=fg)
+        self.v_icon.configure(text=LEVEL_ICON[level], fg=fg)
+        self.v_title.configure(text=title, fg=C_TEXT if level in ("ok", "idle") else fg)
+        self.v_action.configure(text="→ " + action if action else "")
+        for name, lbl in self.chip_lbl.items():
+            lv = chips[name]
+            lbl.configure(text=f"{LEVEL_ICON[lv] if lv != 'idle' else '○'} {name}", fg=LEVEL_FG[lv],
+                          bg=LEVEL_BG[lv])
 
         for key, (val, mark, hint) in self.v_sensor.items():
             s = p.sensors[key]
+            sp, accent = self.spark[key]
+            lv = MARK_LEVEL.get(s["mark"], "idle") if s else "idle"
+            accent.configure(bg=LEVEL_FG[lv])
             if not s:
-                val.configure(text="—", fg=C_TEXT)
-                mark.configure(text="")
+                val.configure(text="—", fg=C_FAINT)
+                mark.configure(text="", bg=C_CARD)
                 hint.configure(text="")
-                continue
-            unit = SENSOR_UNIT[key]
-            val.configure(text="---" if s["value"] is None else f"{s['value']:.1f}{unit}",
-                          fg=MARK_COLOR.get(s["mark"], C_TEXT))
-            mark.configure(text=s["mark"], fg=MARK_COLOR.get(s["mark"], C_SUB))
-            extra = f"raw {s['raw']}  " if s.get("raw") is not None else ""
-            hint.configure(text=extra + s["text"])
+            else:
+                unit = SENSOR_UNIT[key]
+                val.configure(text="---" if s["value"] is None else f"{s['value']:.1f}{unit}",
+                              fg=C_TEXT if lv == "ok" else LEVEL_FG[lv])
+                mark.configure(text=s["mark"], fg=LEVEL_FG[lv], bg=LEVEL_BG[lv])
+                hint.configure(text=f"raw {s['raw']}" if s.get("raw") is not None else "")
+            draw_sparkline(sp, p.history[key], LEVEL_FG[lv] if lv != "ok" else "#5B616E")
 
         self.draw_gauge(p.servo)
+        self.draw_sequence(p.arrivals)
         self.draw_led(p.led)
+
+        parts = []
+        if p.board:
+            parts.append(p.board)
+        if p.firmware:
+            parts.append("CircuitPython " + p.firmware + (f" ({p.chip})" if p.chip else ""))
+        if not parts:
+            parts.append("보드 · 펌웨어: 「라이브러리 검사」를 누르면 표시")
+        if self.connected and self.last_rx is not None:
+            parts.append(f"마지막 수신 {time.monotonic() - self.last_rx:.0f}초 전")
+        if p.round:
+            parts.append(f"점검 {p.round}회차")
+        self.v_status.configure(text="  ·  ".join(parts))
 
     # ── 로그 ──────────────────────────────────────────────────────
     def add_line(self, line, tag=""):
-        stamp = datetime.datetime.now().strftime("%H:%M:%S ")
+        stamp = datetime.datetime.now().strftime("%H:%M:%S  ")
+        important = line.lstrip().startswith(CHECK_PREFIX) or tag in ("error", "fail", "warn")
+        extra = () if important else ("noise",)
         self.log.configure(state="normal")
-        self.log.insert("end", stamp, "time")
-        self.log.insert("end", line + "\n", tag)
+        self.log.insert("end", stamp, ("time",) + extra)
+        self.log.insert("end", line + "\n", ((tag,) if tag else ()) + extra)
         lines = int(self.log.index("end-1c").split(".")[0])
         if lines > MAX_LOG_LINES:
             self.log.delete("1.0", f"{lines - MAX_LOG_LINES}.0")
@@ -822,6 +1081,10 @@ class MonitorApp:
 
     def app_line(self, text):
         self.add_line("[모니터] " + text, "app")
+
+    def apply_filter(self):
+        self.log.tag_configure("noise", elide=self.only_checks.get())
+        self.log.see("end")
 
     def clear_log(self):
         self.log.configure(state="normal")
