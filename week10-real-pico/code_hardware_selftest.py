@@ -6,7 +6,7 @@
 #
 #   쓰는 법
 #     ① CIRCUITPY 루트에 code.py 로 저장합니다 (main.py 대신 이것이 실행됩니다)
-#     ② VS Code 시리얼 모니터로 Pico 포트를 엽니다
+#     ② 시리얼 모니터로 Pico 포트를 엽니다 (pico_monitor 폴더의 run_monitor.bat — 설치 없이 실행)
 #        보드의 내장 LED 가 1초에 한 번 깜빡이면 코드가 돌고 있는 것입니다.
 #        꺼지거나 켜진 채 멈추면 코드가 멈춘 것 → 시리얼 모니터의 오류를 보세요.
 #     ③ 점검이 끝나면 code.py 를 지우거나 code.py.bak 으로 바꿉니다
