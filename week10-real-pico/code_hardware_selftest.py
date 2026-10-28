@@ -22,8 +22,15 @@ import board
 import analogio
 import digitalio
 import pwmio
-import adafruit_dht
-from adafruit_motor import servo
+# lib/ 이 빠졌을 때 「ImportError: no module named ...」 대신 무엇을 하면 되는지 알려 줍니다
+try:
+    import adafruit_dht
+    from adafruit_motor import servo
+except ImportError as e:
+    print("[준비] 라이브러리가 없습니다:", e)
+    print("[준비] CircuitPython 10.x 번들에서 adafruit_dht.mpy 와 adafruit_motor 폴더를")
+    print("[준비] CIRCUITPY/lib/ 에 복사한 뒤 code.py 를 다시 저장하세요.")
+    raise
 
 # ── 기준값 — 실습실에 맞게 고쳐 쓰세요 ──
 TEMP_REF, TEMP_TOL = 24, 4      # 24 ℃ 기준, 20~28 ℃ 면 정상 (DHT11 오차 ±2 ℃ 의 두 배)
@@ -141,7 +148,7 @@ def read_light():
 
 def check_range(name, value, unit, ref, tol):
     if value is None:
-        print(f"[센서] {name}    ---          [실패] DHT11 응답 없음 — DATA=GP16 · VCC=3V3 · GND 확인")
+        print(f"[센서] {name}    ---          [실패] DHT11 응답 없음 — DATA=GP16 · VCC=3V3 · GND · 레일 가운데 끊김 확인")
         return
     if abs(value - ref) <= tol:
         mark = "[OK]"
@@ -164,7 +171,7 @@ def check_sensors():
     if raw >= 64000:
         print(head + " [실패] CdS 가 빠졌거나 CdS 의 GND 쪽이 끊겼습니다")
     elif raw <= 1000:
-        print(head + " [실패] 10kΩ 가 빠졌거나 CdS 와 자리가 바뀌었습니다")
+        print(head + " [실패] 10kΩ 빠짐 · CdS 와 자리 바뀜 · 오른쪽 빨강 레일 아래쪽에 3V3 없음(레일 끊김) 중 하나")
     elif light < LIGHT_REF - LIGHT_TOL:
         print(head + f" (기준 {LIGHT_REF} -{LIGHT_TOL}) [경고] 너무 어둡습니다 — 조명·CdS 위치 확인")
     else:
