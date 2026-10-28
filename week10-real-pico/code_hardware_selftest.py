@@ -18,6 +18,7 @@
 import time
 import board
 import analogio
+import digitalio
 import pwmio
 import adafruit_dht
 from adafruit_motor import servo
@@ -35,9 +36,9 @@ LIGHT_SAMPLES = 8               # ADC 는 한 번 읽으면 흔들립니다 — 
 # 서보 동작 순서와, 그 각도에 「도착하면」 켤 LED 색
 SERVO_STEPS = [90, 180, 90, 0, 90]
 COLOR_AT = {
-    0: ("빨강", (255, 0, 0)),
-    90: ("초록", (0, 255, 0)),
-    180: ("파랑", (0, 0, 255)),
+    0: ("빨강", (True, False, False)),
+    90: ("초록", (False, True, False)),
+    180: ("파랑", (False, False, True)),
 }
 STEP_DELAY = 0.015   # 1° 움직일 때마다 쉬는 시간 — 천천히 돌려야 순간 전류가 작습니다
 HOLD = 1.0           # 도착한 각도에서 머무는 시간
@@ -47,18 +48,29 @@ cds = analogio.AnalogIn(board.GP26)     # CdS 분압 → ADC0
 dht = adafruit_dht.DHT11(board.GP16)    # DHT11 DATA
 
 # ── 액추에이터 초기화 ──
-red = pwmio.PWMOut(board.GP17, frequency=1000, duty_cycle=0)
-green = pwmio.PWMOut(board.GP18, frequency=1000, duty_cycle=0)
-blue = pwmio.PWMOut(board.GP19, frequency=1000, duty_cycle=0)
+# RGB LED — 이 점검은 색을 켜고 끄기만 하므로 디지털 출력이면 됩니다.
+#   (main.py 는 화면에서 0~255 밝기를 받으므로 PWM 을 씁니다. 배선은 같습니다)
+#   모듈 맨 위 핀이 GND 인 공통 음극형이라 True = 켜짐입니다.
+def led_pin(pin):
+    p = digitalio.DigitalInOut(pin)
+    p.switch_to_output(value=False)   # 꺼진 채로 시작
+    return p
+
+
+red = led_pin(board.GP17)
+green = led_pin(board.GP18)
+blue = led_pin(board.GP19)
+
+# 서보는 펄스 폭으로 각도를 정하므로 PWM 이 꼭 필요합니다
 
 servo_pwm = pwmio.PWMOut(board.GP15, duty_cycle=2 ** 15, frequency=50)
 my_servo = servo.Servo(servo_pwm, min_pulse=500, max_pulse=2500)
 
 
 def set_color(r, g, b):
-    red.duty_cycle = int(r / 255 * 65535)
-    green.duty_cycle = int(g / 255 * 65535)
-    blue.duty_cycle = int(b / 255 * 65535)
+    red.value = r
+    green.value = g
+    blue.value = b
 
 
 def read_dht():
@@ -161,7 +173,7 @@ try:
 except KeyboardInterrupt:
     print("점검을 멈춥니다.")
 finally:
-    set_color(0, 0, 0)       # LED 끄기
+    set_color(False, False, False)   # LED 끄기
     my_servo.angle = 90      # 서보는 가운데로
     dht.exit()               # DHT11 이 쓰던 PulseIn 을 돌려줍니다 (다음 code.py/main.py 를 위해)
     print("LED 끔 · 서보 90° 로 돌려 둠. 점검이 끝났으면 code.py 를 지우세요.")
