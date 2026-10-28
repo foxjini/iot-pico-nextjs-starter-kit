@@ -7,6 +7,8 @@
 #   쓰는 법
 #     ① CIRCUITPY 루트에 code.py 로 저장합니다 (main.py 대신 이것이 실행됩니다)
 #     ② VS Code 시리얼 모니터로 Pico 포트를 엽니다
+#        보드의 내장 LED 가 1초에 한 번 깜빡이면 코드가 돌고 있는 것입니다.
+#        꺼지거나 켜진 채 멈추면 코드가 멈춘 것 → 시리얼 모니터의 오류를 보세요.
 #     ③ 점검이 끝나면 code.py 를 지우거나 code.py.bak 으로 바꿉니다
 #        ← 안 지우면 main.py 가 영영 실행되지 않습니다 (가장 흔한 함정)
 #
@@ -42,6 +44,37 @@ COLOR_AT = {
 }
 STEP_DELAY = 0.015   # 1° 움직일 때마다 쉬는 시간 — 천천히 돌려야 순간 전류가 작습니다
 HOLD = 1.0           # 도착한 각도에서 머무는 시간
+BLINK_NS = 500_000_000   # 내장 LED 를 0.5초마다 뒤집습니다 (1초에 한 번 깜빡임)
+
+# ── 내장 LED (동작 표시) ──
+#   Pico W · Pico 2 W 의 내장 LED 는 GP25 가 아니라 무선 칩에 붙어 있습니다.
+#   board.LED 로 부르면 CircuitPython 이 알아서 연결합니다 (Wi-Fi 연결은 필요 없습니다).
+status_led = digitalio.DigitalInOut(board.LED)
+status_led.switch_to_output(value=False)
+next_blink = 0
+
+
+def heartbeat():
+    """때가 됐으면 내장 LED 를 뒤집습니다. 시간은 monotonic_ns(정수)로 잽니다 —
+    monotonic()(소수)은 Pico 를 오래 켜 두면 정밀도가 떨어집니다."""
+    global next_blink
+    now = time.monotonic_ns()
+    if now >= next_blink:
+        status_led.value = not status_led.value
+        next_blink = now + BLINK_NS
+
+
+def wait(seconds):
+    """time.sleep 대신 씁니다. 잘게 나눠 자면서 그사이에 내장 LED 를 깜빡입니다.
+    그래서 DHT11 재시도(2초)나 서보가 머무는 동안에도 깜빡임이 끊기지 않습니다."""
+    end = time.monotonic_ns() + int(seconds * 1_000_000_000)
+    while True:
+        heartbeat()
+        left = end - time.monotonic_ns()
+        if left <= 0:
+            return
+        time.sleep(min(0.05, left / 1_000_000_000))
+
 
 # ── 센서 초기화 (최종 배선도 핀) ──
 cds = analogio.AnalogIn(board.GP26)     # CdS 분압 → ADC0
@@ -61,9 +94,10 @@ red = led_pin(board.GP17)
 green = led_pin(board.GP18)
 blue = led_pin(board.GP19)
 
-# 서보는 펄스 폭으로 각도를 정하므로 PWM 이 꼭 필요합니다
-
-servo_pwm = pwmio.PWMOut(board.GP15, duty_cycle=2 ** 15, frequency=50)
+# 서보는 펄스 폭으로 각도를 정하므로 PWM 이 꼭 필요합니다.
+#   duty_cycle=0(펄스 없음)으로 시작합니다. 2**15 로 시작하면 50Hz 에서 10ms 펄스가 나가
+#   서보 규격(0.5~2.5ms) 밖이라 켜는 순간 튈 수 있습니다. 바로 아래에서 90° 를 줍니다.
+servo_pwm = pwmio.PWMOut(board.GP15, duty_cycle=0, frequency=50)
 my_servo = servo.Servo(servo_pwm, min_pulse=500, max_pulse=2500)
 
 
@@ -85,7 +119,7 @@ def read_dht():
                 return t, h
         except RuntimeError as e:   # 「Checksum did not validate」 등 — DHT11 은 가끔 실패합니다
             print(f"  (DHT11 읽기 재시도 {attempt}/3: {e})")
-        time.sleep(2)
+        wait(2)
     return None, None
 
 
@@ -137,13 +171,13 @@ def move_to(target, current):
     step = 1 if target > current else -1
     for angle in range(current, target, step):
         my_servo.angle = angle
-        time.sleep(STEP_DELAY)
+        wait(STEP_DELAY)
     my_servo.angle = target
 
     name, rgb = COLOR_AT[target]
     set_color(*rgb)
     print(f"[서보] {target:3d}° 도착 -> LED {name}")
-    time.sleep(HOLD)
+    wait(HOLD)
     return target
 
 
@@ -160,7 +194,7 @@ print("Pico 하드웨어 단독 점검을 시작합니다 (멈추려면 Ctrl+C)"
 print("서보 전원은 외부 5V 어댑터, 왼쪽 파랑 <-> 오른쪽 파랑 공통 GND 를 먼저 확인하세요.")
 my_servo.angle = 90          # 90° 에서 시작
 set_color(*COLOR_AT[90][1])  # 초록
-time.sleep(1)                # DHT11 은 전원이 들어온 뒤 1초는 기다려야 읽힙니다
+wait(1)                      # DHT11 은 전원이 들어온 뒤 1초는 기다려야 읽힙니다
 
 round_no = 0
 try:
@@ -173,7 +207,19 @@ try:
 except KeyboardInterrupt:
     print("점검을 멈춥니다.")
 finally:
-    set_color(False, False, False)   # LED 끄기
-    my_servo.angle = 90      # 서보는 가운데로
-    dht.exit()               # DHT11 이 쓰던 PulseIn 을 돌려줍니다 (다음 code.py/main.py 를 위해)
+    # 정리 단계는 하나가 실패해도 나머지가 진행되게 따로따로 감쌉니다
+    try:
+        set_color(False, False, False)   # RGB LED 끄기
+        status_led.value = False         # 내장 LED 끄기
+    except Exception as e:
+        print("LED 끄기 실패:", e)
+    try:
+        my_servo.angle = 90
+        time.sleep(0.5)   # 코드가 끝나면 PWM 이 바로 끊기므로 90° 까지 갈 시간을 줍니다
+    except Exception as e:
+        print("서보 되돌리기 실패:", e)
+    try:
+        dht.exit()        # DHT11 이 쓰던 PulseIn 을 돌려줍니다 (다음 code.py/main.py 를 위해)
+    except Exception as e:
+        print("DHT11 해제 실패:", e)
     print("LED 끔 · 서보 90° 로 돌려 둠. 점검이 끝났으면 code.py 를 지우세요.")
