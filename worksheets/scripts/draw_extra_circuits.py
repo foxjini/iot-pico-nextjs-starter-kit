@@ -418,6 +418,7 @@ def draw_breadboard():
         "※ GP13 = LOW 면 모터가 켜지고 HIGH 면 꺼집니다 (모듈 입력을 5V 쪽에서 당기는 방식 — Pico 3.3V 로는 입력 3.6V 를 못 넘음).",
         "※ 릴레이가 반대로(SIG 가 LOW 일 때 켜짐) 동작하면: 포토커플러 V1 → 릴레이 SIG, 출력 G → GND 로 바꾸세요.",
         "※ 릴레이 나사 단자 순서는 제품 인쇄를 확인. 다이오드 띠 · LED 긴 다리 · 470μF 긴 다리(+) 방향을 지키세요.",
+        "※ 전원 순서: 켤 때 USB 먼저 → 5V 어댑터, 끌 때 · 선 바꿀 때 어댑터 먼저 → USB (어댑터만 켜져 있으면 모터가 돌 수 있음).",
     ]
     for i, t in enumerate(notes):
         ax.text(-23.0, Y(71.0 + i * 1.3), t, ha="left", va="center", fontsize=5.4, color="#b3261e")

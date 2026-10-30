@@ -276,6 +276,9 @@ class ExtraApp:
 
     def toggle_connect(self):
         if self.worker:
+            if self.connected and self.data and self.data.get("mode") == "manual":
+                self.send("MOTOR OFF", quiet=True)   # 수동 조작 중 끊으면 모터부터 끕니다 (5초 안전장치를 기다리지 않게)
+                time.sleep(0.1)
             self.worker.stop()
             self.worker = None
             self.connected = False

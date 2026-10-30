@@ -23,6 +23,8 @@
 #
 #   ⚠ 포토커플러 모듈의 입력 G 가 GP13 에 연결되어 있습니다: GP13 LOW = 모터 켜짐, HIGH = 꺼짐.
 #     모듈의 「입력 G ↔ 출력 G 점퍼」는 반드시 빼 두세요 (꽂혀 있으면 GP13 이 GND 에 붙습니다).
+#   ⚠ 전원 순서: 켤 때 USB 먼저 → 5V 어댑터, 끌 때 · 선을 바꿀 때 어댑터 먼저 → USB.
+#     Pico 전원 없이 어댑터만 켜져 있으면 5V 가 모듈 입력 → GP13 으로 흘러 모터가 돌고 Pico 에도 전류가 거꾸로 들어갑니다.
 
 import json
 import sys
@@ -31,6 +33,11 @@ import board
 import digitalio
 import pwmio
 import supervisor
+
+try:
+    import usb_cdc                              # 바이트 단위로 읽으려고 (없으면 sys.stdin 으로)
+except ImportError:
+    usb_cdc = None
 
 try:
     import adafruit_hcsr04
@@ -150,6 +157,8 @@ def handle(line):
         print("OK MOTOR", words[1])
         return
     if cmd == "LED" and len(words) == 2 and words[1].isdigit():
+        if st.mode == "auto":
+            set_motor(False)                     # 자동 시험에서 켜져 있던 모터를 켜 둔 채 수동으로 넘어가지 않게
         st.mode = "manual"
         set_led(int(words[1]))
         print("OK LED", st.led)
@@ -163,9 +172,17 @@ inbox = ""
 def read_commands():
     """USB 시리얼에 들어온 글자를 멈추지 않고 읽어 줄 단위로 처리합니다."""
     global inbox
-    n = supervisor.runtime.serial_bytes_available
+    console = usb_cdc.console if usb_cdc else None
+    if console:
+        # 바이트로 읽어 ASCII 만 남깁니다 — 한글 같은 여러 바이트 글자가 와도 루프(와 5초 안전장치)가 멈추지 않게
+        n = console.in_waiting
+        if n:
+            inbox += "".join(chr(b) for b in console.read(n) if b < 128)
+    else:
+        n = supervisor.runtime.serial_bytes_available
+        if n:
+            inbox += sys.stdin.read(n)
     if n:
-        inbox += sys.stdin.read(n)
         while "\n" in inbox or "\r" in inbox:
             cut = min(i for i in (inbox.find("\n"), inbox.find("\r")) if i >= 0)
             line, inbox = inbox[:cut], inbox[cut + 1:]
