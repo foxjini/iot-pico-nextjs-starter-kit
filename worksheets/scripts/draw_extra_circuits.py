@@ -605,12 +605,14 @@ def draw_schematic():
     # 나사 단자 COM · NO · NC
     sx = 28.6
     vcc(sx, 12.4); line((sx, 12.4), (sx, 11.2)); term(sx, 12.4, "COM", "left")
+    # 회로도의 릴레이는 코일이 꺼진 상태로 그린다: 팔은 NC(위)에 닿고, NO(아래)는 떨어져 있다
     ax.add_patch(Circle((sx, 11.1), 0.12, fc="white", ec=INK, lw=1.0, zorder=6))
-    line((sx, 11.1), (sx + 1.4, 10.0))
-    ax.add_patch(Circle((sx + 1.5, 9.9), 0.12, fc="white", ec=INK, lw=1.0, zorder=6))
+    line((sx, 11.1), (sx + 1.4, 11.48))
     ax.add_patch(Circle((sx + 1.5, 11.5), 0.12, fc="white", ec=INK, lw=1.0, zorder=6))
+    ax.add_patch(Circle((sx + 1.5, 9.9), 0.12, fc="white", ec=INK, lw=1.0, zorder=6))
     text(sx + 1.75, 11.5, "NC (비움)", ha="left", fs=6.5, color="#8a909c")
-    line((kx + 0.4, 9.6), (sx + 0.4, 10.6), ls=(0, (3, 2)), lw=0.9, color="#8a909c")
+    text(sx + 1.5, 9.45, "NO", fs=6.5)
+    line((kx + 0.4, 9.6), (sx + 0.7, 11.2), ls=(0, (3, 2)), lw=0.9, color="#8a909c")
     line((sx + 1.5, 9.9), (31.4, 9.9)); term(31.4, 9.9, "NO")
     # 모터 + D2
     mxs = 33.0
