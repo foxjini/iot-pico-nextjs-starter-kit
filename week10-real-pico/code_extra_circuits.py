@@ -16,7 +16,8 @@
 #     PING                   UI 가 살아 있다는 신호 — 수동에서 5초 동안 아무 명령이 없으면 모터를 끔(안전)
 #     STATUS                 지금 상태를 한 번 더 보냄
 #   Pico → PC
-#     DATA {"dist":23.4,"motor":0,"led":50,"mode":"manual","err":""}   0.25초마다 (UI 가 읽음)
+#     DATA {"dist":23.4,"motor":0,"led":50,"mode":"manual","sonar":"ok","err":""}   0.25초마다 (UI 가 읽음)
+#          sonar = ok(정상) · wait(첫 측정 전) · timeout(메아리 없음 = 배선) · range(2~400cm 밖 = 앞에 물체 없음/너무 가까움)
 #     OK … / ERR …           명령에 대한 답
 #     [거리] … 같은 한국어 줄   사람이 시리얼 모니터로 볼 때 (1초마다)
 #
@@ -70,6 +71,7 @@ class State:
     motor = False
     led = 0               # 0~100 %
     dist = None           # cm (최근 5개 중앙값)
+    sonar = "wait"        # ok / wait / timeout / range
     err = ""              # 초음파 문제 설명
     last_cmd_ns = 0       # 마지막으로 PC 명령을 받은 시각
 
@@ -77,6 +79,7 @@ class State:
 st = State()
 recent = []               # 최근 거리 5개 — 튀는 값을 걸러 중앙값을 씁니다
 fails = 0
+last_fail = "timeout"     # 마지막 실패 종류
 
 
 def set_motor(on):
@@ -91,15 +94,21 @@ def set_led(percent):
 
 def read_sonar():
     """거리를 재서 st.dist 를 갱신합니다. 3번 연속 실패하면 원인 안내를 st.err 에 남깁니다."""
-    global fails
+    global fails, last_fail
     try:
-        d = sonar.distance                       # cm, 실패하면 RuntimeError
+        try:
+            d = sonar.distance                   # cm, 메아리가 안 오면 RuntimeError
+        except RuntimeError:
+            last_fail = "timeout"
+            raise
         if not 2 <= d <= 400:                    # HC-SR04 측정 범위 밖
+            last_fail = "range"
             raise RuntimeError("범위 밖 %.1f" % d)
         recent.append(d)
         if len(recent) > 5:
             recent.pop(0)
         st.dist = round(sorted(recent)[len(recent) // 2], 1)
+        st.sonar = "ok"
         st.err = ""
         fails = 0
     except RuntimeError:
@@ -107,12 +116,16 @@ def read_sonar():
         if fails >= 3:
             st.dist = None
             recent.clear()
-            st.err = "응답 없음 — TRIG=GP10 · ECHO 분압(1kΩ/2kΩ)→GP11 · VCC=5V · GND 확인"
+            st.sonar = last_fail
+            if last_fail == "range":
+                st.err = "범위 밖 — 센서 앞 2~400cm 안에 단단하고 평평한 물체(손 · 책)를 대 보세요"
+            else:
+                st.err = "응답 없음 — TRIG=GP10 · ECHO 분압(1kΩ/2kΩ)→GP11 · VCC=5V · GND 확인"
 
 
 def send_data():
     print("DATA " + json.dumps({"dist": st.dist, "motor": int(st.motor), "led": st.led,
-                                "mode": st.mode, "err": st.err}))
+                                "mode": st.mode, "sonar": st.sonar, "err": st.err}))
 
 
 def handle(line):
