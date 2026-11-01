@@ -2,17 +2,20 @@
 """추가 회로 3종 — 회로도 + 배선도 (HC-SR04 · PC817 릴레이 DC 모터 · PWM LED)
 
   ① HC-SR04 초음파: VCC 외부 5V · TRIG GP10 · ECHO → 1kΩ/2kΩ 분압 → GP11 (5V × 2/3 = 3.33V)
-  ② DC 모터 on/off: PC817 2채널 절연 모듈 + 릴레이 모듈(GND · VCC · SIG)
+  ② DC 모터 on/off: PC817 2채널 절연 모듈(나사 단자 IN1·G / V1·G) + 릴레이 모듈(핀 GND · 5V · Signal, 단자 NO · COM · NC)
        모듈 입력은 3.6V 이상이라 Pico 3.3V 로는 불확실 → IN1 을 외부 5V 에, 입력 G 를 GP13 에 연결해
        「Pico 가 끌어내는」 방식으로 켠다. GP13 LOW → 켜짐, HIGH(3.3V)면 1.7V 뿐이라 꺼짐.
-       출력: V1 → 5V, 출력 G → 릴레이 SIG (켜지면 SIG ≈ 5V). 릴레이 COM = 5V, NO → 모터(+), 모터 양단 1N4007.
-       주의: 입력 G 와 출력 G 를 잇는 점퍼가 모듈에 있으면 반드시 뺀다 (꽂혀 있으면 GP13 이 GND 에 붙는다).
+       출력: V1 → 5V, 출력 G → 릴레이 Signal (켜지면 Signal ≈ 5V). 릴레이 COM = 5V, NO → 모터(+), 모터 양단 1N4007.
+       주의: 모듈의 노란 점퍼 2개는 뽑아 둔다 (입력 쪽과 출력 쪽을 잇는 점퍼로 보임 — 꽂혀 있으면 오동작).
   ③ PWM LED: GP22 → 220Ω → LED → GND (GP22 = PWM 슬라이스 3A — 서보 GP15(7B) · RGB(0B·1A·1B)와 안 겹침)
+
+모듈 그림은 실물 사진과 같은 방향 · 같은 단자 위치로 그린다 (opto_module · relay_module).
+연습 도면은 같은 자리에 Pico 와 부품만 두고 선은 그리지 않는다 (학생이 그려 넣음).
 
 배선도는 부품 다리와 점퍼를 데이터로 들고 있다가, 브레드보드 줄 · 레일로 이어진 「넷」을 계산해
 회로도의 넷과 **정확히 같은지 검사**한 뒤에만 그림을 저장한다 (다르면 AssertionError).
 
-  python3 draw_extra_circuits.py  →  worksheets/추가 회로도.(pdf|png), worksheets/추가 배선도.(pdf|png)
+  python3 draw_extra_circuits.py  →  worksheets/추가 회로도 · 추가 배선도 · 추가 연습 도면 .(pdf|png)
 """
 import os
 import matplotlib
@@ -56,13 +59,13 @@ LEGS = [
 OFFBOARD = [
     ("HC", "VCC", ("L+", 23)), ("HC", "TRIG", ("B", 14)), ("HC", "ECHO", ("A", 30)), ("HC", "GND", ("L-", 26)),
     ("OPTO", "IN1", ("L+", 33)), ("OPTO", "G입력", ("B", 17)), ("OPTO", "V1", ("L+", 36)),
-    ("RLY", "GND", ("L-", 45)), ("RLY", "VCC", ("L+", 44)),
+    ("RLY", "GND", ("L-", 47)), ("RLY", "5V", ("L+", 48)),
     ("RLY", "COM", ("L+", 50)), ("RLY", "NO", ("A", 55)),
     ("M1", "+", ("B", 55)), ("M1", "-", ("B", 59)),
     ("EXT5V", "+", ("L+", 2)), ("EXT5V", "-", ("L-", 2)),
 ]
 # 모듈끼리 바로 잇는 선 (암-암 점퍼)
-MODULE_WIRES = [("OPTO.G출력", "RLY.SIG")]
+MODULE_WIRES = [("OPTO.G출력", "RLY.Signal")]
 # 점퍼: (구멍, 구멍, 색)
 WIRES = [
     (("I", 18), ("R-", 18), W_BLK),        # Pico GND → 오른쪽 파랑
@@ -79,13 +82,13 @@ WIRES = [
 
 # 회로도의 넷 (이 목록과 배선도에서 계산한 넷이 같아야 그림을 저장한다)
 EXPECTED = [
-    {"EXT5V.+", "C1.+", "HC.VCC", "OPTO.IN1", "OPTO.V1", "RLY.VCC", "RLY.COM"},
+    {"EXT5V.+", "C1.+", "HC.VCC", "OPTO.IN1", "OPTO.V1", "RLY.5V", "RLY.COM"},
     {"EXT5V.-", "C1.-", "HC.GND", "R2k.b", "RLY.GND", "M1.-", "D2.A", "LED.K", "Pico.GND"},
     {"HC.TRIG", "Pico.GP10"},
     {"HC.ECHO", "R1k.a"},
     {"R1k.b", "R2k.a", "Pico.GP11"},
     {"Pico.GP13", "OPTO.G입력"},           # GP13 LOW → 모듈 입력에 전류 → 켜짐
-    {"OPTO.G출력", "RLY.SIG"},              # 켜지면 SIG ≈ 5V
+    {"OPTO.G출력", "RLY.Signal"},           # 켜지면 Signal ≈ 5V
     {"RLY.NO", "M1.+", "D2.K"},
     {"Pico.GP22", "R220.a"},
     {"R220.b", "LED.A(긴 다리)"},
@@ -149,7 +152,7 @@ def check_netlist():
 
 
 # ════════════════════════════════════════════════════════════════════════
-#  2. 배선도 그리기
+#  2. 배선도 · 연습 도면 그리기
 # ════════════════════════════════════════════════════════════════════════
 def Y(r):
     return -float(r)
@@ -160,13 +163,24 @@ def XY(hole):
     return (RAIL_X[c] if c in RAIL_X else COL[c], Y(r))
 
 
-def draw_breadboard():
+BOX = dict(fc="white", ec="none", alpha=0.9, pad=1.2)
+# 보드 밖 부품 자리 (배선도와 연습 도면이 같은 자리를 씀) — 단위 = 브레드보드 구멍 간격 2.54mm
+HC_AT = (-19.0, 18.0)          # HC-SR04 가운데 x, 가운데 행
+OPTO_AT = (-21.6, 28.6, 0.32)  # PC817 모듈 왼쪽 x, 위 행, 배율(단위/mm)
+RLY_AT = (-21.0, 43.0, 0.34)   # 릴레이 모듈 왼쪽 x, 위 행, 배율
+MOTOR_AT = (-17.5, 60.5)       # DC 모터 가운데
+
+
+def new_sheet():
     fig, ax = plt.subplots(figsize=(8.27, 11.69))
     ax.set_xlim(-26.0, 31.0)
     ax.set_ylim(-76, 5.5)
     ax.axis("off")
-    BOX = dict(fc="white", ec="none", alpha=0.9, pad=1.2)
+    return fig, ax
 
+
+def board_base(ax, highlight=True):
+    """브레드보드 · 레일 · 구멍 번호 · Pico (선과 부품 없이). highlight=False 면 쓰는 핀을 강조하지 않음(연습 도면)"""
     ax.add_patch(FancyBboxPatch((-5.4, Y(64.0)), 21.9, 64.0, boxstyle="round,pad=0.25,rounding_size=0.6",
                                 fc="#f4f2ee", ec="#c9c4bc", lw=1.4, zorder=1))
     ax.add_patch(Rectangle((4.55, Y(63.7)), 1.9, 63.4, fc="#e0dbd3", ec="none", zorder=2))
@@ -197,8 +211,6 @@ def draw_breadboard():
                       (RAIL_X["R+"] - 0.3, "(안 씀)", "#999"), (RAIL_X["R-"] + 0.7, "GND", "#2f6fdb")):
         ax.text(x, Y(66.2), t, ha="center", va="center", fontsize=6, color=col, fontweight="bold",
                 rotation=90, zorder=4)
-    ax.text(-3.5, Y(68.8), "외부 5V 어댑터\n(스마트폰 충전기 5V 2A)", ha="center", va="center", fontsize=5.4,
-            color=W_5V, fontweight="bold", linespacing=1.4)
 
     # Pico 2 W
     ax.add_patch(FancyBboxPatch((1.37, Y(20.55)), 8.26, 20.1, boxstyle="round,pad=0.06,rounding_size=0.35",
@@ -206,18 +218,153 @@ def draw_breadboard():
     ax.add_patch(FancyBboxPatch((4.35, Y(0.1)), 2.3, 1.05, boxstyle="round,pad=0.04,rounding_size=0.15",
                                 fc="#c8ccd0", ec="#8f959b", lw=0.8, zorder=7))
     ax.text(5.5, Y(-1.3), "USB", ha="center", va="center", fontsize=5.5, color="#666")
-    used = {"GP10", "GP11", "GP13", "GP22"}
+    used = {"GP10", "GP11", "GP13", "GP22"} if highlight else set()
     for i in range(20):
         for cx in (COL["C"], COL["H"]):
             ax.add_patch(Circle((cx, Y(i + 1)), 0.30, fc="#e8c15a", ec="#9c7b1f", lw=0.5, zorder=8))
         ln, rn = LEFT[i], RIGHT[i]
         ax.text(COL["C"] + 0.5, Y(i + 1), ln, ha="left", va="center", fontsize=4.1, zorder=9,
                 color="#ffe066" if ln in used else "#bcd8cb", fontweight="bold" if ln in used else "normal")
-        hl = rn in used or (rn == "GND" and i + 1 == 18)
+        hl = rn in used or (highlight and rn == "GND" and i + 1 == 18)
         ax.text(COL["H"] - 0.5, Y(i + 1), rn, ha="right", va="center", fontsize=4.1, zorder=9,
                 color="#ffe066" if hl else "#bcd8cb", fontweight="bold" if hl else "normal")
     ax.text(5.5, Y(10.5), "Raspberry Pi Pico 2 W", ha="center", va="center", rotation=90, fontsize=5.4,
             color="#e6f2ec", fontweight="bold", zorder=9)
+
+
+def screw(ax, x, y, r, fc="#c9ced6"):
+    """나사 단자의 나사 머리 (위에서 본 모양)"""
+    ax.add_patch(Circle((x, y), r, fc=fc, ec="#6b7280", lw=0.6, zorder=12))
+    ax.plot([x - r * 0.65, x + r * 0.65], [y + r * 0.65, y - r * 0.65], color="#4b5563", lw=0.8, zorder=13)
+
+
+def opto_module(ax, x0, top, s):
+    """PC817 2채널 절연 모듈 (38 × 29.2mm, 사진과 같은 방향).
+    왼쪽 나사 단자: 위 IN1 · G / 아래 IN2 · G,  오른쪽: 위 V1 · G / 아래 V2 · G.  노란 점퍼 2개.
+    돌려주는 값: 나사 단자 바깥 끝 좌표 {IN1, G입력, IN2, G입력2, V1, G출력, V2, G출력2}"""
+    W, H = 38 * s, 29.2 * s
+    X = lambda f: x0 + f * W
+    YY = lambda f: Y(top + f * H)
+    ax.add_patch(FancyBboxPatch((x0, YY(1)), W, H, boxstyle="round,pad=0.02,rounding_size=0.25",
+                                fc="#2e8b3e", ec="#16521f", lw=1.0, zorder=10))
+    for fx, fy in ((0.07, 0.09), (0.93, 0.09), (0.07, 0.91), (0.93, 0.91)):
+        ax.add_patch(Circle((X(fx), YY(fy)), 0.055 * H, fc="white", ec="#c8d6c9", lw=0.6, zorder=11))
+    ax.text(X(0.5), YY(0.085), "817 Module", ha="center", va="center", fontsize=5.2, color="white",
+            fontweight="bold", zorder=12)
+    ax.text(X(0.5), YY(0.915), "2 Channel Isolation", ha="center", va="center", fontsize=4.6, color="white",
+            zorder=12)
+    tips = {}
+    for side, fx0, names in (("L", 0.015, (("IN1", "G입력"), ("IN2", "G입력2"))),
+                             ("R", 0.80, (("V1", "G출력"), ("V2", "G출력2")))):
+        for blk, (fy0, pair) in enumerate(zip((0.19, 0.52), names)):
+            ax.add_patch(Rectangle((X(fx0), YY(fy0 + 0.30)), 0.185 * W, 0.30 * H, fc="#3fb36a", ec="#1d6b3a",
+                                   lw=0.7, zorder=11))
+            for k, key in enumerate(pair):
+                fy = fy0 + 0.08 + k * 0.14
+                screw(ax, X(fx0 + 0.0925), YY(fy), 0.05 * H)
+                label = key.replace("입력2", "").replace("출력2", "").replace("입력", "").replace("출력", "")
+                spare = blk == 1
+                ax.text(X(0.215) if side == "L" else X(0.785), YY(fy), label,
+                        ha="left" if side == "L" else "right", va="center", fontsize=5.0, zorder=13,
+                        color="#cfe8d4" if spare else "white", fontweight="bold")
+                tips[key] = (X(0.0) if side == "L" else X(1.0), YY(fy))
+    for fy0 in (0.21, 0.55):                          # PC817 칩 (DIP-4)
+        ax.add_patch(Rectangle((X(0.34), YY(fy0 + 0.16)), 0.13 * W, 0.16 * H, fc="#1b1b1b", ec="#000", lw=0.5,
+                               zorder=11))
+        for fx in (0.36, 0.43):
+            for fy in (fy0 - 0.015, fy0 + 0.16):
+                ax.add_patch(Rectangle((X(fx), YY(fy + 0.015)), 0.025 * W, 0.015 * H, fc="#d0d0d0", ec="none",
+                                       zorder=11))
+        ax.add_patch(Rectangle((X(0.52), YY(fy0 + 0.05)), 0.07 * W, 0.05 * H, fc="#e9e9e9", ec="#888", lw=0.4,
+                               zorder=11))                         # 칩 옆 저항
+        ax.add_patch(Rectangle((X(0.52), YY(fy0 + 0.14)), 0.07 * W, 0.05 * H, fc="#e2584f", ec="#888", lw=0.4,
+                               zorder=11))                         # 표시 LED
+    for fy0 in (0.34, 0.67):                          # 노란 점퍼
+        ax.add_patch(Rectangle((X(0.63), YY(fy0 + 0.11)), 0.08 * W, 0.11 * H, fc="#f2c200", ec="#a17f00", lw=0.6,
+                               zorder=12))
+    return tips
+
+
+def relay_module(ax, x0, top, s):
+    """릴레이 모듈 (사진과 같은 방향): 왼쪽 파란 나사 단자 위에서부터 NO · COM · NC,
+    오른쪽 핀 위에서부터 GND · 5V · Signal, 그 아래 확인 LED.
+    돌려주는 값: {NO, COM, NC} = 나사 단자 바깥 끝, {GND, 5V, Signal} = 핀 끝"""
+    W, H = 40 * s, 34 * s
+    X = lambda f: x0 + f * W
+    YY = lambda f: Y(top + f * H)
+    ax.add_patch(FancyBboxPatch((x0, YY(1)), W, H, boxstyle="round,pad=0.02,rounding_size=0.25",
+                                fc="#1d1d1f", ec="#000", lw=1.0, zorder=10))
+    for fx, fy in ((0.06, 0.07), (0.94, 0.07), (0.06, 0.93), (0.94, 0.93)):
+        ax.add_patch(Circle((X(fx), YY(fy)), 0.045 * H, fc="white", ec="#888", lw=0.6, zorder=11))
+    tips = {}
+    # 나사 단자 (파랑) — 왼쪽 가장자리
+    ax.add_patch(Rectangle((X(0.02), YY(0.80)), 0.21 * W, 0.60 * H, fc="#2563c9", ec="#173f80", lw=0.8, zorder=11))
+    for k, nm in enumerate(("NO", "COM", "NC")):
+        fy = 0.30 + k * 0.20
+        screw(ax, X(0.125), YY(fy), 0.065 * H)
+        ax.text(X(0.25), YY(fy), nm, ha="left", va="center", fontsize=5.0, color="white", fontweight="bold",
+                zorder=13)
+        tips[nm] = (X(0.0), YY(fy))
+    # 릴레이 (파랑 상자)
+    ax.add_patch(Rectangle((X(0.37), YY(0.76)), 0.33 * W, 0.66 * H, fc="#3b7fd8", ec="#1f4f99", lw=0.8, zorder=11))
+    for fy, t, fs, fw in ((0.25, "TONGLING", 4.2, "bold"), (0.36, "5VDC", 4.4, "bold"),
+                          (0.62, "JQC-3FF-S-Z", 3.4, "normal")):
+        ax.text(X(0.535), YY(fy), t, ha="center", va="center", fontsize=fs, color="white", fontweight=fw, zorder=12)
+    # 핀 헤더 (오른쪽 가장자리, 핀이 바깥으로 나옴)
+    ax.add_patch(Rectangle((X(0.86), YY(0.62)), 0.07 * W, 0.40 * H, fc="#111", ec="#444", lw=0.5, zorder=11))
+    for k, nm in enumerate(("GND", "5V", "Signal")):
+        fy = 0.30 + k * 0.12
+        ax.plot([X(0.88), X(1.07)], [YY(fy)] * 2, color="#c9a227", lw=1.6, zorder=12, solid_capstyle="butt")
+        ax.text(X(0.845), YY(fy), nm, ha="right", va="center", fontsize=4.6, color="white", fontweight="bold",
+                zorder=13)
+        tips[nm] = (X(1.07), YY(fy))
+    ax.add_patch(Rectangle((X(0.87), YY(0.73)), 0.05 * W, 0.05 * H, fc="#e2584f", ec="#888", lw=0.4, zorder=11))
+    ax.text(X(0.845), YY(0.705), "LED", ha="right", va="center", fontsize=3.8, color="#bbb", zorder=13)
+    for fx, w, c in ((0.42, 0.08, "#111"), (0.55, 0.09, "#111"), (0.68, 0.06, "#e9e9e9")):  # 트랜지스터 · 다이오드 · 저항
+        ax.add_patch(Rectangle((X(fx), YY(0.88)), w * W, 0.06 * H, fc=c, ec="#666", lw=0.4, zorder=11))
+    return tips
+
+
+def hcsr04(ax, hx, hy):
+    """HC-SR04 (핀이 아래로). 돌려주는 값: 핀 끝 {VCC, TRIG, ECHO, GND}"""
+    ax.add_patch(FancyBboxPatch((hx - 4.4, Y(hy + 3.2)), 8.8, 6.4, boxstyle="round,pad=0.05,rounding_size=0.3",
+                                fc="#2f6fdb", ec="#1d4f99", lw=1.0, zorder=10))
+    for dx in (-2.1, 2.1):
+        ax.add_patch(Circle((hx + dx, Y(hy - 0.3)), 1.6, fc="#c9ced6", ec="#8e9aab", lw=1.0, zorder=11))
+        ax.add_patch(Circle((hx + dx, Y(hy - 0.3)), 1.0, fc="#9aa3ad", ec="none", zorder=12))
+    ax.text(hx, Y(hy + 2.1), "HC-SR04", ha="center", va="center", fontsize=7, color="white", fontweight="bold",
+            zorder=12)
+    tips = {}
+    for nm, dx in {"VCC": -3.0, "TRIG": -1.0, "ECHO": 1.0, "GND": 3.0}.items():
+        ax.plot([hx + dx, hx + dx], [Y(hy + 3.2), Y(hy + 3.9)], color="#bbb", lw=1.5, zorder=9)
+        ax.text(hx + dx, Y(hy + 4.6), nm, ha="center", va="center", fontsize=4.6, color="#1f3864",
+                fontweight="bold", zorder=14)
+        tips[nm] = (hx + dx, Y(hy + 5.2))
+    return tips
+
+
+def dc_motor(ax, mx, my):
+    """DC 모터 (선 2가닥이 오른쪽으로). 돌려주는 값: 선 끝 {+, -}"""
+    ax.add_patch(FancyBboxPatch((mx - 3.2, Y(my + 2.2)), 5.0, 4.4, boxstyle="round,pad=0.05,rounding_size=0.6",
+                                fc="#b8bec7", ec="#7b838f", lw=1.0, zorder=10))
+    ax.add_patch(Rectangle((mx - 4.6, Y(my + 0.4)), 1.4, 0.8, fc="#d9dde3", ec="#7b838f", lw=0.8, zorder=10))
+    ax.text(mx - 0.7, Y(my), "DC 모터", ha="center", va="center", fontsize=6.4, color="#1f2328", fontweight="bold",
+            zorder=12)
+    tips = {}
+    for leg, dy, col in (("+", -1.1, W_RED), ("-", 1.1, W_BLK)):
+        p0, p = (mx + 1.8, Y(my + dy)), (mx + 3.6, Y(my + dy))
+        ax.plot([p0[0], p[0]], [p0[1], p[1]], color=col, lw=1.8, zorder=11, solid_capstyle="round")
+        ax.text(mx + 2.5, Y(my + dy) + 0.35, leg, ha="center", va="bottom", fontsize=6.5, color=col,
+                fontweight="bold", zorder=14)
+        tips[leg] = p
+    return tips
+
+
+def draw_breadboard():
+    fig, ax = new_sheet()
+    board_base(ax)
+    ax.text(-3.5, Y(68.8), "외부 5V 어댑터\n(스마트폰 충전기 5V 2A)", ha="center", va="center", fontsize=5.4,
+            color=W_5V, fontweight="bold", linespacing=1.4)
 
     def ends(p1, p2, color):
         for p in (p1, p2):
@@ -236,6 +383,23 @@ def draw_breadboard():
         ax.add_patch(PathPatch(Path(verts, [Path.MOVETO] + [Path.CURVE4] * 3), fc="none", ec=color, lw=lw,
                                zorder=13, capstyle="round"))
         ends((x1, y1), (x2, y2), color)
+
+    def route(pts, color, lw=1.8):
+        """여러 점을 지나는 선 (모서리는 둥글게) — 모듈을 돌아가는 선"""
+        verts, codes = [pts[0]], [Path.MOVETO]
+        for i in range(1, len(pts) - 1):
+            (x0, y0), (x1, y1), (x2, y2) = pts[i - 1], pts[i], pts[i + 1]
+            r = 0.6
+            d1 = max(abs(x1 - x0), abs(y1 - y0)) or 1
+            d2 = max(abs(x2 - x1), abs(y2 - y1)) or 1
+            a = (x1 - (x1 - x0) * min(r, d1 / 2) / d1, y1 - (y1 - y0) * min(r, d1 / 2) / d1)
+            b = (x1 + (x2 - x1) * min(r, d2 / 2) / d2, y1 + (y2 - y1) * min(r, d2 / 2) / d2)
+            verts += [a, (x1, y1), b]
+            codes += [Path.LINETO, Path.CURVE3, Path.CURVE3]
+        verts.append(pts[-1]); codes.append(Path.LINETO)
+        ax.add_patch(PathPatch(Path(verts, codes), fc="none", ec=color, lw=lw, zorder=13, capstyle="round",
+                               joinstyle="round"))
+        ends(pts[0], pts[-1], color)
 
     def leg_dot(hole, color="#9a9a9a"):
         ax.add_patch(Circle(XY(hole), 0.19, fc=color, ec="none", zorder=11))
@@ -310,118 +474,178 @@ def draw_breadboard():
     ax.text(COL["H"], Y(61.0), "공통 GND", ha="center", va="center", fontsize=5.6,
             color="#b3261e", fontweight="bold", zorder=14, bbox=BOX)
 
+    def to(part, leg):
+        return next(XY(h) for p, l, h in OFFBOARD if (p, l) == (part, leg))
+
     # ── 보드 밖: HC-SR04 (암-수 점퍼 4개) ──
-    hx, hy = -19.0, 18.0
-    ax.add_patch(FancyBboxPatch((hx - 4.4, Y(hy + 3.2)), 8.8, 6.4, boxstyle="round,pad=0.05,rounding_size=0.3",
-                                fc="#2f6fdb", ec="#1d4f99", lw=1.0, zorder=10))
-    for dx in (-2.1, 2.1):
-        ax.add_patch(Circle((hx + dx, Y(hy - 0.3)), 1.6, fc="#c9ced6", ec="#8e9aab", lw=1.0, zorder=11))
-        ax.add_patch(Circle((hx + dx, Y(hy - 0.3)), 1.0, fc="#9aa3ad", ec="none", zorder=12))
-    ax.text(hx, Y(hy + 2.1), "HC-SR04", ha="center", va="center", fontsize=7, color="white", fontweight="bold", zorder=12)
-    hc_pins = {"VCC": -3.0, "TRIG": -1.0, "ECHO": 1.0, "GND": 3.0}
-    for nm, dx in hc_pins.items():
-        p = (hx + dx, Y(hy + 3.9))
-        ax.plot([hx + dx, hx + dx], [Y(hy + 3.2), p[1]], color="#bbb", lw=1.5, zorder=9)
-        ax.text(hx + dx, Y(hy + 4.6), nm, ha="center", va="center", fontsize=4.6, color="#1f3864",
-                fontweight="bold", zorder=14)
+    hx, hy = HC_AT
+    htips = hcsr04(ax, hx, hy)
     hc_color = {"VCC": W_5V, "TRIG": SIG["GP10"], "ECHO": "#7a4a21", "GND": W_BLK}
-    for part, leg, h in OFFBOARD:
-        if part == "HC":
-            p = (hx + hc_pins[leg], Y(hy + 5.2))
-            q = XY(h)
-            verts = [p, (p[0], p[1] - 4), (q[0] - 6, q[1]), q]
-            ax.add_patch(PathPatch(Path(verts, [Path.MOVETO] + [Path.CURVE4] * 3), fc="none", ec=hc_color[leg],
-                                   lw=1.8, zorder=13, capstyle="round"))
-            ends(p, q, hc_color[leg])
-    ax.text(hx, Y(hy + 7.2), "암-수 점퍼 4개", ha="center", va="center", fontsize=5.6, color="#1f3864",
+    for leg, p in htips.items():
+        q = to("HC", leg)
+        verts = [p, (p[0], p[1] - 4), (q[0] - 6, q[1]), q]
+        ax.add_patch(PathPatch(Path(verts, [Path.MOVETO] + [Path.CURVE4] * 3), fc="none", ec=hc_color[leg],
+                               lw=1.8, zorder=13, capstyle="round"))
+        ends(p, q, hc_color[leg])
+    ax.text(hx, Y(hy - 4.4), "암-수 점퍼 4개", ha="center", va="center", fontsize=5.6, color="#1f3864",
             fontweight="bold", zorder=14, bbox=BOX)
 
-    def cable(p, q, color, c1, c2):
-        ax.add_patch(PathPatch(Path([p, c1, c2, q], [Path.MOVETO] + [Path.CURVE4] * 3), fc="none", ec=color,
-                               lw=1.8, zorder=13, capstyle="round"))
-        ends(p, q, color)
+    # ── 보드 밖: PC817 2채널 절연 모듈 (채널 1만 사용) — 나사 단자에 수 점퍼 끝을 넣고 조임 ──
+    ox, otop, osc = OPTO_AT
+    ot = opto_module(ax, ox, otop, osc)
+    oy_top = Y(otop - 1.2)                                       # 모듈 위쪽을 지나는 길
+    p = ot["IN1"]; q = to("OPTO", "IN1")
+    route([p, (p[0] - 1.4, p[1]), (p[0] - 1.4, oy_top), (-6.2, oy_top), (-6.2, q[1]), q], W_5V)
+    p = ot["G입력"]; q = to("OPTO", "G입력")
+    route([p, (p[0] - 2.4, p[1]), (p[0] - 2.4, Y(otop - 2.0)), (-7.0, Y(otop - 2.0)), (-7.0, q[1]), q], SIG["GP13"])
+    p = ot["V1"]; q = to("OPTO", "V1")
+    route([p, (p[0] + 1.2, p[1]), (p[0] + 1.2, q[1]), q], W_5V)
+    ax.text(ox + 0.1, Y(otop + 29.2 * osc + 0.9), "노란 점퍼 2개는 뽑아 두기 · IN2 · V2 쪽은 비워 둠",
+            ha="left", va="center", fontsize=5.2, color="#b3261e", fontweight="bold", zorder=14, bbox=BOX)
 
-    def module(cx, top, w, h, fc, ec, title, pins, title_dy=0.0, title_dx=0.0):
-        """보드 밖 모듈: 위쪽 가장자리에 핀이 위로 나옴. pins = {이름: x 오프셋}. 핀 끝 좌표를 돌려줌"""
-        ax.add_patch(FancyBboxPatch((cx - w / 2, Y(top + h)), w, h, boxstyle="round,pad=0.05,rounding_size=0.3",
-                                    fc=fc, ec=ec, lw=1.0, zorder=10))
-        ax.text(cx + title_dx, Y(top + h / 2 + title_dy), title, ha="center", va="center", fontsize=6.2, color="white",
-                fontweight="bold", zorder=12, linespacing=1.3)
-        tips = {}
-        for nm, dx in pins.items():
-            ax.plot([cx + dx, cx + dx], [Y(top), Y(top - 0.9)], color="#bbb", lw=1.5, zorder=9)
-            ax.text(cx + dx, Y(top + 0.55), nm.replace("입력", "").replace("출력", ""), ha="center", va="center",
-                    fontsize=4.6, color="white", fontweight="bold", zorder=12)
-            tips[nm] = (cx + dx, Y(top - 0.9))
-        return tips
-
-    # ── 보드 밖: PC817 2채널 절연 모듈 (1채널만 사용) ──
-    oc, otop = -17.0, 36.0
-    opins = {"IN1": -3.6, "IN2": -2.4, "G입력": -1.2, "V1": 1.2, "V2": 2.4, "G출력": 3.6}
-    otips = module(oc, otop, 9.0, 4.6, "#b3261e", "#7a1a14", "PC817 2채널 절연 모듈\n입력 │ 출력", opins, 0.4)
-    ax.text(oc - 2.4, Y(otop - 1.6), "입력", ha="center", fontsize=5.0, color="#1f3864", fontweight="bold", zorder=14)
-    ax.text(oc + 2.4, Y(otop - 1.6), "출력", ha="center", fontsize=5.0, color="#1f3864", fontweight="bold", zorder=14)
-    ax.text(oc, Y(otop + 5.6), "주의: 입력 G ↔ 출력 G 점퍼가 있으면 빼기", ha="center", va="center", fontsize=5.4,
-            color="#b3261e", fontweight="bold", zorder=14, bbox=BOX)
-    ax.text(oc, Y(otop + 6.6), "IN2 · V2 는 비워 둠", ha="center", va="center", fontsize=5.0, color="#5b616e", zorder=14)
-    # ── 보드 밖: 릴레이 모듈 (위 왼쪽부터 GND · VCC · SIG, 오른쪽 나사 단자 COM · NO · NC) ──
-    rc, rtop = -18.0, 46.0
-    rpins = {"GND": -3.2, "VCC": -1.7, "SIG": -0.2}
-    rtips = module(rc, rtop, 8.0, 5.6, "#2f6fdb", "#1d4f99", "릴레이\n모듈", rpins, -0.9, -1.7)
-    ax.add_patch(Rectangle((rc + 2.2, Y(rtop + 0.6)), 1.4, 0.8, fc="#d9dde3", ec="#7b838f", lw=0.6, zorder=11))
-    rterm = {}
-    for i, nm in enumerate(("COM", "NO", "NC")):
-        yy = rtop + 1.6 + i * 1.4
-        ax.add_patch(Rectangle((rc + 3.0, Y(yy) - 0.45), 1.0, 0.9, fc="#1f8f4e", ec="#0f5a30", lw=0.6, zorder=11))
-        ax.text(rc + 2.6, Y(yy), nm, ha="right", va="center", fontsize=4.8, color="white", fontweight="bold", zorder=12)
-        rterm[nm] = (rc + 4.0, Y(yy))
-    # 모듈 선
-    pts = {("OPTO", k): v for k, v in otips.items()}
-    pts.update({("RLY", k): v for k, v in rtips.items()})
-    pts.update({("RLY", k): v for k, v in rterm.items()})
-    cols = {("OPTO", "IN1"): W_5V, ("OPTO", "V1"): W_5V, ("OPTO", "G입력"): SIG["GP13"],
-            ("RLY", "VCC"): W_5V, ("RLY", "GND"): W_BLK, ("RLY", "COM"): W_5V, ("RLY", "NO"): W_RED}
-    for part, leg, h in OFFBOARD:
-        if part in ("OPTO", "RLY"):
-            p, q = pts[(part, leg)], XY(h)
-            if leg in ("COM", "NO"):
-                cable(p, q, cols[(part, leg)], (p[0] + 3, p[1]), (q[0] - 3, q[1]))
-            else:
-                cable(p, q, cols[(part, leg)], (p[0], p[1] + 3.5), (q[0] - 4, q[1]))
-    g_out, sig = pts[("OPTO", "G출력")], pts[("RLY", "SIG")]
-    # 모듈 오른쪽으로 돌아 내려가게 (모듈 몸통 위를 지나지 않게)
-    cable(g_out, sig, "#7a4a21", (g_out[0] + 7.0, g_out[1] - 1.0), (sig[0] + 6.0, sig[1] + 2.5))
-    ax.text(-8.6, Y(39.0), "암-암 점퍼\n(출력 G → SIG)", ha="center", va="center", fontsize=4.8, color="#7a4a21",
+    # ── 보드 밖: 릴레이 모듈 — 핀(GND · 5V · Signal)은 암 점퍼, NO · COM 은 나사 단자에 전선 ──
+    rx, rtop, rsc = RLY_AT
+    rt = relay_module(ax, rx, rtop, rsc)
+    for leg, col in (("GND", W_BLK), ("5V", W_5V)):
+        p, q = rt[leg], to("RLY", leg)
+        route([p, (q[0] - 1.0, p[1]), q], col)
+    # 포토커플러 출력 G → 릴레이 Signal (수-암 점퍼)
+    p, q = ot["G출력"], rt["Signal"]
+    route([p, (-5.0, p[1]), (-5.0, q[1] + 1.2), (q[0] + 0.6, q[1] + 1.2), (q[0] + 0.6, q[1]), q], "#7a4a21")
+    ax.text(-5.0, Y(40.3), "출력 G\n→ Signal", ha="center", va="center", fontsize=4.6, color="#7a4a21",
             fontweight="bold", zorder=14, bbox=BOX, linespacing=1.2)
+    rbot = rtop + 34 * rsc
+    for leg, col, dx, below in (("COM", W_5V, 1.2, 1.0), ("NO", W_RED, 2.0, 1.8)):
+        p, q = rt[leg], to("RLY", leg)
+        route([p, (p[0] - dx, p[1]), (p[0] - dx, Y(rbot + below)), (-6.6 + (0.6 if leg == "NO" else 0), Y(rbot + below)),
+               (-6.6 + (0.6 if leg == "NO" else 0), q[1]), q], col)
+    ax.text(rx + 0.1, Y(rtop - 1.0), "NC 는 비워 둠 · 나사를 풀고 전선을 끼운 뒤 조이기", ha="left", va="center",
+            fontsize=5.0, color="#5b616e", zorder=14, bbox=BOX)
 
-    # ── 보드 밖: DC 모터 (선 2가닥) ──
-    mx, my = -17.0, 58.5
-    ax.add_patch(FancyBboxPatch((mx - 3.2, Y(my + 2.2)), 5.0, 4.4, boxstyle="round,pad=0.05,rounding_size=0.6",
-                                fc="#b8bec7", ec="#7b838f", lw=1.0, zorder=10))
-    ax.add_patch(Rectangle((mx + 1.8, Y(my + 0.4)), 1.4, 0.8, fc="#d9dde3", ec="#7b838f", lw=0.8, zorder=10))
-    ax.text(mx - 0.7, Y(my), "DC 모터", ha="center", va="center", fontsize=6.4, color="#1f2328", fontweight="bold", zorder=12)
-    for part, leg, h in OFFBOARD:
-        if part == "M1":
-            p = (mx - 2.0 + (0 if leg == "+" else 2.6), Y(my - 2.2))
-            q = XY(h)
-            col = W_RED if leg == "+" else W_BLK
-            verts = [p, (p[0], p[1] + 3), (q[0] - 5, q[1]), q]
-            ax.add_patch(PathPatch(Path(verts, [Path.MOVETO] + [Path.CURVE4] * 3), fc="none", ec=col, lw=1.8,
-                                   zorder=13, capstyle="round"))
-            ends(p, q, col)
-            ax.text(p[0], p[1] + 0.9, leg, ha="center", va="bottom", fontsize=7, color=col, fontweight="bold", zorder=14)
+    # ── 보드 밖: DC 모터 ──
+    mt = dc_motor(ax, *MOTOR_AT)
+    p, q = mt["+"], to("M1", "+")                       # + 는 아래에서 B55 로 (NO 선과 겹치지 않게)
+    route([p, (-7.4, p[1]), (-7.4, Y(57.3)), (q[0], Y(57.3)), q], W_RED)
+    p, q = mt["-"], to("M1", "-")
+    route([p, (-8.2, p[1]), (-8.2, q[1]), q], W_BLK)
 
     ax.text(-23.0, Y(-4.3), "추가 배선도", ha="left", va="bottom", fontsize=15, fontweight="bold", color="#1f3864")
     ax.text(-23.0, Y(-2.9), "HC-SR04 초음파 · 포토커플러 모듈 + 릴레이 모듈로 DC 모터 on/off · PWM LED 밝기",
             ha="left", va="bottom", fontsize=7.2, color="#555")
     notes = [
         "※ GP13 = LOW 면 모터가 켜지고 HIGH 면 꺼집니다 (모듈 입력을 5V 쪽에서 당기는 방식 — Pico 3.3V 로는 입력 3.6V 를 못 넘음).",
-        "※ 릴레이가 반대로(SIG 가 LOW 일 때 켜짐) 동작하면: 포토커플러 V1 → 릴레이 SIG, 출력 G → GND 로 바꾸세요.",
-        "※ 릴레이 나사 단자 순서는 제품 인쇄를 확인. 다이오드 띠 · LED 긴 다리 · 470μF 긴 다리(+) 방향을 지키세요.",
+        "※ 릴레이가 반대로(Signal 이 LOW 일 때 켜짐) 동작하면: 포토커플러 V1 → 릴레이 Signal, 출력 G → GND 로 바꾸세요.",
+        "※ 릴레이 나사 단자는 위에서부터 NO · COM · NC. 다이오드 띠 · LED 긴 다리 · 470μF 긴 다리(+) 방향을 지키세요.",
         "※ 전원 순서: 켤 때 USB 먼저 → 5V 어댑터, 끌 때 · 선 바꿀 때 어댑터 먼저 → USB (어댑터만 켜져 있으면 모터가 돌 수 있음).",
     ]
     for i, t in enumerate(notes):
         ax.text(-23.0, Y(71.0 + i * 1.3), t, ha="left", va="center", fontsize=5.4, color="#b3261e")
+    return fig
+
+
+def draw_practice():
+    """연습 도면 — Pico 만 꽂힌 브레드보드 + 옆에 부품 그림. 선 · 정답 위치 없음 (학생이 그려 넣음)"""
+    fig, ax = new_sheet()
+    board_base(ax, highlight=False)
+    hcsr04(ax, *HC_AT)
+    opto_module(ax, *OPTO_AT)
+    relay_module(ax, *RLY_AT)
+    dc_motor(ax, *MOTOR_AT)
+    ox, otop, osc = OPTO_AT
+    rx, rtop, rsc = RLY_AT
+    lab = dict(ha="left", va="center", fontsize=5.6, color="#1f3864", fontweight="bold", zorder=14)
+    ax.text(ox, Y(otop - 1.0), "PC817 2채널 절연 모듈", **lab)
+    ax.text(rx, Y(rtop - 1.0), "릴레이 모듈", **lab)
+    ax.text(ox, Y(otop + 29.2 * osc + 0.9), "입력: IN1 · G / IN2 · G      출력: V1 · G / V2 · G", ha="left",
+            va="center", fontsize=4.8, color="#5b616e", zorder=14)
+    ax.text(rx, Y(rtop + 34 * rsc + 0.9), "나사 단자: NO · COM · NC      핀: GND · 5V · Signal", ha="left",
+            va="center", fontsize=4.8, color="#5b616e", zorder=14)
+
+    # 외부 5V 어댑터 (선 끝 2개)
+    ax.add_patch(FancyBboxPatch((-23.4, Y(67.6)), 6.6, 2.6, boxstyle="round,pad=0.05,rounding_size=0.4",
+                                fc="#f7f7f7", ec="#7b838f", lw=1.0, zorder=10))
+    ax.text(-20.1, Y(66.3), "외부 5V 어댑터\n(5V 2A)", ha="center", va="center", fontsize=5.4, color="#1f2328",
+            fontweight="bold", zorder=12, linespacing=1.2)
+    for dy, col, nm in ((-0.7, W_RED, "+"), (0.7, W_BLK, "-")):
+        y = Y(66.3 + dy)
+        ax.plot([-16.8, -14.6], [y, y], color=col, lw=1.8, zorder=11, solid_capstyle="round")
+        ax.add_patch(Circle((-14.6, y), 0.2, fc=col, ec="white", lw=0.4, zorder=12))
+        ax.text(-15.7, y + 0.25, nm, ha="center", va="bottom", fontsize=6.0, color=col, fontweight="bold", zorder=12)
+
+    # ── 오른쪽: 부품 칸 ──
+    px = 18.6
+    ax.add_patch(FancyBboxPatch((px, Y(56.0)), 11.6, 54.0, boxstyle="round,pad=0.1,rounding_size=0.5",
+                                fc="white", ec="#9aa1ab", lw=0.9, ls=(0, (3, 2)), zorder=1))
+    ax.text(px + 5.8, Y(3.3), "부품 칸", ha="center", va="center", fontsize=8, color="#1f3864", fontweight="bold")
+    ax.text(px + 5.8, Y(4.6), "꽂을 자리를 정해 보드에 그려 넣으세요", ha="center", va="center", fontsize=4.8,
+            color="#5b616e")
+
+    def p_res(y, bands, name):
+        ax.plot([px + 1.5, px + 10.1], [Y(y)] * 2, color="#9a9a9a", lw=1.1, zorder=9)
+        ax.add_patch(FancyBboxPatch((px + 3.9, Y(y) - 0.42), 3.8, 0.84, boxstyle="round,pad=0.02,rounding_size=0.2",
+                                    fc="#e8dcc0", ec="#a89771", lw=0.7, zorder=10))
+        for k, bc in enumerate(bands):
+            ax.add_patch(Rectangle((px + 4.4 + 0.75 * k, Y(y) - 0.42), 0.35, 0.84, fc=bc, ec="none", zorder=11))
+        ax.text(px + 5.8, Y(y + 1.5), name, ha="center", va="center", fontsize=5.6, color="#1f3864",
+                fontweight="bold")
+
+    BR, BK, RD = "#8a5a2b", "#000000", "#d92b2b"
+    p_res(9.0, (BR, BK, RD), "1kΩ (갈·검·빨)")
+    p_res(14.0, (RD, BK, RD), "2kΩ (빨·검·빨)")
+    p_res(19.0, (RD, RD, BR), "220Ω (빨·빨·갈)")
+    # 1N4007 다이오드
+    y = 24.0
+    ax.plot([px + 1.5, px + 10.1], [Y(y)] * 2, color="#9a9a9a", lw=1.1, zorder=9)
+    ax.add_patch(Rectangle((px + 4.2, Y(y) - 0.45), 3.2, 0.9, fc="#222", ec="#000", lw=0.6, zorder=10))
+    ax.add_patch(Rectangle((px + 6.8, Y(y) - 0.45), 0.4, 0.9, fc="#d8d8d8", ec="none", zorder=11))
+    ax.text(px + 5.8, Y(y + 1.5), "1N4007 (띠 = 캐소드)", ha="center", va="center", fontsize=5.6, color="#1f3864",
+            fontweight="bold")
+    # LED (옆에서 본 모양 — 긴 다리 +)
+    y = 31.0
+    ax.add_patch(FancyBboxPatch((px + 4.6, Y(y) - 0.2), 2.4, 2.2, boxstyle="round,pad=0.05,rounding_size=1.0",
+                                fc="#ffe9a8", ec="#c9a227", lw=0.9, zorder=10))
+    ax.plot([px + 5.2] * 2, [Y(y) - 0.2, Y(y + 4.0)], color="#9a9a9a", lw=1.1, zorder=9)   # 긴 다리
+    ax.plot([px + 6.4] * 2, [Y(y) - 0.2, Y(y + 3.0)], color="#9a9a9a", lw=1.1, zorder=9)   # 짧은 다리
+    ax.text(px + 4.9, Y(y + 3.6), "+", ha="right", va="center", fontsize=6.5, color=W_RED, fontweight="bold")
+    ax.text(px + 8.0, Y(y + 0.9), "LED\n긴 다리 = +", ha="left", va="center", fontsize=5.4, color="#1f3864",
+            fontweight="bold", linespacing=1.3)
+    # 470μF 전해 커패시터
+    y = 39.0
+    ax.add_patch(FancyBboxPatch((px + 4.4, Y(y) - 1.0), 2.4, 3.0, boxstyle="round,pad=0.05,rounding_size=0.3",
+                                fc="#3b4a6b", ec="#1f2b45", lw=0.8, zorder=10))
+    ax.add_patch(Rectangle((px + 6.1, Y(y) - 1.0), 0.6, 3.0, fc="#c9ced6", ec="none", zorder=11))
+    ax.text(px + 6.4, Y(y - 0.5), "-", ha="center", va="center", fontsize=6.5, color="#1f2b45", fontweight="bold",
+            zorder=12)
+    ax.plot([px + 5.0] * 2, [Y(y) - 1.0, Y(y + 3.6)], color="#9a9a9a", lw=1.1, zorder=9)   # 긴 다리 +
+    ax.plot([px + 6.2] * 2, [Y(y) - 1.0, Y(y + 2.6)], color="#9a9a9a", lw=1.1, zorder=9)
+    ax.text(px + 4.7, Y(y + 3.2), "+", ha="right", va="center", fontsize=6.5, color=W_RED, fontweight="bold")
+    ax.text(px + 8.0, Y(y + 0.4), "470μF\n긴 다리 = +\n띠 쪽 = -", ha="left", va="center", fontsize=5.4,
+            color="#1f3864", fontweight="bold", linespacing=1.3)
+    # 점퍼선 색
+    y = 47.0
+    ax.text(px + 5.8, Y(y - 1.2), "점퍼선 색", ha="center", va="center", fontsize=6.0, color="#1f3864",
+            fontweight="bold")
+    for k, (col, t) in enumerate(((W_5V, "외부 5V"), (W_BLK, "GND"), ("#2f6fdb", "신호"))):
+        yy = Y(y + 0.4 + k * 1.6)
+        ax.plot([px + 1.6, px + 4.6], [yy, yy], color=col, lw=2.2, solid_capstyle="round")
+        ax.text(px + 5.2, yy, t, ha="left", va="center", fontsize=5.6, color="#1f2328")
+
+    # ── 머리 · 과제 · 확인 칸 ──
+    ax.text(-23.0, Y(-4.3), "추가 회로 연습 도면", ha="left", va="bottom", fontsize=15, fontweight="bold",
+            color="#1f3864")
+    ax.text(30.6, Y(-4.3), "반 ____   번호 ____   이름 ____________", ha="right", va="bottom", fontsize=8,
+            color="#1f2328")
+    ax.text(-23.0, Y(-2.9), "「추가 회로도」를 보고 점퍼선과 부품을 그려 넣으세요. 구멍에서 구멍으로 · 한 구멍에 하나만.",
+            ha="left", va="bottom", fontsize=7.2, color="#555")
+    checks = ["□ 모든 GND 가 이어졌나 (외부 5V (-) · Pico GND · 모듈 GND)",
+              "□ ECHO 는 1kΩ / 2kΩ 분압을 거쳐 GP11 로",
+              "□ 포토커플러 노란 점퍼 2개는 뽑아 둠",
+              "□ 1N4007 띠 · LED 긴 다리 · 470μF 긴 다리 방향",
+              "□ 외부 5V 는 왼쪽 레일에만 (오른쪽 레일 · VBUS 금지)",
+              "□ 전원 순서: USB 먼저 → 어댑터, 끌 때는 어댑터 먼저"]
+    for i, t in enumerate(checks):
+        ax.text(-23.0 + (i % 2) * 27.0, Y(70.6 + (i // 2) * 1.5), t, ha="left", va="center", fontsize=6.0,
+                color="#1f2328")
     return fig
 
 
@@ -581,15 +805,15 @@ def draw_schematic():
     line((tx, 6.5), (tx + 0.65, 6.0), (tx + 0.65, 4.2))
     ax.add_patch(FancyArrowPatch((tx + 0.3, 6.28), (tx + 0.6, 6.05), arrowstyle="-|>", mutation_scale=6, color=INK, lw=0.9, zorder=6))
     vcc(tx + 0.65, 12.4); term(tx + 0.65, 12.4, "V1")
-    term(ix, 4.2, "G (입력)", "left"); term(tx + 0.65, 4.2, "G (출력)")
+    term(ix, 4.2, "G (IN1 옆)", "left"); term(tx + 0.65, 4.2, "G (V1 옆)")
     line((ix, 4.0), (ix, 3.5), (13.4, 3.5)); pin(13.4, 3.5, "GP13", "left")
-    text(17.1, 2.75, "주의: 입력 G ↔ 출력 G 점퍼는 빼기", fs=6.8, fw="bold", color="#b3261e")
+    text(17.1, 2.75, "주의: 노란 점퍼 2개는 뽑아 두기", fs=6.8, fw="bold", color="#b3261e")
 
     # 릴레이 모듈
     mod_box(21.6, 4.2, 31.4, 12.4, "릴레이\n모듈", (21.8, 11.9), "left")
     sg = 22.6
     line((tx + 0.65, 4.0), (tx + 0.65, 3.5), (sg, 3.5), (sg, 4.2))
-    term(sg, 4.2, "SIG")
+    term(sg, 4.2, "Signal")
     line((sg, 4.4), (sg, 7.4))
     res(sg, 7.4, 24.4, 7.4, "R", lab_off=(0, 0.55))
     c_pt, e_pt = npn(24.4, 7.4, "")
@@ -597,7 +821,7 @@ def draw_schematic():
     line(c_pt, (kx, 8.8))
     ax.add_patch(Rectangle((kx - 0.4, 8.8), 0.8, 1.6, fc="white", ec=INK, lw=LW, zorder=5))
     line((kx - 0.4, 8.8), (kx + 0.4, 10.4), lw=0.8)
-    line((kx, 10.4), (kx, 12.4)); vcc(kx, 12.4); term(kx, 12.4, "VCC", "left")
+    line((kx, 10.4), (kx, 12.4)); vcc(kx, 12.4); term(kx, 12.4, "5V", "left")
     dot(kx, 8.6); dot(kx, 10.9)
     line((kx, 8.6), (kx + 1.1, 8.6)); line((kx, 10.9), (kx + 1.1, 10.9))
     diode_v(kx + 1.1, 10.9, 8.6, "")
@@ -625,7 +849,7 @@ def draw_schematic():
     line((mxs, 8.6), (mxs + 1.3, 8.6)); line((mxs, 5.4), (mxs + 1.3, 5.4))
     diode_v(mxs + 1.3, 8.6, 5.4, "D2\n1N4007")
     text(mxs - 1.05, 7.3, "DC\n모터", ha="right", fs=7, fw="bold")
-    text(23.3, 2.0, "GP13 LOW → 5V 가 모듈 입력을 지나 흐름 → 출력 G ≈ 5V → 릴레이 SIG HIGH → 모터 켜짐",
+    text(23.3, 2.0, "GP13 LOW → 5V 가 모듈 입력을 지나 흐름 → 출력 G ≈ 5V → 릴레이 Signal HIGH → 모터 켜짐",
          fs=7, color="#5b616e")
 
     # ═══ ③ PWM LED ═══
@@ -640,14 +864,14 @@ def draw_schematic():
     # ═══ 아래: 핀 · 부품표 ═══
     text(-1.0, 0.4, "핀", ha="left", fs=9, fw="bold", color="#1f3864")
     rows = [("GP10", "HC-SR04 TRIG"), ("GP11", "HC-SR04 ECHO (분압 후)"), ("GP13", "포토커플러 입력 G (LOW = 모터 켜짐)"),
-            ("GP22", "LED PWM"), ("외부 5V", "HC-SR04 · 모듈 IN1 · V1 · 릴레이 VCC · COM"), ("GND", "모두 공통")]
+            ("GP22", "LED PWM"), ("외부 5V", "HC-SR04 · 모듈 IN1 · V1 · 릴레이 5V · COM"), ("GND", "모두 공통")]
     for i, (a, b) in enumerate(rows):
         text(-1.0, -0.7 - i * 0.95, a, ha="left", fs=7.5, fw="bold")
         text(1.9, -0.7 - i * 0.95, b, ha="left", fs=7.5)
     text(13.0, 0.4, "부품", ha="left", fs=9, fw="bold", color="#1f3864")
     parts = [("R1", "1kΩ (갈·검·빨)"), ("R2", "2kΩ (빨·검·빨)"), ("R6", "220Ω (빨·빨·갈)"),
              ("D2", "1N4007 (띠 = 캐소드)"), ("LED", "5mm LED (긴 다리 = +)"), ("M", "DC 모터 (5V)"),
-             ("모듈", "PC817 2채널 절연 모듈 (IN1·IN2·G / V1·V2·G)"), ("모듈", "릴레이 모듈 (GND·VCC·SIG / COM·NO·NC)"),
+             ("모듈", "PC817 2채널 절연 모듈 (IN1·G / V1·G 나사 단자)"), ("모듈", "릴레이 모듈 (GND·5V·Signal / NO·COM·NC)"),
              ("C1", "470μF (기존 · 5V 레일)")]
     for i, (a, b) in enumerate(parts):
         cx = 13.0 + (i // 6) * 12.5
@@ -660,7 +884,8 @@ def draw_schematic():
 if __name__ == "__main__":
     n = check_netlist()
     print(f"넷 {n}개 — 배선도와 회로도가 같습니다")
-    for name, fig in (("추가 회로도", draw_schematic()), ("추가 배선도", draw_breadboard())):
+    for name, fig in (("추가 회로도", draw_schematic()), ("추가 배선도", draw_breadboard()),
+                      ("추가 연습 도면", draw_practice())):
         for ext in ("png", "pdf"):
             out = os.path.join(OUT_DIR, f"{name}.{ext}")
             fig.savefig(out, dpi=300, bbox_inches="tight", facecolor="white")
