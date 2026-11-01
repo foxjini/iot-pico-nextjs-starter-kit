@@ -21,7 +21,7 @@
 #     OK … / ERR …           명령에 대한 답
 #     [거리] … 같은 한국어 줄   사람이 시리얼 모니터로 볼 때 (1초마다)
 #
-#   ⚠ 포토커플러 모듈의 입력 G 가 GP13 에 연결되어 있습니다: GP13 LOW = 모터 켜짐, HIGH = 꺼짐.
+#   ⚠ 포토커플러 모듈의 IN1 옆 G 가 GP13 에 연결되어 있습니다: GP13 LOW = 모터 켜짐, HIGH = 꺼짐.
 #     모듈의 노란 점퍼 2개는 뽑아 두세요 (꽂혀 있으면 입력 쪽과 출력 쪽이 이어져 오동작합니다).
 #   ⚠ 전원 순서: 켤 때 USB 먼저 → 5V 어댑터, 끌 때 · 선을 바꿀 때 어댑터 먼저 → USB.
 #     Pico 전원 없이 어댑터만 켜져 있으면 5V 가 모듈 입력 → GP13 으로 흘러 모터가 돌고 Pico 에도 전류가 거꾸로 들어갑니다.
@@ -48,7 +48,7 @@ except ImportError as e:
 
 # ── 핀 (worksheets/추가 배선도.pdf) ──
 PIN_TRIG, PIN_ECHO = board.GP10, board.GP11   # ECHO 는 1kΩ/2kΩ 분압을 거쳐 3.3V 로
-PIN_MOTOR = board.GP13                        # 포토커플러 모듈 입력 G — LOW 면 켜짐
+PIN_MOTOR = board.GP13                        # 포토커플러 모듈 IN1 옆 G — LOW 면 켜짐
 PIN_LED = board.GP22                          # PWM 슬라이스 3A (서보 · RGB 와 겹치지 않음)
 
 # ── 설정 ──
