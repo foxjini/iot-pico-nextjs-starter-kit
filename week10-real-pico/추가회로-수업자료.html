@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>추가 회로 원리</title>
+<!--
+  추가 회로 수업 자료 — 회로 설명 5분용 (50분 수업: 설명 10 · 제작 30 · 동작 테스트 10)
+  ① 전압 분배  ② 포토커플러 PC817  ③ 릴레이  ④ PWM  — 움직이는 그림으로
+  포토커플러 · 릴레이는 REA(Reverse Engineer Anything)의 방법대로 겉모습 → 분해 → 동작 순서로 한 겹씩 열고,
+  알게 된 것을 관찰 / 추론 / 모름 으로 나눠 적습니다.
+  인터넷 없이 더블클릭으로 열립니다. 외부 글꼴 · 라이브러리 · 이미지 없음.
+  조작: ← → 장면 · ↑ ↓ 단계 · Space 재생/멈춤 · F 전체 화면 · 0~5 장면 바로 가기
+-->
+<style>
+:root{
+  --bg:#F5F6F8; --card:#FFFFFF; --line:#E2E5EA; --text:#16181D; --sub:#5B616E; --faint:#8A909C;
+  --ok:#1A7F37; --okbg:#E8F5EC; --warn:#9A6700; --warnbg:#FFF4D6; --fail:#C62828; --failbg:#FDECEC;
+  --idle:#EEF0F3; --v5:#E07000; --gnd:#16181D; --sig:#2F6FDB; --pico:#1F6B4E; --flow:#E0A100;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);overflow:hidden;
+  font-family:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR",sans-serif}
+#stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0}
+header{position:absolute;left:0;top:0;width:1600px;height:64px;display:flex;align-items:center;gap:8px;
+  padding:0 32px;background:var(--card);border-bottom:1px solid var(--line)}
+header .brand{font-weight:700;font-size:20px;margin-right:auto}
+header .brand small{font-weight:400;color:var(--faint);font-size:15px;margin-left:10px}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--sub);font:inherit;font-size:15px;
+  padding:7px 14px;border-radius:999px;cursor:pointer}
+.tab.on{background:var(--text);color:#fff;border-color:var(--text)}
+.slide{position:absolute;left:0;top:64px;width:1600px;height:776px;display:none;padding:22px 40px 0}
+.slide.on{display:block}
+.slide h2{margin:0;font-size:38px;letter-spacing:-.5px}
+.slide h2 .num{display:inline-block;min-width:44px;height:44px;line-height:44px;text-align:center;border-radius:10px;
+  background:var(--text);color:#fff;font-size:26px;margin-right:12px;vertical-align:4px}
+.key{margin:8px 0 0;font-size:24px;color:var(--sub)}
+.key b{color:var(--text)}
+.body{position:absolute;left:40px;top:130px;width:1520px;height:560px}
+.ctrl{position:absolute;left:40px;top:704px;width:1520px;height:60px;display:flex;align-items:center;gap:10px}
+.btn{border:1px solid #CBD0D8;background:var(--card);color:var(--text);font:inherit;font-size:18px;
+  padding:10px 18px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--text)}
+.btn.on{background:var(--text);color:#fff;border-color:var(--text)}
+.btn.bad.on{background:var(--fail);border-color:var(--fail)}
+.sep{width:1px;height:34px;background:var(--line);margin:0 8px}
+.pill{display:inline-block;padding:8px 16px;border-radius:999px;font-size:20px;font-weight:700}
+.pill.ok{background:var(--okbg);color:var(--ok)} .pill.fail{background:var(--failbg);color:var(--fail)}
+.pill.idle{background:var(--idle);color:var(--sub)} .pill.warn{background:var(--warnbg);color:var(--warn)}
+footer{position:absolute;left:0;top:840px;width:1600px;height:60px;display:flex;align-items:center;gap:16px;
+  padding:0 32px;border-top:1px solid var(--line);background:var(--card);color:var(--faint);font-size:15px}
+footer .bar{flex:1;height:6px;background:var(--idle);border-radius:3px;overflow:hidden}
+footer .bar i{display:block;height:100%;background:var(--text);width:0}
+svg text{font-family:inherit}
+.t-s{font-size:16px;fill:var(--sub)} .t-m{font-size:20px;fill:var(--text)} .t-b{font-size:22px;font-weight:700;fill:var(--text)}
+.t-big{font-size:40px;font-weight:700;fill:var(--text)}
+.wire{fill:none;stroke:#3A3F48;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.w5{stroke:var(--v5)} .wg{stroke:var(--gnd)} .ws{stroke:var(--sig)}
+.dot{fill:var(--flow)}
+/* REA 패널 */
+.rea{position:absolute;right:0;top:0;width:470px;height:560px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:18px 20px;font-size:17px;line-height:1.45;overflow:hidden}
+.rea h3{margin:0 0 4px;font-size:20px}
+.rea .how{color:var(--faint);font-size:14px;margin-bottom:10px}
+.rea .grp{margin:10px 0 0}
+.rea .tag{display:inline-block;font-size:14px;font-weight:700;padding:2px 10px;border-radius:999px;margin-bottom:4px}
+.tag.obs{background:var(--idle);color:var(--text)} .tag.inf{background:var(--warnbg);color:var(--warn)}
+.tag.unk{background:var(--failbg);color:var(--fail)}
+.rea ul{margin:0;padding-left:20px} .rea li{margin:2px 0}
+.stagebar{display:flex;gap:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+@media (prefers-reduced-motion: reduce){ .tab,.btn{transition:none} }
+</style>
+</head>
+<body>
+<div id="stage">
+<header>
+  <div class="brand">추가 회로 원리<small>초음파 · 포토커플러 + 릴레이 · PWM LED</small></div>
+  <button class="tab" data-go="0">0 개요</button>
+  <button class="tab" data-go="1">1 전압 분배</button>
+  <button class="tab" data-go="2">2 포토커플러</button>
+  <button class="tab" data-go="3">3 릴레이</button>
+  <button class="tab" data-go="4">4 PWM</button>
+  <button class="tab" data-go="5">5 정리</button>
+</header>
+
+<!-- ═════════ 0 개요 ═════════ -->
+<section class="slide" id="s0">
+  <h2>오늘 만들 회로 — 원리 4가지</h2>
+  <p class="key">부품이 <b>왜</b> 그 자리에 있는지 알고 꽂으면 실수가 줄어듭니다.</p>
+  <div class="body">
+    <svg width="1520" height="560" viewBox="0 0 1520 560">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#3A3F48"/></marker>
+      </defs>
+      <g id="ov">
+        <!-- 줄 1 -->
+        <g transform="translate(0,20)">
+          <rect x="0" y="0" width="200" height="80" rx="12" fill="#2F6FDB"/><text x="100" y="48" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">HC-SR04</text>
+          <line x1="200" y1="40" x2="330" y2="40" class="wire" marker-end="url(#ar)"/><text x="265" y="28" text-anchor="middle" class="t-s">ECHO 5V</text>
+          <rect x="335" y="0" width="230" height="80" rx="12" fill="#fff" stroke="#16181D" stroke-width="2"/><text x="450" y="35" text-anchor="middle" class="t-b">1kΩ / 2kΩ</text><text x="450" y="62" text-anchor="middle" class="t-s">전압 분배</text>
+          <line x1="565" y1="40" x2="690" y2="40" class="wire" marker-end="url(#ar)"/><text x="628" y="28" text-anchor="middle" class="t-s">3.3V</text>
+          <rect x="695" y="0" width="140" height="80" rx="12" fill="#1F6B4E"/><text x="765" y="48" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">GP11</text>
+          <g class="ovtag" data-go="1"><rect x="880" y="16" width="120" height="48" rx="24" fill="#16181D"/><text x="940" y="47" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">원리 1</text></g>
+        </g>
+        <!-- 줄 2 -->
+        <g transform="translate(0,170)">
+          <rect x="0" y="0" width="140" height="80" rx="12" fill="#1F6B4E"/><text x="70" y="48" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">GP13</text>
+          <line x1="140" y1="40" x2="240" y2="40" class="wire" marker-end="url(#ar)"/>
+          <rect x="245" y="0" width="230" height="80" rx="12" fill="#fff" stroke="#16181D" stroke-width="2"/><text x="360" y="35" text-anchor="middle" class="t-b">포토커플러</text><text x="360" y="62" text-anchor="middle" class="t-s">PC817 · 빛으로 절연</text>
+          <line x1="475" y1="40" x2="575" y2="40" class="wire" marker-end="url(#ar)"/><text x="525" y="28" text-anchor="middle" class="t-s">Signal</text>
+          <rect x="580" y="0" width="230" height="80" rx="12" fill="#fff" stroke="#16181D" stroke-width="2"/><text x="695" y="35" text-anchor="middle" class="t-b">릴레이</text><text x="695" y="62" text-anchor="middle" class="t-s">전자석 스위치</text>
+          <line x1="810" y1="40" x2="910" y2="40" class="wire" marker-end="url(#ar)"/>
+          <circle cx="955" cy="40" r="40" fill="#B8BEC7" stroke="#7B838F" stroke-width="2"/><text x="955" y="48" text-anchor="middle" font-size="24" font-weight="700">M</text>
+          <g class="ovtag" data-go="2"><rect x="1030" y="16" width="120" height="48" rx="24" fill="#16181D"/><text x="1090" y="47" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">원리 2</text></g>
+          <g class="ovtag" data-go="3"><rect x="1165" y="16" width="120" height="48" rx="24" fill="#16181D"/><text x="1225" y="47" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">원리 3</text></g>
+        </g>
+        <!-- 줄 3 -->
+        <g transform="translate(0,320)">
+          <rect x="0" y="0" width="140" height="80" rx="12" fill="#1F6B4E"/><text x="70" y="48" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">GP22</text>
+          <line x1="140" y1="40" x2="240" y2="40" class="wire" marker-end="url(#ar)"/><text x="190" y="28" text-anchor="middle" class="t-s">PWM</text>
+          <rect x="245" y="0" width="230" height="80" rx="12" fill="#fff" stroke="#16181D" stroke-width="2"/><text x="360" y="35" text-anchor="middle" class="t-b">220Ω</text><text x="360" y="62" text-anchor="middle" class="t-s">전류 제한</text>
+          <line x1="475" y1="40" x2="575" y2="40" class="wire" marker-end="url(#ar)"/>
+          <circle id="ovLed" cx="620" cy="40" r="36" fill="#FFC400" stroke="#C9A227" stroke-width="2"/><text x="690" y="48" class="t-b">LED 밝기</text>
+          <g class="ovtag" data-go="4"><rect x="880" y="16" width="120" height="48" rx="24" fill="#16181D"/><text x="940" y="47" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">원리 4</text></g>
+        </g>
+      </g>
+      <!-- 50분 흐름 -->
+      <g transform="translate(0,470)">
+        <text x="0" y="0" class="t-s">50분 수업</text>
+        <rect x="0" y="16" width="300" height="56" rx="10" fill="#16181D"/><text x="150" y="51" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">회로 설명 10분 · 지금</text>
+        <rect x="306" y="16" width="900" height="56" rx="10" fill="#EEF0F3"/><text x="756" y="51" text-anchor="middle" class="t-m">회로 제작 30분</text>
+        <rect x="1212" y="16" width="300" height="56" rx="10" fill="#EEF0F3"/><text x="1362" y="51" text-anchor="middle" class="t-m">동작 테스트 10분</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ═════════ 1 전압 분배 ═════════ -->
+<section class="slide" id="s1">
+  <h2><span class="num">1</span>저항으로 전압 나누기</h2>
+  <p class="key">V(GP11) = 5V × <b>R2 ÷ (R1 + R2)</b> — 전압은 저항 크기에 <b>비례해서</b> 나뉩니다.</p>
+  <div class="body">
+    <svg width="1520" height="560" viewBox="0 0 1520 560">
+      <!-- 회로 -->
+      <g>
+        <text x="40" y="34" class="t-b">HC-SR04 ECHO</text><text x="40" y="60" class="t-s">5V 펄스가 나옴</text>
+        <path class="wire" d="M200,80 L200,110"/><circle cx="200" cy="80" r="9" fill="#16181D"/>
+        <text x="182" y="86" text-anchor="end" class="t-b" fill="#E07000" style="fill:#E07000">5V</text>
+        <rect x="174" y="110" width="52" height="120" rx="8" fill="#fff" stroke="#16181D" stroke-width="3"/>
+        <polyline points="200,118 186,128 214,140 186,152 214,164 186,176 214,188 186,200 214,212 200,222" fill="none" stroke="#16181D" stroke-width="3"/>
+        <text id="r1lab" x="244" y="166" class="t-b">R1 1kΩ</text>
+        <path class="wire" d="M200,230 L200,370"/>
+        <circle cx="200" cy="300" r="8" fill="#16181D"/>
+        <path class="wire ws" d="M200,300 L420,300"/>
+        <rect x="420" y="276" width="130" height="48" rx="10" fill="#1F6B4E"/><text x="485" y="308" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">GP11</text>
+        <text id="vmid" x="300" y="284" text-anchor="middle" class="t-big">3.33V</text>
+        <rect x="174" y="370" width="52" height="120" rx="8" fill="#fff" stroke="#16181D" stroke-width="3"/>
+        <polyline points="200,378 186,388 214,400 186,412 214,424 186,436 214,448 186,460 214,472 200,482" fill="none" stroke="#16181D" stroke-width="3"/>
+        <text id="r2lab" x="244" y="426" class="t-b">R2 2kΩ</text>
+        <path class="wire" d="M200,490 L200,530"/>
+        <path d="M172,530 L228,530 M182,540 L218,540 M192,550 L208,550" stroke="#16181D" stroke-width="3"/>
+        <text x="160" y="538" text-anchor="end" class="t-b">0V</text>
+        <path id="p1flow" d="M200,80 L200,530" fill="none" stroke="none"/>
+        <g id="g1flow"></g>
+      </g>
+      <!-- 전압 계단 -->
+      <g transform="translate(640,0)">
+        <text x="0" y="34" class="t-b">전압 계단 (물 높이처럼)</text>
+        <g id="ladder"></g>
+      </g>
+      <!-- 파형 -->
+      <g transform="translate(1000,0)">
+        <text x="0" y="34" class="t-b">파형</text>
+        <text x="0" y="74" class="t-s">ECHO (분압 전) — 5V</text>
+        <rect x="0" y="84" width="500" height="170" rx="8" fill="#fff" stroke="#E2E5EA"/>
+        <path id="wIn" d="" fill="none" stroke="#8A909C" stroke-width="3"/>
+        <text x="0" y="296" class="t-s">GP11 (분압 후) — Pico 가 읽는 값</text>
+        <rect x="0" y="306" width="500" height="170" rx="8" fill="#fff" stroke="#E2E5EA"/>
+        <line id="thLine" x1="0" x2="500" y1="0" y2="0" stroke="#9A6700" stroke-width="2" stroke-dasharray="8 6"/>
+        <text id="thLab" x="496" y="0" text-anchor="end" font-size="15" fill="#9A6700">HIGH 로 읽는 선 ≈ 2V</text>
+        <path id="wOut" d="" fill="none" stroke="#16181D" stroke-width="3"/>
+        <foreignObject x="0" y="490" width="500" height="60"><div xmlns="http://www.w3.org/1999/xhtml" id="divStatus" class="pill ok"></div></foreignObject>
+      </g>
+    </svg>
+  </div>
+  <div class="ctrl">
+    <button class="btn on" id="divOk">올바르게 — 1kΩ 위 · 2kΩ 아래</button>
+    <button class="btn bad" id="divSwap">바꿔 꽂으면? — 2kΩ 위 · 1kΩ 아래</button>
+    <div class="sep"></div>
+    <span class="t-s" style="font-size:18px;color:var(--sub)">5V 를 그대로 GP11 에 넣으면 Pico 가 망가질 수 있습니다 (입력 최대 3.3V).</span>
+  </div>
+</section>
+
+<!-- ═════════ 2 포토커플러 ═════════ -->
+<section class="slide" id="s2">
+  <h2><span class="num">2</span>포토커플러 PC817 — 빛으로 건너는 신호</h2>
+  <p class="key">입력과 출력 사이에 <b>전선이 없습니다</b>. LED 빛을 받아 트랜지스터가 켜집니다 = <b>절연</b>.</p>
+  <div class="body">
+    <svg width="1030" height="560" viewBox="0 0 1030 560" id="pcSvg">
+      <defs>
+        <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3A3F48"/></marker>
+        <marker id="arL" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#E0A100"/></marker>
+      </defs>
+      <!-- ① 겉모습 -->
+      <g class="st" data-st="0">
+        <g id="pcModule" transform="translate(20,70)"></g>
+        <text x="20" y="440" class="t-m">PC817 2채널 절연 모듈 (실물과 같은 방향)</text>
+        <text x="20" y="468" class="t-s">왼쪽 = 입력(IN1 · G), 오른쪽 = 출력(V1 · G). 채널 1만 씁니다.</text>
+        <path d="M185,152 L580,120 M185,190 L580,330" stroke="#8A909C" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
+        <g transform="translate(-60,0)">
+        <rect x="690" y="140" width="200" height="170" rx="10" fill="#1B1B1B"/>
+        <circle cx="712" cy="162" r="7" fill="#fff"/>
+        <text x="790" y="232" text-anchor="middle" font-size="26" font-weight="700" fill="#fff">PC817</text>
+        <rect x="652" y="170" width="38" height="16" fill="#C9CED6"/><rect x="652" y="266" width="38" height="16" fill="#C9CED6"/>
+        <rect x="890" y="170" width="38" height="16" fill="#C9CED6"/><rect x="890" y="266" width="38" height="16" fill="#C9CED6"/>
+        <text x="645" y="160" text-anchor="end" class="t-b">1 Anode (+)</text>
+        <text x="645" y="306" text-anchor="end" class="t-b">2 Cathode (−)</text>
+        <text x="935" y="160" class="t-b">4 Collector</text>
+        <text x="935" y="306" class="t-b">3 Emitter</text>
+        <text x="790" y="350" text-anchor="middle" class="t-s">● 점 = 1번 핀 · 위에서 본 칩</text>
+        <text x="652" y="410" class="t-m">입력 쪽 1 · 2번 │ 출력 쪽 3 · 4번</text>
+        </g>
+      </g>
+      <!-- ② 분해 -->
+      <g class="st" data-st="1">
+        <rect x="180" y="90" width="660" height="340" rx="22" fill="#2B2B2B"/>
+        <rect x="216" y="126" width="588" height="268" rx="14" fill="#F2F2EF"/>
+        <text x="510" y="80" text-anchor="middle" class="t-s">칩을 잘라서 본 모습 (단면)</text>
+        <rect x="130" y="182" width="50" height="16" fill="#C9CED6"/><rect x="130" y="322" width="50" height="16" fill="#C9CED6"/>
+        <rect x="840" y="182" width="50" height="16" fill="#C9CED6"/><rect x="840" y="322" width="50" height="16" fill="#C9CED6"/>
+        <text x="122" y="196" text-anchor="end" class="t-b">1</text><text x="122" y="336" text-anchor="end" class="t-b">2</text>
+        <text x="898" y="196" class="t-b">4</text><text x="898" y="336" class="t-b">3</text>
+        <!-- LED -->
+        <path class="wire" d="M180,190 L320,190 L320,232 M320,282 L320,330 L180,330"/>
+        <path d="M296,232 L344,232 L320,276 z" fill="#16181D"/><line x1="296" y1="280" x2="344" y2="280" stroke="#16181D" stroke-width="4"/>
+        <text x="320" y="372" text-anchor="middle" class="t-m">적외선 LED</text>
+        <!-- 빛 -->
+        <g stroke="#E0A100" stroke-width="3" fill="none" marker-end="url(#arL)">
+          <path d="M360,232 q20,-10 40,0 t40,0 t40,0 t40,0 t40,0"/>
+          <path d="M360,262 q20,-10 40,0 t40,0 t40,0 t40,0 t40,0"/>
+          <path d="M360,292 q20,-10 40,0 t40,0 t40,0 t40,0 t40,0"/>
+        </g>
+        <text x="425" y="168" text-anchor="middle" class="t-m">빛 (눈에 안 보임)</text>
+        <line x1="510" y1="140" x2="510" y2="350" stroke="#8A909C" stroke-width="2" stroke-dasharray="8 6"/>
+        <text x="510" y="378" text-anchor="middle" class="t-s">전선 없음 = 절연</text>
+        <!-- 포토트랜지스터 -->
+        <line x1="620" y1="226" x2="620" y2="296" stroke="#16181D" stroke-width="7"/>
+        <path class="wire" d="M620,242 L690,206 L690,190 L840,190 M620,280 L690,316 L690,330 L840,330"/>
+        <path d="M676,304 L692,317 L672,318 z" fill="#16181D"/>
+        <text x="680" y="372" text-anchor="middle" class="t-m">포토트랜지스터</text>
+        <text x="320" y="470" text-anchor="middle" class="t-b">입력 쪽: Pico · 5V</text>
+        <text x="700" y="470" text-anchor="middle" class="t-b">출력 쪽: 릴레이</text>
+        <text x="510" y="520" text-anchor="middle" class="t-m">빛을 받으면 4번 → 3번으로 전류가 흐름 (스위치가 켜짐)</text>
+      </g>
+      <!-- ③ 동작 -->
+      <g class="st" data-st="2">
+        <text x="200" y="30" text-anchor="middle" class="t-b" style="fill:#E07000">+5V</text>
+        <path d="M170,42 L230,42" stroke="#E07000" stroke-width="4"/>
+        <path class="wire w5" d="M200,42 L200,92"/>
+        <circle cx="200" cy="100" r="9" fill="#fff" stroke="#16181D" stroke-width="3"/><text x="218" y="106" class="t-b">IN1</text>
+        <path class="wire" d="M200,109 L200,124"/>
+        <rect x="186" y="124" width="28" height="70" rx="5" fill="#fff" stroke="#16181D" stroke-width="3"/><text x="226" y="166" class="t-s">R (모듈 안)</text>
+        <path class="wire" d="M200,194 L200,262"/>
+        <rect x="130" y="230" width="560" height="140" rx="12" fill="none" stroke="#8A909C" stroke-width="2" stroke-dasharray="8 6"/>
+        <text x="146" y="256" class="t-s">PC817</text>
+        <circle id="pcGlow" cx="200" cy="292" r="34" fill="#E0A100" opacity="0"/>
+        <path d="M178,268 L222,268 L200,306 z" fill="#16181D"/><line x1="178" y1="310" x2="222" y2="310" stroke="#16181D" stroke-width="4"/>
+        <path class="wire" d="M200,268 L200,262 M200,310 L200,420"/>
+        <circle cx="200" cy="428" r="9" fill="#fff" stroke="#16181D" stroke-width="3"/><text x="218" y="434" class="t-b">G (IN1 옆)</text>
+        <path class="wire ws" d="M200,437 L200,470"/>
+        <rect x="140" y="470" width="120" height="44" rx="8" fill="#1F6B4E"/><text x="200" y="500" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">GP13</text>
+        <text id="gpState" x="280" y="500" class="t-b">LOW (0V)</text>
+        <path id="pcPathL" d="M200,42 L200,470" fill="none" stroke="none"/>
+        <g id="pcFlowL"></g>
+        <path id="pcPathP" d="M232,292 L488,292" fill="none" stroke="none"/>
+        <g id="pcFlowP"></g>
+        <!-- 출력 -->
+        <text x="560" y="30" text-anchor="middle" class="t-b" style="fill:#E07000">+5V</text>
+        <path d="M530,42 L590,42" stroke="#E07000" stroke-width="4"/>
+        <path class="wire w5" d="M560,42 L560,92"/>
+        <circle cx="560" cy="100" r="9" fill="#fff" stroke="#16181D" stroke-width="3"/><text x="578" y="106" class="t-b">V1</text>
+        <path class="wire" d="M560,109 L560,262 L520,282"/>
+        <line id="pcBase" x1="510" y1="270" x2="510" y2="316" stroke="#16181D" stroke-width="7"/>
+        <path class="wire" d="M520,304 L560,324 L560,420"/>
+        <path d="M546,312 L562,325 L542,326 z" fill="#16181D"/>
+        <circle cx="560" cy="428" r="9" fill="#fff" stroke="#16181D" stroke-width="3"/><text x="578" y="434" class="t-b">G (V1 옆)</text>
+        <path class="wire" d="M560,437 L560,492 L780,492"/>
+        <rect x="780" y="468" width="200" height="48" rx="10" fill="#fff" stroke="#16181D" stroke-width="2"/><text x="880" y="499" text-anchor="middle" class="t-b">릴레이 Signal</text>
+        <path id="pcPathR" d="M560,42 L560,492 L780,492" fill="none" stroke="none"/>
+        <g id="pcFlowR"></g>
+        <text id="sigV" x="880" y="546" text-anchor="middle" class="t-b"></text>
+        <g transform="translate(640,70)">
+          <text id="pcExpl1" x="0" y="0" class="t-m"></text>
+          <text id="pcExpl2" x="0" y="34" class="t-m"></text>
+          <text id="pcExpl3" x="0" y="68" class="t-s"></text>
+        </g>
+      </g>
+    </svg>
+    <div class="rea">
+      <h3>REA — 부품을 역공학하기</h3>
+      <div class="how">겉모습 → 분해 → 동작 순서로 열고, 알게 된 것을 셋으로 나눕니다.</div>
+      <div class="grp"><span class="tag obs">관찰 — 눈으로 확인</span><ul>
+        <li>기판 인쇄 <b>IN1 · G</b> / <b>V1 · G</b>, 채널 2개</li>
+        <li>검은 4핀 칩 2개 · 노란 점퍼 2개</li>
+        <li>칩 옆 작은 저항 · 빨간 표시 LED</li></ul></div>
+      <div class="grp"><span class="tag inf">추론 — 근거로 짐작</span><ul>
+        <li>입력 = 저항 → 표시 LED → 칩 LED 직렬<br>→ 그래서 <b>3.6V 이상</b> 필요 (Pico 3.3V 로는 부족)</li>
+        <li>그래서 IN1 = 5V, G = GP13 으로 <b>끌어내려</b> 켬</li></ul></div>
+      <div class="grp"><span class="tag unk">모름 — 아직 확인 못 함</span><ul>
+        <li>노란 점퍼가 정확히 무엇을 잇는지 → <b>뽑아 두고</b> 사용</li>
+        <li>내장 저항 값</li></ul></div>
+    </div>
+  </div>
+  <div class="ctrl">
+    <div class="stagebar" data-for="s2">
+      <button class="btn" data-st="0">① 겉모습</button><button class="btn" data-st="1">② 분해</button><button class="btn" data-st="2">③ 동작</button>
+    </div>
+    <div class="sep"></div>
+    <button class="btn" id="pcLow">GP13 = LOW (모터 켜기)</button>
+    <button class="btn" id="pcHigh">GP13 = HIGH (끄기)</button>
+  </div>
+</section>
+
+<!-- ═════════ 3 릴레이 ═════════ -->
+<section class="slide" id="s3">
+  <h2><span class="num">3</span>릴레이 — 전자석으로 누르는 스위치</h2>
+  <p class="key"><b>작은 전류</b>(Signal)로 코일을 켜면, 전자석이 쇠판을 당겨 <b>큰 전류</b>(모터)의 스위치가 「딸깍」 바뀝니다.</p>
+  <div class="body">
+    <svg width="1030" height="560" viewBox="0 0 1030 560" id="rlSvg">
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5B616E"/></marker></defs>
+      <!-- ① 겉모습 -->
+      <g class="st" data-st="0">
+        <g id="rlModule" transform="translate(150,60)"></g>
+        <text x="150" y="500" class="t-m">릴레이 모듈 (실물과 같은 방향)</text>
+        <text x="150" y="528" class="t-s">왼쪽 나사 단자 = 스위치 쪽(모터 전류) · 오른쪽 핀 = 조종 쪽(Signal)</text>
+      </g>
+      <!-- ② 분해 · ③ 동작 (같은 그림) -->
+      <g class="st" data-st="1">
+        <g transform="translate(24,20) scale(0.88)">
+        <!-- 자기력선 -->
+        <g id="rlField" opacity="0" fill="none" stroke="#9A6700" stroke-width="2" stroke-dasharray="7 6">
+          <ellipse cx="470" cy="330" rx="92" ry="120"/><ellipse cx="470" cy="330" rx="126" ry="150"/>
+        </g>
+        <!-- 요크 · 코일 · 철심 -->
+        <polyline points="430,432 395,432 395,236" fill="none" stroke="#7B838F" stroke-width="12" stroke-linejoin="round"/>
+        <rect x="455" y="250" width="30" height="24" fill="#7B838F"/>
+        <rect x="430" y="270" width="80" height="150" rx="6" fill="#C98A4B" stroke="#8A5A2B" stroke-width="2"/>
+        <g stroke="#8A5A2B" stroke-width="2">
+          <line x1="430" y1="290" x2="510" y2="290"/><line x1="430" y1="310" x2="510" y2="310"/><line x1="430" y1="330" x2="510" y2="330"/>
+          <line x1="430" y1="350" x2="510" y2="350"/><line x1="430" y1="370" x2="510" y2="370"/><line x1="430" y1="390" x2="510" y2="390"/></g>
+        <!-- 스프링 -->
+        <rect x="540" y="118" width="40" height="10" fill="#7B838F"/>
+        <path id="rlSpring" d="" fill="none" stroke="#5B616E" stroke-width="3"/>
+        <!-- 접점 -->
+        <rect x="643" y="203" width="14" height="16" fill="#C9A227"/>
+        <rect x="643" y="252" width="14" height="16" fill="#C9A227"/>
+        <path class="wire" d="M650,203 L650,170 L740,170"/>
+        <text x="748" y="176" class="t-m">NC (비움)</text>
+        <path class="wire" d="M650,268 L650,276 L800,276 L800,296"/>
+        <!-- 가동편 (회전) -->
+        <g id="rlArm">
+          <rect x="395" y="220" width="250" height="12" rx="3" fill="#5B616E"/>
+          <circle cx="650" cy="226" r="7" fill="#C9A227"/>
+        </g>
+        <circle cx="395" cy="226" r="7" fill="#fff" stroke="#16181D" stroke-width="3"/>
+        <!-- COM -->
+        <path class="wire w5" d="M388,226 L320,226 L320,96"/>
+        <text x="320" y="84" text-anchor="middle" class="t-b" style="fill:#E07000">+5V</text>
+        <!-- 모터 -->
+        <circle cx="800" cy="330" r="34" fill="#B8BEC7" stroke="#7B838F" stroke-width="2"/>
+        <g id="rlRotor"><line x1="778" y1="330" x2="822" y2="330" stroke="#16181D" stroke-width="4"/><line x1="800" y1="308" x2="800" y2="352" stroke="#16181D" stroke-width="4"/></g>
+        <circle cx="800" cy="330" r="8" fill="#16181D"/>
+        <path class="wire wg" d="M800,364 L800,404"/><path d="M776,404 L824,404 M786,413 L814,413 M795,422 L805,422" stroke="#16181D" stroke-width="3"/>
+        <text x="848" y="338" class="t-b">DC 모터</text>
+        <!-- 코일 구동 (모듈 안) -->
+        <path class="wire" d="M440,420 L440,465 L300,465"/>
+        <text x="292" y="471" text-anchor="end" class="t-b" style="fill:#E07000">+5V</text>
+        <path class="wire" d="M500,420 L500,530"/>
+        <path class="wire" d="M380,465 L380,474 M380,494 L380,500 L500,500"/>
+        <path d="M370,494 L390,494 L380,476 z" fill="#16181D"/><line x1="370" y1="475" x2="390" y2="475" stroke="#16181D" stroke-width="3"/>
+        <line x1="478" y1="532" x2="478" y2="568" stroke="#16181D" stroke-width="5"/>
+        <path class="wire" d="M478,542 L500,530 M478,558 L500,570 L500,592"/>
+        <path d="M488,560 L501,571 L485,572 z" fill="#16181D"/>
+        <path d="M486,592 L514,592 M492,600 L508,600" stroke="#16181D" stroke-width="3"/>
+        <rect x="30" y="528" width="120" height="44" rx="8" fill="#fff" stroke="#16181D" stroke-width="2"/><text x="90" y="557" text-anchor="middle" class="t-b">Signal</text>
+        <path class="wire ws" d="M150,550 L330,550"/><rect x="330" y="541" width="70" height="18" rx="4" fill="#fff" stroke="#16181D" stroke-width="3"/>
+        <path class="wire ws" d="M400,550 L478,550"/>
+        <!-- 흐름 경로 -->
+        <path id="rlPathC" d="M300,465 L440,465 L440,420 L500,420 L500,530 L500,590" fill="none" stroke="none"/>
+        <path id="rlPathS" d="M150,550 L478,550" fill="none" stroke="none"/>
+        <path id="rlPathM" d="M320,96 L320,226 L650,226 L650,276 L800,276 L800,404" fill="none" stroke="none"/>
+        <path id="rlPathF" d="M500,420 L500,500 L380,500 L380,465 L440,465 L440,420 Z" fill="none" stroke="none"/>
+        <g id="rlFlowC"></g><g id="rlFlowS"></g><g id="rlFlowM"></g><g id="rlFlowF"></g>
+        <text id="rlClick" x="690" y="150" class="t-big" opacity="0">딸깍!</text>
+        <!-- 이름표 (② 분해) -->
+        <g id="rlLabels" font-size="18" fill="#16181D">
+          <text x="534" y="350">코일 = 전자석</text>
+          <text x="260" y="300" text-anchor="end">철심</text><line x1="268" y1="294" x2="452" y2="262" stroke="#8A909C" stroke-width="1.5"/>
+          <text x="400" y="204">가동편 (쇠판)</text>
+          <text x="590" y="112">스프링 (끄면 위로)</text>
+          <text x="255" y="232" text-anchor="end">COM</text>
+          <text x="668" y="256">NO (평소 떨어짐)</text>
+          <text x="748" y="200" class="t-s">평소 붙어 있음</text>
+          <text x="370" y="520" text-anchor="end">다이오드</text>
+          <text x="520" y="596">트랜지스터</text>
+          <text x="190" y="538">작은 전류</text>
+          <text x="860" y="270">큰 전류</text>
+        </g>
+        </g>
+        <text id="rlState" x="20" y="24" class="t-b"></text>
+        <text id="rlNote" x="20" y="52" class="t-s"></text>
+      </g>
+    </svg>
+    <div class="rea">
+      <h3>REA — 부품을 역공학하기</h3>
+      <div class="how">겉모습 → 분해 → 동작 순서로 열고, 알게 된 것을 셋으로 나눕니다.</div>
+      <div class="grp"><span class="tag obs">관찰 — 눈으로 확인</span><ul>
+        <li>릴레이 인쇄 <b>5VDC</b> · <b>10A 250VAC</b> · JQC-3FF-S-Z</li>
+        <li>단자 <b>NO · COM · NC</b>, 핀 <b>GND · 5V · Signal</b></li>
+        <li>기판에 작은 부품 몇 개 + 확인 LED</li></ul></div>
+      <div class="grp"><span class="tag inf">추론 — 근거로 짐작</span><ul>
+        <li>코일 5V · 약 70mA (같은 형번 데이터시트)<br>→ Pico 핀으로는 직접 못 켬</li>
+        <li>작은 부품 = 트랜지스터 · 다이오드 · 저항<br>→ Signal 의 작은 전류로 코일을 켬</li></ul></div>
+      <div class="grp"><span class="tag unk">모름 — 아직 확인 못 함</span><ul>
+        <li>Signal <b>HIGH</b> · <b>LOW</b> 중 어디서 켜지는지<br>→ 키트로 확인</li></ul></div>
+    </div>
+  </div>
+  <div class="ctrl">
+    <div class="stagebar" data-for="s3">
+      <button class="btn" data-st="0">① 겉모습</button><button class="btn" data-st="1">② 분해</button><button class="btn" data-st="2">③ 동작</button>
+    </div>
+    <div class="sep"></div>
+    <button class="btn" id="rlOn">Signal = HIGH (켜기)</button>
+    <button class="btn" id="rlOff">Signal = LOW (끄기)</button>
+  </div>
+</section>
+
+<!-- ═════════ 4 PWM ═════════ -->
+<section class="slide" id="s4">
+  <h2><span class="num">4</span>PWM — 켜져 있는 시간의 비율</h2>
+  <p class="key">아주 빠르게 켜고 끄면, 눈은 깜빡임 대신 <b>평균 밝기</b>를 봅니다. <b>duty(%) = HIGH 시간 ÷ 한 주기</b></p>
+  <div class="body">
+    <div class="card" style="position:absolute;left:0;top:0;width:1030px;height:420px">
+      <canvas id="pwmCv" style="position:absolute;left:0;top:0;width:1030px;height:420px"></canvas>
+    </div>
+    <div class="card" style="position:absolute;left:1060px;top:0;width:460px;height:420px;padding:22px">
+      <svg width="416" height="150" viewBox="0 0 416 150">
+        <circle id="pwmLed" cx="70" cy="75" r="56" fill="#FFC400" stroke="#C9CED6" stroke-width="3"/>
+        <text id="pwmPct" x="150" y="92" class="t-big" style="font-size:54px">50%</text>
+      </svg>
+      <div style="font-size:20px;line-height:1.8;margin-top:6px">
+        <div>한 주기 <b id="pwmPer">1 ms</b> (<span id="pwmHz">1000 Hz</span>)</div>
+        <div>HIGH 시간 <b id="pwmHigh">0.50 ms</b></div>
+        <div>평균 전압 <b id="pwmAvg">1.65V</b> (3.3V × duty)</div>
+        <div style="color:var(--sub)">코드: <code id="pwmCode" style="font-size:18px">led.duty_cycle = 32767</code></div>
+      </div>
+    </div>
+    <div class="card" style="position:absolute;left:0;top:440px;width:1520px;height:120px;padding:18px 24px;display:flex;align-items:center;gap:18px">
+      <span style="font-size:20px;font-weight:700">duty</span>
+      <input id="pwmRange" type="range" min="0" max="100" value="50" style="width:560px;accent-color:#16181D">
+      <button class="btn" data-duty="0">0%</button><button class="btn" data-duty="25">25%</button>
+      <button class="btn" data-duty="50">50%</button><button class="btn" data-duty="100">100%</button>
+      <div class="sep"></div>
+      <button class="btn on" id="hzFast">실제 1000 Hz</button>
+      <button class="btn" id="hzSlow">느리게 2 Hz</button>
+    </div>
+  </div>
+  <div class="ctrl"><span id="pwmTip" style="font-size:19px;color:var(--sub)"></span></div>
+</section>
+
+<!-- ═════════ 5 정리 ═════════ -->
+<section class="slide" id="s5">
+  <h2><span class="num">5</span>PWM 응용 · 꽂기 전에 확인</h2>
+  <p class="key">같은 PWM 이라도 <b>주기와 폭</b>을 무엇에 쓰느냐에 따라 밝기 · 속도 · 각도가 됩니다.</p>
+  <div class="body">
+    <svg width="1520" height="560" viewBox="0 0 1520 560">
+      <g id="apps"></g>
+      <g transform="translate(0,300)">
+        <text x="0" y="0" class="t-b">제작 전에 확인 — 이 다섯 가지가 실수의 대부분</text>
+        <g id="checks"></g>
+      </g>
+    </svg>
+  </div>
+  <div class="ctrl"><span class="pill idle" style="font-size:22px">이제 「추가 연습 도면」 과 「추가 회로도」 를 보고 30분 제작</span></div>
+</section>
+
+<footer>
+  <button class="btn" id="playBtn" style="font-size:15px;padding:6px 14px">멈춤</button>
+  <span>← → 장면 · ↑ ↓ 단계 · Space 재생/멈춤 · F 전체 화면</span>
+  <div class="bar"><i id="prog"></i></div>
+  <span id="pageNo">1 / 6</span>
+</footer>
+</div>
+
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const NS = "http://www.w3.org/2000/svg";
+const svgEl = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ── 화면 맞춤: 1600×900 무대를 창 크기에 맞게 ── */
+function fit() {
+  const s = Math.min(innerWidth / 1600, innerHeight / 900);
+  const st = $("#stage");
+  st.style.transform = `scale(${s})`;
+  st.style.left = (innerWidth - 1600 * s) / 2 + "px";
+  st.style.top = (innerHeight - 900 * s) / 2 + "px";
+  sizeCanvas(s);
+}
+
+/* ── 전류 점: 경로를 따라 흐르는 점들 ── */
+class Flow {
+  constructor(path, group, { gap = 34, speed = 120, r = 6, color } = {}) {
+    Object.assign(this, { path, group, gap, speed, r, color, off: 0, len: 0, dots: [], active: false });
+  }
+  ensure() {
+    if (this.len) return true;
+    const L = this.path.getTotalLength();
+    if (!L) return false;
+    this.len = L;
+    const n = Math.max(2, Math.floor(L / this.gap));
+    for (let i = 0; i < n; i++)
+      this.dots.push(svgEl("circle", { r: this.r, class: "dot", style: this.color ? `fill:${this.color}` : "" }, this.group));
+    return true;
+  }
+  set(on) { this.active = on; this.group.style.display = on ? "" : "none"; }
+  step(dt) {
+    if (!this.active || !this.ensure()) return;
+    this.off = (this.off + this.speed * dt) % this.gap;
+    const n = this.dots.length;
+    for (let i = 0; i < n; i++) {
+      const d = (i * this.len / n + this.off) % this.len;
+      const p = this.path.getPointAtLength(d);
+      this.dots[i].setAttribute("cx", p.x); this.dots[i].setAttribute("cy", p.y);
+    }
+  }
+}
+
+/* ── 장면 넘기기 ── */
+const slides = $$(".slide");
+let cur = 0, playing = !reduceMotion;
+const anim = {};          // 장면별 매 프레임 함수
+const enter = {};         // 장면에 들어올 때
+function go(i) {
+  cur = Math.max(0, Math.min(slides.length - 1, i));
+  slides.forEach((s, k) => s.classList.toggle("on", k === cur));
+  $$(".tab").forEach(t => t.classList.toggle("on", +t.dataset.go === cur));
+  $("#prog").style.width = (cur / (slides.length - 1) * 100) + "%";
+  $("#pageNo").textContent = `${cur + 1} / ${slides.length}`;
+  enter[cur] && enter[cur]();
+}
+$$("[data-go]").forEach(b => b.addEventListener("click", () => go(+b.dataset.go)));
+$$(".ovtag").forEach(g => g.style.cursor = "pointer");
+function setPlaying(p) { playing = p; $("#playBtn").textContent = p ? "멈춤" : "재생"; }
+$("#playBtn").addEventListener("click", () => setPlaying(!playing));
+
+/* 단계(① ② ③)가 있는 장면 */
+const stageOf = { 2: 0, 3: 0 };
+function setStage(si, k) {
+  const sec = slides[si];
+  stageOf[si] = Math.max(0, Math.min(2, k));
+  const v = stageOf[si];
+  // 릴레이는 ② · ③ 이 같은 그림
+  $$("svg .st", sec).forEach(g => {
+    const st = +g.dataset.st;
+    g.style.display = (si === 3 ? (st === 0 ? v === 0 : v >= 1) : st === v) ? "" : "none";
+  });
+  $$(".stagebar .btn", sec).forEach(b => b.classList.toggle("on", +b.dataset.st === v));
+  sec.dispatchEvent(new CustomEvent("stage", { detail: v }));
+}
+$$(".stagebar").forEach(bar => {
+  const si = +bar.dataset.for.slice(1);
+  $$(".btn", bar).forEach(b => b.addEventListener("click", () => setStage(si, +b.dataset.st)));
+});
+
+addEventListener("keydown", e => {
+  if (e.target.matches && e.target.matches("input[type=range]") && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+  if (e.key === "ArrowRight" || e.key === "PageDown") { go(cur + 1); e.preventDefault(); }
+  else if (e.key === "ArrowLeft" || e.key === "PageUp") { go(cur - 1); e.preventDefault(); }
+  else if (e.key === "ArrowDown" && cur in stageOf) { setStage(cur, stageOf[cur] + 1); e.preventDefault(); }
+  else if (e.key === "ArrowUp" && cur in stageOf) { setStage(cur, stageOf[cur] - 1); e.preventDefault(); }
+  else if (e.key === " ") { setPlaying(!playing); e.preventDefault(); }
+  else if (e.key === "f" || e.key === "F") {
+    if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {});
+  } else if (/^[0-5]$/.test(e.key)) go(+e.key);
+});
+
+/* ═════════ 0 개요: LED 숨쉬기 ═════════ */
+anim[0] = (dt, t) => { $("#ovLed").setAttribute("opacity", (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 2))).toFixed(2)); };
+
+/* ═════════ 1 전압 분배 ═════════ */
+(() => {
+  let swapped = false, ph = 0;
+  const flow = new Flow($("#p1flow"), $("#g1flow"), { gap: 40, speed: 90 });
+  flow.set(true);
+  const lad = $("#ladder");
+  const PX = 90, TOP = 70, BOT = TOP + 5 * PX;          // 1V = 90px
+  function drawLadder(r1, r2, v) {
+    lad.innerHTML = "";
+    for (let k = 0; k <= 5; k++) {
+      const y = BOT - k * PX;
+      svgEl("line", { x1: 50, x2: 60, y1: y, y2: y, stroke: "#8A909C", "stroke-width": 2 }, lad);
+      svgEl("text", { x: 44, y: y + 6, "text-anchor": "end", class: "t-s" }, lad).textContent = k + "V";
+    }
+    const yMid = BOT - v * PX;
+    svgEl("rect", { x: 70, y: TOP, width: 90, height: yMid - TOP, fill: "#EEF0F3", stroke: "#8A909C", "stroke-width": 2 }, lad);
+    svgEl("rect", { x: 70, y: yMid, width: 90, height: BOT - yMid, fill: swapped ? "#FDECEC" : "#E8F5EC", stroke: swapped ? "#C62828" : "#1A7F37", "stroke-width": 2 }, lad);
+    svgEl("text", { x: 172, y: (TOP + yMid) / 2 - 4, class: "t-m" }, lad).textContent = `R1 ${r1}kΩ`;
+    svgEl("text", { x: 172, y: (TOP + yMid) / 2 + 22, class: "t-s" }, lad).textContent = `${(5 - v).toFixed(2)}V 떨어짐`;
+    svgEl("text", { x: 172, y: (yMid + BOT) / 2 - 4, class: "t-m" }, lad).textContent = `R2 ${r2}kΩ · ${v.toFixed(2)}V`;
+    svgEl("text", { x: 172, y: (yMid + BOT) / 2 + 22, class: "t-s" }, lad).textContent = "= GP11 이 읽는 전압";
+    const yTh = BOT - 2 * PX;
+    svgEl("line", { x1: 60, x2: 170, y1: yTh, y2: yTh, stroke: "#9A6700", "stroke-width": 2, "stroke-dasharray": "6 5" }, lad);
+    svgEl("text", { x: 70, y: BOT + 34, class: "t-s" }, lad).textContent = `5V × ${r2} ÷ (${r1} + ${r2}) = ${v.toFixed(2)}V`;
+  }
+  function apply() {
+    const r1 = swapped ? 2 : 1, r2 = swapped ? 1 : 2, v = 5 * r2 / (r1 + r2);
+    $("#r1lab").textContent = `R1 ${r1}kΩ`; $("#r2lab").textContent = `R2 ${r2}kΩ`;
+    $("#vmid").textContent = v.toFixed(2) + "V";
+    $("#vmid").style.fill = swapped ? "var(--fail)" : "var(--text)";
+    drawLadder(r1, r2, v);
+    const st = $("#divStatus");
+    st.className = "pill " + (swapped ? "fail" : "ok");
+    st.textContent = swapped ? "✖ 1.67V — HIGH 로 못 읽음 → 거리 「---」" : "✔ 3.33V — HIGH 로 읽음 → 거리 측정 OK";
+    $("#divOk").classList.toggle("on", !swapped); $("#divSwap").classList.toggle("on", swapped);
+  }
+  $("#divOk").addEventListener("click", () => { swapped = false; apply(); });
+  $("#divSwap").addEventListener("click", () => { swapped = true; apply(); });
+  apply();
+  // 파형: 패널 높이 170, 5V = 130px
+  const H0 = 84, H1 = 306, PH = 170, VPX = 26;
+  const yth = H1 + PH - 20 - 2 * VPX;
+  $("#thLine").setAttribute("y1", yth); $("#thLine").setAttribute("y2", yth); $("#thLab").setAttribute("y", yth - 6);
+  function wave(top, level, shift) {
+    const base = top + PH - 20, hi = base - level * VPX, per = 200, w = 80;
+    let d = `M0,${base}`;
+    for (let x0 = -per + (shift % per); x0 < 500; x0 += per) {
+      const a = Math.max(0, x0 + 60), b = Math.min(500, x0 + 60 + w);
+      if (b <= a) continue;
+      d += ` L${a},${base} L${a},${hi} L${b},${hi} L${b},${base}`;
+    }
+    return d + ` L500,${base}`;
+  }
+  anim[1] = (dt) => {
+    flow.step(dt);
+    ph += dt * 60;
+    const v = swapped ? 5 / 3 : 10 / 3;
+    $("#wIn").setAttribute("d", wave(H0, 5, ph));
+    $("#wOut").setAttribute("d", wave(H1, v, ph));
+    $("#wOut").setAttribute("stroke", swapped ? "#C62828" : "#16181D");
+  };
+  anim[1](0);
+})();
+
+/* ═════════ 2 포토커플러 ═════════ */
+(() => {
+  // ① 겉모습: 모듈 (38 × 29.2mm 비율)
+  const g = $("#pcModule"), W = 400, H = 307;
+  const X = f => f * W, Y = f => f * H;
+  svgEl("rect", { x: 0, y: 0, width: W, height: H, rx: 10, fill: "#2E8B3E", stroke: "#16521F", "stroke-width": 2 }, g);
+  for (const [fx, fy] of [[.07, .09], [.93, .09], [.07, .91], [.93, .91]])
+    svgEl("circle", { cx: X(fx), cy: Y(fy), r: 15, fill: "#fff" }, g);
+  svgEl("text", { x: X(.5), y: Y(.11), "text-anchor": "middle", fill: "#fff", "font-size": 20, "font-weight": 700 }, g).textContent = "817 Module";
+  svgEl("text", { x: X(.5), y: Y(.95), "text-anchor": "middle", fill: "#fff", "font-size": 17 }, g).textContent = "2 Channel Isolation";
+  const blocks = [[.015, .19, ["IN1", "G"], "start", .215], [.015, .52, ["IN2", "G"], "start", .215],
+                  [.80, .19, ["V1", "G"], "end", .785], [.80, .52, ["V2", "G"], "end", .785]];
+  for (const [fx, fy, names, anc, lx] of blocks) {
+    svgEl("rect", { x: X(fx), y: Y(fy), width: X(.185), height: Y(.30), fill: "#3FB36A", stroke: "#1D6B3A", "stroke-width": 2 }, g);
+    names.forEach((n, k) => {
+      const cy = Y(fy + .08 + k * .14), cx = X(fx + .0925);
+      svgEl("circle", { cx, cy, r: 15, fill: "#C9CED6", stroke: "#6B7280", "stroke-width": 1.5 }, g);
+      svgEl("line", { x1: cx - 10, y1: cy + 10, x2: cx + 10, y2: cy - 10, stroke: "#4B5563", "stroke-width": 2.5 }, g);
+      svgEl("text", { x: X(lx), y: cy + 7, "text-anchor": anc, fill: fy > .5 ? "#CFE8D4" : "#fff", "font-size": 19, "font-weight": 700 }, g).textContent = n;
+    });
+  }
+  for (const fy of [.21, .55]) {
+    svgEl("rect", { x: X(.34), y: Y(fy), width: X(.13), height: Y(.16), fill: "#1B1B1B" }, g);
+    svgEl("rect", { x: X(.52), y: Y(fy + .0), width: X(.07), height: Y(.05), fill: "#E9E9E9", stroke: "#888" }, g);
+    svgEl("rect", { x: X(.52), y: Y(fy + .09), width: X(.07), height: Y(.05), fill: "#E2584F", stroke: "#888" }, g);
+  }
+  for (const fy of [.34, .67]) svgEl("rect", { x: X(.63), y: Y(fy), width: X(.08), height: Y(.11), fill: "#F2C200", stroke: "#A17F00", "stroke-width": 1.5 }, g);
+
+  // ③ 동작
+  let on = true, auto = true, timer = 0;
+  const fL = new Flow($("#pcPathL"), $("#pcFlowL"), { gap: 34, speed: 110 });
+  const fP = new Flow($("#pcPathP"), $("#pcFlowP"), { gap: 40, speed: 260, r: 7 });
+  const fR = new Flow($("#pcPathR"), $("#pcFlowR"), { gap: 34, speed: 110 });
+  function apply() {
+    fL.set(on); fP.set(on); fR.set(on);
+    $("#pcGlow").setAttribute("opacity", on ? 0.45 : 0);
+    $("#pcBase").setAttribute("stroke", on ? "#E0A100" : "#16181D");
+    $("#gpState").textContent = on ? "LOW (0V)" : "HIGH (3.3V)";
+    $("#gpState").style.fill = on ? "var(--ok)" : "var(--sub)";
+    $("#sigV").textContent = on ? "≈ 5V → 릴레이 켜짐" : "0V → 릴레이 꺼짐";
+    $("#sigV").style.fill = on ? "var(--ok)" : "var(--sub)";
+    $("#pcExpl1").textContent = on ? "GP13 LOW: 5V − 0V = 5V" : "GP13 HIGH: 5V − 3.3V = 1.7V";
+    $("#pcExpl2").textContent = on ? "→ LED 켜짐 → 빛 → 트랜지스터 켜짐" : "→ LED 를 켜기에 부족 → 모두 꺼짐";
+    $("#pcExpl3").textContent = "Pico 가 「끌어내릴 때」 켜짐 = LOW 가 켜짐";
+    $("#pcLow").classList.toggle("on", on); $("#pcHigh").classList.toggle("on", !on);
+  }
+  $("#pcLow").addEventListener("click", () => { auto = false; on = true; apply(); });
+  $("#pcHigh").addEventListener("click", () => { auto = false; on = false; apply(); });
+  slides[2].addEventListener("stage", e => { const v = e.detail === 2; $("#pcLow").style.visibility = $("#pcHigh").style.visibility = v ? "" : "hidden"; });
+  apply();
+  setStage(2, 0);
+  enter[2] = () => { auto = true; };
+  anim[2] = (dt) => {
+    if (stageOf[2] !== 2) return;
+    if (auto && (timer += dt) > 3) { timer = 0; on = !on; apply(); }
+    fL.step(dt); fP.step(dt); fR.step(dt);
+  };
+})();
+
+/* ═════════ 3 릴레이 ═════════ */
+(() => {
+  // ① 겉모습: 모듈 (사진과 같은 방향)
+  const g = $("#rlModule"), W = 480, H = 408;
+  const X = f => f * W, Y = f => f * H;
+  svgEl("rect", { x: 0, y: 0, width: W, height: H, rx: 12, fill: "#1D1D1F" }, g);
+  for (const [fx, fy] of [[.06, .07], [.94, .07], [.06, .93], [.94, .93]]) svgEl("circle", { cx: X(fx), cy: Y(fy), r: 17, fill: "#fff" }, g);
+  svgEl("rect", { x: X(.02), y: Y(.20), width: X(.21), height: Y(.60), fill: "#2563C9", stroke: "#173F80", "stroke-width": 2 }, g);
+  ["NO", "COM", "NC"].forEach((n, k) => {
+    const cy = Y(.30 + k * .20), cx = X(.125);
+    svgEl("circle", { cx, cy, r: 24, fill: "#C9CED6", stroke: "#6B7280", "stroke-width": 1.5 }, g);
+    svgEl("line", { x1: cx - 16, y1: cy + 16, x2: cx + 16, y2: cy - 16, stroke: "#4B5563", "stroke-width": 3 }, g);
+    svgEl("line", { x1: -70, y1: cy, x2: -14, y2: cy, stroke: "#2F6FDB", "stroke-width": 2, "marker-end": "url(#ar3)" }, g);
+    svgEl("text", { x: -78, y: cy + 8, "text-anchor": "end", "font-size": 24, "font-weight": 700, fill: "#16181D" }, g).textContent = n;
+  });
+  svgEl("rect", { x: X(.33), y: Y(.10), width: X(.42), height: Y(.66), fill: "#3B7FD8", stroke: "#1F4F99", "stroke-width": 2 }, g);
+  [["TONGLING", .22, 24, 700], ["5VDC", .34, 24, 700], ["10A 250VAC", .46, 18, 400], ["JQC-3FF-S-Z", .66, 17, 400]].forEach(([t, fy, fs, fw]) =>
+    svgEl("text", { x: X(.54), y: Y(fy), "text-anchor": "middle", fill: "#fff", "font-size": fs, "font-weight": fw }, g).textContent = t);
+  svgEl("rect", { x: X(.86), y: Y(.22), width: X(.07), height: Y(.40), fill: "#111", stroke: "#444" }, g);
+  ["GND", "5V", "Signal"].forEach((n, k) => {
+    const cy = Y(.30 + k * .12);
+    svgEl("line", { x1: X(.88), y1: cy, x2: X(1.07), y2: cy, stroke: "#C9A227", "stroke-width": 6 }, g);
+    svgEl("line", { x1: X(1.10) + 60, y1: cy, x2: X(1.10), y2: cy, stroke: "#2F6FDB", "stroke-width": 2, "marker-end": "url(#ar3)" }, g);
+    svgEl("text", { x: X(1.10) + 68, y: cy + 8, "font-size": 24, "font-weight": 700, fill: "#16181D" }, g).textContent = n;
+  });
+  svgEl("rect", { x: X(.87), y: Y(.70), width: X(.05), height: Y(.05), fill: "#E2584F" }, g);
+  svgEl("text", { x: X(1.10) + 68, y: Y(.725) + 7, "font-size": 18, fill: "#5B616E" }, g).textContent = "확인 LED";
+  svgEl("line", { x1: X(1.10) + 60, y1: Y(.725), x2: X(.94), y2: Y(.725), stroke: "#8A909C", "stroke-width": 1.5, "marker-end": "url(#ar3)" }, g);
+  for (const [fx, w, c] of [[.40, .08, "#111"], [.53, .09, "#111"], [.66, .06, "#E9E9E9"]])
+    svgEl("rect", { x: X(fx), y: Y(.84), width: X(w), height: Y(.06), fill: c, stroke: "#666" }, g);
+
+  // ②·③ 가동편 · 스프링 · 흐름
+  let on = false, ang = 0, auto = true, timer = 0, fly = 0, click = 0, rot = 0;
+  const ANG = Math.asin(19 / 255) * 180 / Math.PI;     // NC → NO 까지 도는 각도
+  const fC = new Flow($("#rlPathC"), $("#rlFlowC"), { gap: 30, speed: 110 });
+  const fS = new Flow($("#rlPathS"), $("#rlFlowS"), { gap: 36, speed: 110, r: 5 });
+  const fM = new Flow($("#rlPathM"), $("#rlFlowM"), { gap: 34, speed: 150, r: 7 });
+  const fF = new Flow($("#rlPathF"), $("#rlFlowF"), { gap: 28, speed: 160, color: "#C62828" });
+  function spring(drop) {
+    const x = 560, y0 = 128, y1 = 220 + drop, n = 8, h = (y1 - y0) / (n + 1);
+    let d = `M${x},${y0} L${x},${y0 + h / 2}`;
+    for (let i = 0; i < n; i++) d += ` L${x + (i % 2 ? -12 : 12)},${y0 + h / 2 + h * (i + .5)}`;
+    return d + ` L${x},${y1 - h / 2} L${x},${y1}`;
+  }
+  function apply(clicked) {
+    fC.set(on); fS.set(on); fM.set(false);
+    $("#rlOn").classList.toggle("on", on); $("#rlOff").classList.toggle("on", !on);
+    $("#rlState").textContent = on ? "Signal HIGH → 코일에 전류 → 전자석 → 가동편이 끌려 내려감" : "Signal LOW → 코일 전류 없음 → 스프링이 가동편을 올림";
+    $("#rlNote").textContent = on ? "COM 이 NO 에 붙음 → 모터 회로가 닫혀 회전" : "COM 은 NC 에 붙어 있음 → 모터 꺼짐 (끄는 순간 코일의 역전압은 다이오드로 돌아 사라짐)";
+    if (clicked) { click = 1; if (!on) fly = 0.9; }
+  }
+  $("#rlOn").addEventListener("click", () => { auto = false; on = true; apply(true); });
+  $("#rlOff").addEventListener("click", () => { auto = false; on = false; apply(true); });
+  slides[3].addEventListener("stage", e => {
+    const live = e.detail === 2;
+    $("#rlOn").style.visibility = $("#rlOff").style.visibility = live ? "" : "hidden";
+    $("#rlLabels").style.display = e.detail === 1 ? "" : "none";
+    $("#rlState").style.display = $("#rlNote").style.display = live ? "" : "none";
+    if (!live) { on = false; ang = 0; fly = 0; click = 0; apply(false); fM.set(false); fF.set(false); draw(); }
+  });
+  function draw() {
+    $("#rlArm").setAttribute("transform", `rotate(${ang} 395 226)`);
+    $("#rlSpring").setAttribute("d", spring(165 * Math.sin(ang * Math.PI / 180)));
+    $("#rlField").setAttribute("opacity", on ? 0.9 : 0);
+    $("#rlClick").setAttribute("opacity", click.toFixed(2));
+    $("#rlRotor").setAttribute("transform", `rotate(${rot} 800 330)`);
+  }
+  apply(false); draw();
+  setStage(3, 0);
+  enter[3] = () => { auto = true; };
+  anim[3] = (dt) => {
+    if (stageOf[3] !== 2) return;
+    if (auto && (timer += dt) > 3) { timer = 0; on = !on; apply(true); }
+    const target = on ? ANG : 0;
+    ang += (target - ang) * Math.min(1, dt * 14);
+    const closed = ang > ANG * 0.92;
+    fM.set(closed);
+    if (closed) rot = (rot + 360 * dt) % 360;
+    click = Math.max(0, click - dt * 1.5);
+    fly = Math.max(0, fly - dt); fF.set(fly > 0);
+    fC.step(dt); fS.step(dt); fM.step(dt); fF.step(dt);
+    draw();
+  };
+})();
+
+/* ═════════ 4 PWM ═════════ */
+let pwmScale = 1;
+function sizeCanvas(s) {
+  pwmScale = s;
+  const cv = $("#pwmCv"), dpr = devicePixelRatio || 1;
+  cv.width = Math.round(1030 * s * dpr); cv.height = Math.round(420 * s * dpr);
+}
+(() => {
+  let duty = 50, slow = false, t = 0;
+  const cv = $("#pwmCv"), ctx = cv.getContext("2d");
+  const V = 3.3;
+  function info() {
+    const per = slow ? 500 : 1, unit = "ms";
+    $("#pwmPct").textContent = duty + "%";
+    $("#pwmPer").textContent = `${per} ${unit}`;
+    $("#pwmHz").textContent = slow ? "2 Hz" : "1000 Hz";
+    $("#pwmHigh").textContent = (per * duty / 100).toFixed(2) + " ms";
+    $("#pwmAvg").textContent = (V * duty / 100).toFixed(2) + "V";
+    $("#pwmCode").textContent = `led.duty_cycle = ${Math.floor(duty * 65535 / 100)}`;
+    $("#pwmTip").textContent = slow
+      ? "2 Hz: 1초에 2번 — 깜빡임이 그대로 보입니다. 실제 코드는 1000 Hz 라서 깜빡임 대신 평균 밝기로 보입니다."
+      : "1000 Hz: 1초에 1000번 켜고 끄기 — 화면의 파형은 보기 쉽게 아주 느리게 그린 것입니다.";
+    $("#pwmRange").value = duty;
+    $$("[data-duty]").forEach(b => b.classList.toggle("on", +b.dataset.duty === duty));
+    $("#hzFast").classList.toggle("on", !slow); $("#hzSlow").classList.toggle("on", slow);
+  }
+  $("#pwmRange").addEventListener("input", e => { duty = +e.target.value; info(); });
+  $$("[data-duty]").forEach(b => b.addEventListener("click", () => { duty = +b.dataset.duty; info(); }));
+  $("#hzFast").addEventListener("click", () => { slow = false; info(); });
+  $("#hzSlow").addEventListener("click", () => { slow = true; t = 0; info(); });
+  info();
+  function draw() {
+    const k = pwmScale * (devicePixelRatio || 1);
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    ctx.clearRect(0, 0, 1030, 420);
+    const L = 90, R = 920, top = 70, bot = 330, per = (R - L) / 4;   // 4 주기를 보여 줌
+    const font = getComputedStyle(document.body).fontFamily;
+    ctx.font = `16px ${font}`; ctx.fillStyle = "#5B616E"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    ctx.fillText("3.3V", L - 12, top); ctx.fillText("0V", L - 12, bot);
+    ctx.strokeStyle = "#E2E5EA"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(L, bot); ctx.lineTo(R, bot); ctx.moveTo(L, top); ctx.lineTo(R, top); ctx.stroke();
+    // 흐르는 파형: 오른쪽에서 새 값이 들어와 왼쪽으로 흐름
+    const shift = slow ? (t * 2 % 1) * per : (t * 0.35 % 1) * per;   // 2Hz 는 실제 속도
+    const hw = per * duty / 100;
+    ctx.fillStyle = "#EEF0F3";
+    ctx.beginPath();
+    for (let i = -1; i <= 4; i++) {
+      const x0 = L + i * per - shift + per;
+      const a = Math.max(L, x0), b = Math.min(R, x0 + hw);
+      if (b > a) ctx.rect(a, top, b - a, bot - top);
+    }
+    ctx.fill();
+    ctx.strokeStyle = "#16181D"; ctx.lineWidth = 3; ctx.beginPath();
+    let y = null;
+    const level = x => { const p = ((x - L + shift - per) % per + per) % per; return p < hw ? top : bot; };
+    for (let x = L; x <= R; x += 1) {
+      const ny = duty === 0 ? bot : duty === 100 ? top : level(x);
+      if (y === null) ctx.moveTo(x, ny); else if (ny !== y) { ctx.lineTo(x, y); ctx.lineTo(x, ny); } else ctx.lineTo(x, ny);
+      y = ny;
+    }
+    ctx.stroke();
+    // 평균 전압
+    if (duty > 0 && duty < 100) {
+      const ya = bot - (bot - top) * duty / 100;
+      ctx.setLineDash([8, 6]); ctx.strokeStyle = "#5B616E"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(L, ya); ctx.lineTo(R, ya); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = "#5B616E"; ctx.textAlign = "left"; ctx.fillText(`평균 ${(V * duty / 100).toFixed(2)}V`, R + 6, ya);
+    }
+    // 한 주기 · HIGH 표시 (첫 칸 위)
+    ctx.fillStyle = "#16181D"; ctx.textAlign = "center"; ctx.font = `18px ${font}`;
+    ctx.fillText(slow ? "한 주기 = 500 ms" : "한 주기 = 1 ms", L + per / 2 + per, bot + 34);
+    ctx.strokeStyle = "#8A909C"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(L + per, bot + 16); ctx.lineTo(L + 2 * per, bot + 16); ctx.stroke();
+    // 「지금」 선 — 2Hz 에서는 이 선의 값이 LED 를 켜고 끔
+    ctx.strokeStyle = "#C62828"; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(R, top - 30); ctx.lineTo(R, bot + 10); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "#C62828"; ctx.textAlign = "right"; ctx.font = `16px ${font}`; ctx.fillText("지금", R - 4, top - 38);
+    ctx.fillStyle = "#16181D"; ctx.textAlign = "left"; ctx.font = `bold 20px ${font}`;
+    ctx.fillText(slow ? "느리게 2 Hz — 실제 속도" : "1000 Hz — 화면은 아주 느리게 보여 줌", L, 32);
+    // LED
+    let b;
+    if (slow) b = duty === 0 ? 0 : duty === 100 ? 1 : (level(R - 0.5) === top ? 1 : 0);
+    else b = duty / 100;
+    const base = [238, 240, 243], lit = [255, 196, 0];
+    $("#pwmLed").setAttribute("fill", "rgb(" + base.map((c, i) => Math.round(c + (lit[i] - c) * b)).join(",") + ")");
+  }
+  anim[4] = (dt) => { t += dt; draw(); };
+  enter[4] = () => draw();
+})();
+
+/* ═════════ 5 정리 ═════════ */
+(() => {
+  const g = $("#apps");
+  const cards = [
+    ["LED 밝기", "오늘 회로 · GP22 · 1000 Hz", "duty 클수록 밝음", [[10, "10%"], [50, "50%"], [90, "90%"]]],
+    ["모터 속도", "트랜지스터 · MOSFET 으로", "릴레이로는 못 함 (너무 느리고 접점이 닳음)", [[30, "느리게"], [70, "빠르게"]]],
+    ["서보 각도", "50 Hz (주기 20 ms)", "펄스 폭 약 1~2 ms → 0°~180°", [[5, "1 ms → 0°"], [7.5, "1.5 ms → 90°"], [10, "2 ms → 180°"]]],
+  ];
+  cards.forEach(([title, sub, note, waves], i) => {
+    const x = i * 510;
+    svgEl("rect", { x, y: 0, width: 490, height: 260, rx: 14, fill: "#fff", stroke: "#E2E5EA" }, g);
+    svgEl("text", { x: x + 22, y: 40, class: "t-b" }, g).textContent = title;
+    svgEl("text", { x: x + 22, y: 68, class: "t-s" }, g).textContent = sub;
+    waves.forEach(([d, lab], k) => {
+      const y0 = 100 + k * (waves.length === 2 ? 56 : 42), base = y0 + 26, hi = y0, per = 110;
+      let p = `M${x + 22},${base}`;
+      for (let c = 0; c < 3; c++) { const a = x + 22 + c * per, w = per * d / 100; p += ` L${a},${base} L${a},${hi} L${a + w},${hi} L${a + w},${base}`; }
+      p += ` L${x + 22 + 3 * per},${base}`;
+      svgEl("path", { d: p, fill: "none", stroke: "#16181D", "stroke-width": 2.5 }, g);
+      svgEl("text", { x: x + 372, y: base - 6, class: "t-s" }, g).textContent = lab;
+    });
+    svgEl("text", { x: x + 22, y: 244, class: "t-s", style: "fill:#16181D" }, g).textContent = note;
+  });
+  const c = $("#checks");
+  [["공통 GND", "외부 5V 의 − · Pico GND · 모듈 GND 를 모두 잇기"],
+   ["ECHO 분압", "1kΩ 은 ECHO 쪽, 2kΩ 은 GND 쪽 — 바꾸면 1.67V"],
+   ["노란 점퍼", "포토커플러 모듈의 노란 점퍼 2개는 뽑아 두기"],
+   ["방향", "1N4007 띠 · LED 긴 다리 · 470μF 긴 다리(+)"],
+   ["전원 순서", "켤 때 USB 먼저 → 어댑터, 끌 때는 어댑터 먼저"]].forEach(([h, d], i) => {
+    const y = 34 + i * 44;
+    svgEl("rect", { x: 0, y: y, width: 26, height: 26, rx: 5, fill: "#fff", stroke: "#16181D", "stroke-width": 2 }, c);
+    svgEl("text", { x: 42, y: y + 21, class: "t-b" }, c).textContent = h;
+    svgEl("text", { x: 190, y: y + 21, class: "t-m" }, c).textContent = d;
+  });
+})();
+
+/* ── 한 번에 돌리는 애니메이션 루프 ── */
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (playing && anim[cur]) anim[cur](dt, now / 1000);
+  requestAnimationFrame(loop);
+}
+addEventListener("resize", fit);
+fit();
+go(0);
+anim[4](0); anim[2](0); anim[3](0);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
