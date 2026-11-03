@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>추가 회로 학습지</title>
+<!--
+  추가 회로 원리 학습지 — A4 2쪽 (make_extra_worksheet.js 가 PDF 로 만듦)
+  학생용: 빈칸.  ?answer=1 → 정답판(빨간 글씨).  흑백 인쇄 기준.
+  수치는 week10-real-pico/추가회로-수업자료.html · 추가 회로도 · code_extra_circuits.py 와 같음.
+-->
+<style>
+@page { size: A4; margin: 10mm 12mm 14mm 12mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: "NanumGothic", "Malgun Gothic", "맑은 고딕", sans-serif; font-size: 9.6pt; color: #111; line-height: 1.45; }
+.page { height: 272mm; overflow: hidden; page-break-after: always; position: relative; }
+.page:last-child { page-break-after: auto; }
+h1 { font-size: 16pt; margin: 0; letter-spacing: -.3px; }
+.top { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 2px solid #111; padding-bottom: 2.2mm; }
+.top .sub { font-size: 9pt; color: #444; margin-top: 1mm; }
+.who { font-size: 10pt; white-space: nowrap; }
+.who span { display: inline-block; border-bottom: 1px solid #111; min-width: 12mm; margin: 0 3mm 0 1mm; }
+.who span.name { min-width: 30mm; margin-right: 0; }
+.goal { margin: 2mm 0 0; font-size: 9pt; color: #333; }
+.sec { margin-top: 3.2mm; border: 1px solid #999; border-radius: 2mm; padding: 2.4mm 3mm; }
+.sec > h2 { font-size: 11.5pt; margin: 0 0 1.4mm; }
+.sec > h2 .n { display: inline-block; width: 6mm; height: 6mm; line-height: 6mm; text-align: center; border-radius: 1mm; background: #111; color: #fff; font-size: 9.5pt; margin-right: 1.6mm; vertical-align: 0.3mm; }
+.sec > h2 small { font-weight: 400; color: #555; font-size: 8.6pt; margin-left: 2mm; }
+.row { display: flex; gap: 4mm; align-items: flex-start; }
+.q { margin: 1.2mm 0; }
+.q b.k { display: inline-block; min-width: 5mm; }
+.bl { display: inline-block; min-width: 14mm; border-bottom: 1px solid #111; text-align: center; padding: 0 1mm; line-height: 1.25; }
+.bl.w { min-width: 24mm; } .bl.m { min-width: 19mm; } .bl.ww { min-width: 40mm; }
+.rea td { height: 12.5mm; vertical-align: top; }
+.line { border-bottom: 1px solid #111; height: 6.4mm; margin-top: 0.6mm; position: relative; }
+.line .ans { position: absolute; left: 1mm; bottom: 0.6mm; }
+.ans { visibility: hidden; color: #C62828; fill: #C62828; font-weight: 700; }
+body.answer .ans { visibility: visible; }
+.ex { color: #888; }
+table { border-collapse: collapse; width: 100%; font-size: 9pt; }
+th, td { border: 1px solid #777; padding: 1.1mm 1.6mm; text-align: center; height: 7mm; }
+th { background: #EDEDED; font-weight: 700; }
+td.l { text-align: left; }
+.ox { letter-spacing: 1mm; color: #444; }
+.chk { display: inline-block; width: 3.6mm; height: 3.6mm; border: 1.2px solid #111; border-radius: .6mm; vertical-align: -0.6mm; margin-right: 1.4mm; }
+.tip { font-size: 8.4pt; color: #555; }
+svg text { font-family: inherit; }
+.answer-badge { display: none; }
+body.answer .answer-badge { display: inline-block; color: #C62828; border: 1.5px solid #C62828; border-radius: 1mm; padding: 0 2mm; font-size: 10pt; font-weight: 700; margin-left: 2mm; vertical-align: 1mm; }
+</style>
+</head>
+<body>
+
+<!-- ════════════ 1쪽 ════════════ -->
+<div class="page">
+  <div class="top">
+    <div>
+      <h1>추가 회로 원리 학습지<span class="answer-badge">정답</span></h1>
+      <div class="sub">초음파(HC-SR04) · 포토커플러(PC817) + 릴레이 · PWM LED</div>
+    </div>
+    <div class="who">반<span></span>번호<span></span>이름<span class="name"></span></div>
+  </div>
+  <p class="goal">학습 목표 ① 부품이 왜 그 자리에 있는지 원리로 설명할 수 있다. ② 원리를 알고 회로를 만들어 동작을 확인할 수 있다.</p>
+
+  <!-- ① 전압 분배 -->
+  <div class="sec">
+    <h2><span class="n">1</span>저항으로 전압 나누기<small>HC-SR04 ECHO(5V) → Pico GP11</small></h2>
+    <div class="row">
+      <svg width="46mm" height="52mm" viewBox="0 0 230 260">
+        <text x="10" y="18" font-size="15" font-weight="700">ECHO 5V</text>
+        <circle cx="70" cy="34" r="5" fill="#111"/>
+        <path d="M70,34 V54 M70,104 V160 M70,210 V232" stroke="#111" stroke-width="2.5" fill="none"/>
+        <rect x="56" y="54" width="28" height="50" fill="#fff" stroke="#111" stroke-width="2.5"/>
+        <text x="94" y="84" font-size="15">R1 1kΩ</text>
+        <circle cx="70" cy="132" r="5" fill="#111"/>
+        <path d="M70,132 H150" stroke="#111" stroke-width="2.5"/>
+        <rect x="150" y="118" width="64" height="28" rx="4" fill="#fff" stroke="#111" stroke-width="2"/>
+        <text x="182" y="137" text-anchor="middle" font-size="14" font-weight="700">GP11</text>
+        <text x="110" y="124" text-anchor="middle" font-size="13">V = ?</text>
+        <rect x="56" y="160" width="28" height="50" fill="#fff" stroke="#111" stroke-width="2.5"/>
+        <text x="94" y="190" font-size="15">R2 2kΩ</text>
+        <path d="M54,232 H86 M60,239 H80 M66,246 H74" stroke="#111" stroke-width="2.5"/>
+        <text x="96" y="243" font-size="13">GND (0V)</text>
+      </svg>
+      <div style="flex:1">
+        <p class="q"><b class="k">(1)</b> V(GP11) = 5V × <span class="bl"><span class="ans">2kΩ</span></span> ÷ ( <span class="bl"><span class="ans">1kΩ</span></span> + <span class="bl"><span class="ans">2kΩ</span></span> ) = <span class="bl w"><span class="ans">3.33</span></span> V</p>
+        <p class="q"><b class="k">(2)</b> 1kΩ 과 2kΩ 을 <b>바꿔 꽂으면</b> V(GP11) = <span class="bl w"><span class="ans">1.67</span></span> V 이다.
+          Pico 는 약 2V 이상을 HIGH 로 읽는다. 이때 ECHO 신호를 HIGH 로 읽을 수 있을까? <span class="ox">( O / X )</span> <span class="ans">X</span></p>
+        <p class="q"><b class="k">(3)</b> ECHO 를 GP11 에 바로 꽂지 않고 저항으로 나누는 까닭을 쓰시오.</p>
+        <div class="line"><span class="ans">Pico 입력은 최대 3.3V 라서 5V 를 그대로 넣으면 망가질 수 있기 때문</span></div>
+        <p class="q tip">힌트: 전압은 저항 크기에 <b>비례해서</b> 나뉜다 — 큰 저항에 큰 전압이 걸린다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 포토커플러 -->
+  <div class="sec">
+    <h2><span class="n">2</span>포토커플러 PC817 — 빛으로 건너는 신호<small>겉모습 → 분해 → 동작 (REA)</small></h2>
+    <div class="row">
+      <div style="width:76mm">
+        <p class="q" style="margin-top:0"><b class="k">(1)</b> <b>겉모습</b> — 칩을 위에서 본 그림이다(● = 1번 핀). 핀 이름을 쓰시오.</p>
+        <svg width="76mm" height="36mm" viewBox="0 0 380 180">
+          <rect x="130" y="30" width="120" height="110" rx="6" fill="#222"/>
+          <circle cx="146" cy="46" r="6" fill="#fff"/>
+          <text x="190" y="92" text-anchor="middle" font-size="18" font-weight="700" fill="#fff">PC817</text>
+          <rect x="106" y="46" width="24" height="12" fill="#BBB"/><rect x="106" y="112" width="24" height="12" fill="#BBB"/>
+          <rect x="250" y="46" width="24" height="12" fill="#BBB"/><rect x="250" y="112" width="24" height="12" fill="#BBB"/>
+          <text x="98" y="57" text-anchor="end" font-size="15">1 :</text><line x1="10" y1="72" x2="84" y2="72" stroke="#111"/>
+          <text x="98" y="123" text-anchor="end" font-size="15">2 :</text><line x1="10" y1="138" x2="84" y2="138" stroke="#111"/>
+          <text x="282" y="57" font-size="15">4 :</text><line x1="300" y1="72" x2="374" y2="72" stroke="#111"/>
+          <text x="282" y="123" font-size="15">3 :</text><line x1="300" y1="138" x2="374" y2="138" stroke="#111"/>
+          <text class="ans" x="10" y="68" font-size="13">Anode(+)</text><text class="ans" x="8" y="134" font-size="13">Cathode(−)</text>
+          <text class="ans" x="302" y="68" font-size="14">Collector</text><text class="ans" x="302" y="134" font-size="14">Emitter</text>
+          <text x="190" y="170" text-anchor="middle" font-size="13" fill="#555">입력 쪽 1·2번 │ 출력 쪽 3·4번</text>
+        </svg>
+      </div>
+      <div style="flex:1">
+        <p class="q" style="margin-top:0"><b class="k">(2)</b> <b>분해</b> — 칩을 잘라 본 그림이다. ㉠ ㉡ 의 이름과 ㉢ 의 뜻을 쓰시오.</p>
+        <svg width="100%" height="36mm" viewBox="0 0 420 180">
+          <rect x="20" y="20" width="380" height="120" rx="12" fill="#333"/>
+          <rect x="34" y="34" width="352" height="92" rx="8" fill="#F4F4F2"/>
+          <path d="M20,52 H96 V66 M96,96 V110 H20 M400,52 H300 V64 L270,78 M270,96 L300,110 H400" stroke="#111" stroke-width="2.5" fill="none"/>
+          <path d="M84,66 H108 L96,90 Z" fill="#111"/><line x1="84" y1="94" x2="108" y2="94" stroke="#111" stroke-width="3"/>
+          <line x1="268" y1="70" x2="268" y2="104" stroke="#111" stroke-width="5"/>
+          <path d="M126,70 q10,-6 20,0 t20,0 t20,0 t20,0 M126,88 q10,-6 20,0 t20,0 t20,0 t20,0" stroke="#777" stroke-width="2" fill="none"/>
+          <path d="M206,66 l8,4 -8,4 M206,84 l8,4 -8,4" stroke="#777" stroke-width="2" fill="none"/>
+          <line x1="236" y1="40" x2="236" y2="122" stroke="#777" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <circle cx="96" cy="158" r="9" fill="#fff" stroke="#111"/><text x="96" y="163" text-anchor="middle" font-size="12">㉠</text>
+          <line x1="96" y1="149" x2="96" y2="112" stroke="#111" stroke-width="1"/>
+          <circle cx="300" cy="158" r="9" fill="#fff" stroke="#111"/><text x="300" y="163" text-anchor="middle" font-size="12">㉡</text>
+          <line x1="300" y1="149" x2="276" y2="104" stroke="#111" stroke-width="1"/>
+          <circle cx="236" cy="12" r="9" fill="#fff" stroke="#111"/><text x="236" y="17" text-anchor="middle" font-size="12">㉢</text>
+        </svg>
+        <p class="q">㉠ <span class="bl w"><span class="ans">적외선 LED</span></span> ㉡ <span class="bl w"><span class="ans">포토트랜지스터</span></span></p>
+        <p class="q">㉢ 입력 · 출력 사이에 전선이 없다 = <span class="bl w"><span class="ans">절연</span></span></p>
+      </div>
+    </div>
+    <p class="q"><b class="k">(3)</b> <b>동작</b> — 우리 회로는 IN1 = 5V, IN1 옆 G = GP13 이다. 표를 채우시오.</p>
+    <table>
+      <tr><th style="width:18%">GP13</th><th>칩 LED 양끝 전압 차</th><th>칩 LED</th><th>포토트랜지스터</th><th>출력 G → 릴레이 Signal</th><th>모터</th></tr>
+      <tr><td><b>LOW (0V)</b></td><td>5V − 0V = <span class="bl"><span class="ans">5V</span></span></td><td><span class="ans">켜짐</span></td><td><span class="ans">켜짐</span></td><td><span class="ans">≈ 5V</span></td><td><span class="ans">돈다</span></td></tr>
+      <tr><td><b>HIGH (3.3V)</b></td><td>5V − 3.3V = <span class="bl"><span class="ans">1.7V</span></span></td><td><span class="ans">꺼짐</span></td><td><span class="ans">꺼짐</span></td><td><span class="ans">0V</span></td><td><span class="ans">멈춤</span></td></tr>
+    </table>
+    <p class="q"><b class="k">(4)</b> <b>REA — 실물 모듈 역공학하기.</b> 모듈을 직접 보고 하나씩 쓰시오. <span class="tip">(회색 = 예시)</span></p>
+    <table class="rea">
+      <tr><th style="width:22%">관찰 (눈으로 확인)</th><td class="l"><span class="ex">예) 왼쪽 나사 단자에 IN1 · G 가 인쇄되어 있다.</span><br><span class="ans">예) 검은 4핀 칩이 2개 있다 / 노란 점퍼가 2개 있다</span></td></tr>
+      <tr><th>추론 (근거로 짐작)</th><td class="l"><span class="ex">예) 칩 옆 작은 부품은 전류를 줄이는 저항일 것이다.</span><br><span class="ans">예) 표시 LED 가 직렬이라 입력에 3.6V 이상이 필요할 것이다</span></td></tr>
+      <tr><th>모름 (확인 못 함)</th><td class="l"><span class="ex">예) 내장 저항의 값</span><br><span class="ans">예) 노란 점퍼가 무엇을 잇는지 → 뽑아 두고 사용</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════ 2쪽 ════════════ -->
+<div class="page">
+  <!-- ③ 릴레이 -->
+  <div class="sec" style="margin-top:0">
+    <h2><span class="n">3</span>릴레이 — 전자석으로 누르는 스위치<small>작은 전류(Signal)로 큰 전류(모터)를 켠다</small></h2>
+    <div class="row">
+      <svg width="78mm" height="50mm" viewBox="0 0 390 250">
+        <polyline points="150,214 118,214 118,74" fill="none" stroke="#888" stroke-width="10"/>
+        <rect x="160" y="84" width="28" height="22" fill="#888"/>
+        <rect x="140" y="104" width="68" height="110" rx="5" fill="#E5D3BF" stroke="#7A5530" stroke-width="2"/>
+        <g stroke="#7A5530" stroke-width="1.5"><line x1="140" y1="122" x2="208" y2="122"/><line x1="140" y1="140" x2="208" y2="140"/><line x1="140" y1="158" x2="208" y2="158"/><line x1="140" y1="176" x2="208" y2="176"/><line x1="140" y1="194" x2="208" y2="194"/></g>
+        <rect x="118" y="62" width="200" height="10" rx="2" fill="#555"/>
+        <circle cx="118" cy="67" r="6" fill="#fff" stroke="#111" stroke-width="2"/>
+        <circle cx="322" cy="67" r="6" fill="#B89A3E"/>
+        <rect x="315" y="44" width="14" height="13" fill="#B89A3E"/>
+        <rect x="315" y="88" width="14" height="13" fill="#B89A3E"/>
+        <path d="M262,62 V54 l9,-4 -18,-8 18,-8 -18,-8 18,-8 -9,-4 V8" fill="none" stroke="#555" stroke-width="2"/>
+        <rect x="246" y="2" width="32" height="7" fill="#888"/>
+        <path d="M112,67 H60" stroke="#111" stroke-width="2.5"/>
+        <path d="M322,44 V30 H360 M322,101 V116 H360" stroke="#111" stroke-width="2.5" fill="none"/>
+        <!-- 번호 -->
+        <g font-size="13" text-anchor="middle">
+          <circle cx="232" cy="160" r="10" fill="#fff" stroke="#111"/><text x="232" y="165">①</text><line x1="222" y1="160" x2="208" y2="160" stroke="#111"/>
+          <circle cx="174" cy="40" r="10" fill="#fff" stroke="#111"/><text x="174" y="45">②</text><line x1="174" y1="50" x2="174" y2="84" stroke="#111"/>
+          <circle cx="210" cy="40" r="10" fill="#fff" stroke="#111"/><text x="210" y="45">③</text><line x1="210" y1="50" x2="214" y2="62" stroke="#111"/>
+          <circle cx="296" cy="14" r="10" fill="#fff" stroke="#111"/><text x="296" y="19">④</text><line x1="286" y1="16" x2="272" y2="24" stroke="#111"/>
+          <circle cx="374" cy="30" r="10" fill="#fff" stroke="#111"/><text x="374" y="35">⑤</text>
+          <circle cx="374" cy="116" r="10" fill="#fff" stroke="#111"/><text x="374" y="121">⑥</text>
+          <circle cx="46" cy="67" r="10" fill="#fff" stroke="#111"/><text x="46" y="72">⑦</text>
+        </g>
+        <text x="195" y="240" text-anchor="middle" font-size="13" fill="#555">코일에 전류가 없는 상태 (⑦ 은 ⑤ 에 붙어 있음)</text>
+      </svg>
+      <div style="flex:1">
+        <p class="q" style="margin-top:0"><b class="k">(1)</b> 그림의 번호에 알맞은 이름을 보기에서 골라 쓰시오.</p>
+        <p class="q tip">보기: 코일 · 철심 · 가동편(쇠판) · 스프링 · COM · NO · NC</p>
+        <p class="q">① <span class="bl m"><span class="ans">코일</span></span> ② <span class="bl m"><span class="ans">철심</span></span> ③ <span class="bl m"><span class="ans">가동편</span></span> ④ <span class="bl m"><span class="ans">스프링</span></span></p>
+        <p class="q">⑤ <span class="bl m"><span class="ans">NC</span></span> ⑥ <span class="bl m"><span class="ans">NO</span></span> ⑦ <span class="bl m"><span class="ans">COM</span></span></p>
+        <p class="q"><b class="k">(2)</b> 표를 채우시오. (우리 회로: COM = 5V, NO → 모터)</p>
+        <table>
+          <tr><th>Signal</th><th>코일 전류</th><th>COM 이 붙는 쪽</th><th>모터</th></tr>
+          <tr><td><b>HIGH</b></td><td><span class="ans">흐름 (전자석)</span></td><td><span class="ans">NO</span></td><td><span class="ans">돈다</span></td></tr>
+          <tr><td><b>LOW</b></td><td><span class="ans">없음</span></td><td><span class="ans">NC</span></td><td><span class="ans">멈춤</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <p class="q"><b class="k">(3)</b> 릴레이 코일은 5V · 약 70mA 가 필요하다. Pico 핀으로 코일을 <b>직접</b> 켜지 않는 까닭은?</p>
+    <div class="line"><span class="ans">Pico 핀은 수 mA 밖에 못 내보내서 — 모듈의 트랜지스터가 대신 코일 전류를 흘린다</span></div>
+    <p class="q"><b class="k">(4)</b> 릴레이 모듈의 다이오드는 언제, 무엇을 막는가?</p>
+    <div class="line"><span class="ans">코일을 끄는 순간 생기는 높은 역전압을 다이오드로 돌려 트랜지스터를 보호</span></div>
+  </div>
+
+  <!-- ④ PWM -->
+  <div class="sec">
+    <h2><span class="n">4</span>PWM — 켜져 있는 시간의 비율<small>GP22 · 1000 Hz · duty_cycle 0 ~ 65535</small></h2>
+    <div class="row">
+      <div style="width:84mm">
+        <p class="q" style="margin-top:0"><b class="k">(1)</b> duty <b>25%</b> 파형을 그리시오. (1 칸 = 0.25 ms)</p>
+        <svg width="84mm" height="30mm" viewBox="0 0 420 150" id="grid">
+          <text x="30" y="30" text-anchor="end" font-size="13">3.3V</text>
+          <text x="30" y="116" text-anchor="end" font-size="13">0V</text>
+          <text x="210" y="142" text-anchor="middle" font-size="12" fill="#555">← 한 주기 1 ms = 4 칸 →</text>
+          <path class="ans" style="fill:none" stroke="#C62828" stroke-width="3"
+            d="M40,26 H63.75 V112 H135 V26 H158.75 V112 H230 V26 H253.75 V112 H325 V26 H348.75 V112 H420"/>
+        </svg>
+      </div>
+      <div style="flex:1">
+        <p class="q" style="margin-top:0"><b class="k">(2)</b> 표를 채우시오. 평균 전압 = 3.3V × duty</p>
+        <table>
+          <tr><th>duty</th><th>HIGH 시간</th><th>평균 전압</th><th>duty_cycle</th></tr>
+          <tr><td>0%</td><td><span class="ans">0 ms</span></td><td><span class="ans">0V</span></td><td>0</td></tr>
+          <tr><td>25%</td><td><span class="ans">0.25 ms</span></td><td><span class="ans">0.83V</span></td><td><span class="ans">16383</span></td></tr>
+          <tr><td>50%</td><td>0.50 ms</td><td><span class="ans">1.65V</span></td><td><span class="ans">32767</span></td></tr>
+          <tr><td>100%</td><td><span class="ans">1 ms</span></td><td><span class="ans">3.3V</span></td><td>65535</td></tr>
+        </table>
+      </div>
+    </div>
+    <p class="q"><b class="k">(3)</b> 2 Hz 에서는 LED 가 깜빡이는데 1000 Hz 에서는 은은하게 보이는 까닭은?</p>
+    <div class="line"><span class="ans">너무 빨리 켜고 꺼서 눈이 따라가지 못하고(잔상) 평균 밝기로 보이기 때문</span></div>
+  </div>
+
+  <!-- ⑤ 제작 · 테스트 -->
+  <div class="sec">
+    <h2><span class="n">5</span>제작 · 동작 테스트 기록<small>「추가 연습 도면」 · 「추가 회로도」 를 보고</small></h2>
+    <div class="row">
+      <div style="width:76mm">
+        <p class="q" style="margin-top:0"><b>꽂기 전에 확인</b></p>
+        <p class="q"><span class="chk"></span>공통 GND (외부 5V − · Pico · 모듈)</p>
+        <p class="q"><span class="chk"></span>ECHO 분압: 1kΩ ECHO 쪽, 2kΩ GND 쪽</p>
+        <p class="q"><span class="chk"></span>포토커플러 노란 점퍼 2개 뽑기</p>
+        <p class="q"><span class="chk"></span>1N4007 띠 · LED 긴 다리 · 470μF (+)</p>
+        <p class="q"><span class="chk"></span>전원: USB 먼저 → 어댑터 (끌 때 반대)</p>
+      </div>
+      <div style="flex:1">
+        <table>
+          <tr><th style="width:46%">시험</th><th>결과</th><th style="width:16%">O / X</th></tr>
+          <tr><td class="l">손을 10 cm 에 → 화면 거리</td><td>____ cm</td><td></td></tr>
+          <tr><td class="l">손을 30 cm 에 → 화면 거리</td><td>____ cm</td><td></td></tr>
+          <tr><td class="l">「켜기」 → 릴레이 · 모터</td><td>딸깍 · 회전</td><td></td></tr>
+          <tr><td class="l">LED 0 → 50 → 100%</td><td>점점 밝아짐</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+    <p class="q"><b>문제와 해결</b> <span class="tip">(무엇이 안 됐고, 어떻게 고쳤나)</span></p>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get("answer") === "1") document.body.classList.add("answer");
+  // PWM 모눈: 16 칸 × 높이 4 칸
+  (function () {
+    const g = document.getElementById("grid"), NS = "http://www.w3.org/2000/svg";
+    for (let i = 0; i <= 16; i++) {
+      const l = document.createElementNS(NS, "line");
+      const x = 40 + i * 23.75;
+      Object.entries({ x1: x, x2: x, y1: 20, y2: 118, stroke: i % 4 ? "#CCC" : "#888", "stroke-width": i % 4 ? 0.8 : 1.4 }).forEach(([k, v]) => l.setAttribute(k, v));
+      g.insertBefore(l, g.firstChild);
+    }
+    for (const y of [26, 47.5, 69, 90.5, 112]) {
+      const l = document.createElementNS(NS, "line");
+      Object.entries({ x1: 40, x2: 420, y1: y, y2: y, stroke: y === 26 || y === 112 ? "#888" : "#CCC", "stroke-width": 0.8 }).forEach(([k, v]) => l.setAttribute(k, v));
+      g.insertBefore(l, g.firstChild);
+    }
+  })();
+</script>
+</body>
+</html>
