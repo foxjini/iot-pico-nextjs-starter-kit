@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>작품 설명 포스터</title>
+<!--
+  학교 작품 전시회 — 작품 설명 포스터 (A4 2쪽). make_exhibit_poster.js 가 PDF 로 만듭니다.
+  1쪽 = 기본 회로(최종 배선도), 2쪽 = 추가 회로(추가 배선도). 보는 사람 = 관련 지식이 없는 일반인.
+  쉬운 말(ELI5): 한 문장에 생각 하나, 비유 먼저 · 이름은 작게. 그림이 글보다 먼저.
+  아이콘은 모두 이 파일 안의 SVG <symbol> 로 직접 그렸습니다 (외부 이미지 · 글꼴 없음).
+-->
+<style>
+@page { size: A4; margin: 10mm 12mm 12mm 12mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+:root { --ink:#16181D; --sub:#4B515C; --faint:#8A909C; --line:#D9DCE1; --soft:#F4F5F7; --acc:#E07000; }
+body { font-family: "NanumGothic", sans-serif; color: var(--ink); font-size: 11pt; line-height: 1.5; word-break: keep-all; }
+.page { height: 274mm; overflow: hidden; page-break-after: always; position: relative; }
+.page:last-child { page-break-after: auto; }
+.hd, h1, h2, h3, .big { font-family: "NanumSquareRound", "NanumGothic", sans-serif; }
+.kicker { font-size: 10.5pt; color: var(--sub); letter-spacing: .3px; display: flex; justify-content: space-between; align-items: center; }
+.kicker .tag { display: inline-block; background: var(--ink); color: #fff; border-radius: 99px; padding: .6mm 3mm; font-weight: 700; margin-right: 2mm; }
+h1 { font-size: 25pt; line-height: 1.2; margin: 2.2mm 0 1.2mm; letter-spacing: -.6px; font-weight: 800; }
+h1 em { font-style: normal; color: var(--acc); }
+.lead { font-size: 12.5pt; color: var(--sub); margin: 0; }
+.fields { display: flex; gap: 6mm; margin-top: 2.6mm; font-size: 11pt; }
+.fields span { flex: 1; border-bottom: 1.4px solid var(--ink); padding-bottom: .6mm; }
+.fields b { font-family: "NanumSquareRound"; }
+h2 { font-size: 14pt; margin: 0 0 1.6mm; font-weight: 800; }
+h2 .num { display: inline-block; width: 7.4mm; height: 7.4mm; line-height: 7.4mm; text-align: center; border-radius: 50%; background: var(--acc); color: #fff; font-size: 11.5pt; margin-right: 1.8mm; vertical-align: .4mm; }
+.box { border: 1.4px solid var(--line); border-radius: 4mm; padding: 3mm 3.4mm; background: #fff; }
+.soft { background: var(--soft); border-color: var(--soft); }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+.card { border: 1.4px solid var(--line); border-radius: 4mm; padding: 2.2mm 2.6mm; display: grid; grid-template-columns: 15mm 1fr; gap: 0 2.2mm; align-items: start; }
+.card svg { width: 15mm; height: 19mm; grid-row: span 3; }
+.card h3 { margin: 0; font-size: 12.5pt; line-height: 1.25; font-weight: 800; }
+.card h3 small { display: block; font-family: "NanumGothic"; font-weight: 400; font-size: 8.6pt; color: var(--faint); }
+.card p { margin: .6mm 0 0; font-size: 10.2pt; line-height: 1.38; }
+.like { display: inline-flex; align-items: center; gap: 1.2mm; margin-top: 1mm; font-size: 9.6pt; background: #FFF1E3; color: #8A4300; border-radius: 99px; padding: .3mm 2.6mm; font-weight: 700; }
+.like svg { width: 4.6mm; height: 4.6mm; }
+.try { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+.try div { display: flex; gap: 2mm; align-items: center; font-size: 10.2pt; line-height: 1.36; }
+.try svg { flex: 0 0 11mm; height: 11mm; }
+.try b { color: var(--acc); }
+.nerd { margin-top: 2.6mm; font-size: 9pt; color: var(--sub); border-top: 1px dashed var(--line); padding-top: 1.6mm; }
+.nerd b { color: var(--ink); }
+.row { display: grid; grid-template-columns: 98mm 1fr; gap: 4mm; align-items: center; }
+.row + .row { margin-top: 3mm; }
+.row .art { border-radius: 4mm; background: var(--soft); }
+.row h2 { font-size: 14.5pt; }
+.row h2 small { display: block; font-family: "NanumGothic"; font-weight: 400; font-size: 9pt; color: var(--faint); margin: .4mm 0 0 9.2mm; }
+.steps { margin: 0; padding: 0; list-style: none; font-size: 10.6pt; line-height: 1.45; }
+.steps li { position: relative; padding-left: 5.2mm; margin: .7mm 0; }
+.steps li::before { content: attr(data-n); position: absolute; left: 0; top: .5mm; width: 4mm; height: 4mm; line-height: 4mm; text-align: center; border-radius: 50%; border: 1.2px solid var(--ink); font-size: 7.6pt; font-weight: 700; }
+.secret { margin-top: 1.6mm; background: #FFF8EE; border-left: 3px solid var(--acc); border-radius: 0 2.4mm 2.4mm 0; padding: 1.4mm 2.6mm; font-size: 9.8pt; line-height: 1.42; }
+.secret b:first-child { color: var(--acc); }
+svg text { font-family: "NanumGothic", sans-serif; }
+svg .hd { font-family: "NanumSquareRound", sans-serif; font-weight: 800; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ 아이콘 (한 번 그리고 여러 번 씀) ══════════ -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#E07000"/></marker>
+    <!-- 온습도 센서 DHT11 -->
+    <symbol id="ic-dht" viewBox="0 0 60 84">
+      <rect x="8" y="4" width="44" height="56" rx="5" fill="#2F6FDB"/>
+      <g fill="#1D4F99"><rect x="15" y="11" width="8" height="5" rx="1.5"/><rect x="26" y="11" width="8" height="5" rx="1.5"/><rect x="37" y="11" width="8" height="5" rx="1.5"/>
+        <rect x="15" y="20" width="8" height="5" rx="1.5"/><rect x="26" y="20" width="8" height="5" rx="1.5"/><rect x="37" y="20" width="8" height="5" rx="1.5"/>
+        <rect x="15" y="29" width="8" height="5" rx="1.5"/><rect x="26" y="29" width="8" height="5" rx="1.5"/><rect x="37" y="29" width="8" height="5" rx="1.5"/>
+        <rect x="15" y="38" width="8" height="5" rx="1.5"/><rect x="26" y="38" width="8" height="5" rx="1.5"/><rect x="37" y="38" width="8" height="5" rx="1.5"/></g>
+      <g stroke="#9AA1AB" stroke-width="2.4"><line x1="20" y1="60" x2="20" y2="82"/><line x1="30" y1="60" x2="30" y2="82"/><line x1="40" y1="60" x2="40" y2="82"/></g>
+    </symbol>
+    <!-- 빛 센서 CdS -->
+    <symbol id="ic-cds" viewBox="0 0 60 84">
+      <circle cx="30" cy="28" r="22" fill="#F4E9D8" stroke="#C9A06A" stroke-width="2"/>
+      <path d="M16,22 H40 Q44,22 44,26 Q44,30 40,30 H20 Q16,30 16,34 Q16,38 20,38 H44" fill="none" stroke="#D2552B" stroke-width="3"/>
+      <g stroke="#9AA1AB" stroke-width="2.4"><line x1="24" y1="50" x2="24" y2="82"/><line x1="36" y1="50" x2="36" y2="82"/></g>
+    </symbol>
+    <!-- Pico 2 W -->
+    <symbol id="ic-pico" viewBox="0 0 120 64">
+      <rect x="6" y="4" width="110" height="56" rx="5" fill="#1F6B4E"/>
+      <rect x="0" y="22" width="14" height="20" rx="2" fill="#C9CED6"/>
+      <rect x="44" y="20" width="22" height="22" rx="2" fill="#16181D"/>
+      <rect x="78" y="16" width="26" height="20" rx="2" fill="#C9CED6"/>
+      <g fill="#E8C15A"><circle cx="20" cy="9" r="2"/><circle cx="30" cy="9" r="2"/><circle cx="40" cy="9" r="2"/><circle cx="50" cy="9" r="2"/><circle cx="60" cy="9" r="2"/><circle cx="70" cy="9" r="2"/><circle cx="80" cy="9" r="2"/><circle cx="90" cy="9" r="2"/><circle cx="100" cy="9" r="2"/><circle cx="110" cy="9" r="2"/>
+        <circle cx="20" cy="55" r="2"/><circle cx="30" cy="55" r="2"/><circle cx="40" cy="55" r="2"/><circle cx="50" cy="55" r="2"/><circle cx="60" cy="55" r="2"/><circle cx="70" cy="55" r="2"/><circle cx="80" cy="55" r="2"/><circle cx="90" cy="55" r="2"/><circle cx="100" cy="55" r="2"/><circle cx="110" cy="55" r="2"/></g>
+      <text x="91" y="48" text-anchor="middle" font-size="8" font-weight="700" fill="#fff">Pico 2 W</text>
+    </symbol>
+    <!-- 노트북 화면 -->
+    <symbol id="ic-laptop" viewBox="0 0 120 84">
+      <rect x="14" y="4" width="92" height="62" rx="5" fill="#16181D"/>
+      <rect x="19" y="9" width="82" height="52" rx="2" fill="#fff"/>
+      <rect x="23" y="13" width="34" height="20" rx="2" fill="#F4F5F7"/><text x="40" y="27" text-anchor="middle" font-size="9" font-weight="700" fill="#16181D">24°C</text>
+      <rect x="61" y="13" width="36" height="20" rx="2" fill="#F4F5F7"/><text x="79" y="27" text-anchor="middle" font-size="9" font-weight="700" fill="#16181D">55%</text>
+      <polyline points="24,55 34,48 44,51 54,42 64,45 74,38 84,41 96,35" fill="none" stroke="#E07000" stroke-width="2"/>
+      <path d="M4,68 H116 L110,78 H10 Z" fill="#C9CED6"/>
+    </symbol>
+    <!-- 와이파이 -->
+    <symbol id="ic-wifi" viewBox="0 0 40 32">
+      <g fill="none" stroke="#E07000" stroke-width="3.4" stroke-linecap="round"><path d="M4,12 Q20,-2 36,12"/><path d="M10,19 Q20,10 30,19"/></g>
+      <circle cx="20" cy="26" r="3.4" fill="#E07000"/>
+    </symbol>
+    <!-- RGB LED -->
+    <symbol id="ic-rgb" viewBox="0 0 60 84">
+      <path d="M12,54 V30 A18,18 0 0 1 48,30 V54 Z" fill="#F1F2F4" stroke="#9AA1AB" stroke-width="2"/>
+      <circle cx="24" cy="34" r="10" fill="#E5484D" opacity=".85"/><circle cx="36" cy="34" r="10" fill="#30A46C" opacity=".8"/><circle cx="30" cy="24" r="10" fill="#3E63DD" opacity=".75"/>
+      <rect x="8" y="54" width="44" height="5" rx="1.5" fill="#9AA1AB"/>
+      <g stroke="#9AA1AB" stroke-width="2.4"><line x1="16" y1="59" x2="16" y2="82"/><line x1="25" y1="59" x2="25" y2="82"/><line x1="34" y1="59" x2="34" y2="82"/><line x1="43" y1="59" x2="43" y2="82"/></g>
+    </symbol>
+    <!-- 서보 SG90 -->
+    <symbol id="ic-servo" viewBox="0 0 90 64">
+      <rect x="2" y="30" width="86" height="8" rx="2" fill="#2F5FC4"/>
+      <rect x="12" y="20" width="66" height="40" rx="4" fill="#3B6FD8"/>
+      <circle cx="30" cy="20" r="10" fill="#2F5FC4"/>
+      <rect x="18" y="4" width="54" height="10" rx="5" fill="#fff" stroke="#9AA1AB" stroke-width="1.6" transform="rotate(-18 30 9)"/>
+      <circle cx="30" cy="10" r="4" fill="#C9CED6"/>
+      <text x="56" y="46" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">SG90</text>
+    </symbol>
+    <!-- 5V 어댑터 + 커패시터 -->
+    <symbol id="ic-power" viewBox="0 0 90 70">
+      <rect x="4" y="16" width="44" height="40" rx="6" fill="#F4F5F7" stroke="#16181D" stroke-width="2"/>
+      <g fill="#16181D"><rect x="14" y="4" width="5" height="13"/><rect x="33" y="4" width="5" height="13"/></g>
+      <text x="26" y="42" text-anchor="middle" font-size="13" font-weight="700" fill="#16181D">5V</text>
+      <rect x="58" y="20" width="24" height="34" rx="4" fill="#3B4A6B"/><rect x="74" y="20" width="8" height="34" fill="#C9CED6"/>
+      <g stroke="#9AA1AB" stroke-width="2.4"><line x1="64" y1="54" x2="64" y2="68"/><line x1="76" y1="54" x2="76" y2="64"/></g>
+    </symbol>
+    <!-- 초음파 HC-SR04 -->
+    <symbol id="ic-hc" viewBox="0 0 110 60">
+      <rect x="2" y="6" width="106" height="48" rx="4" fill="#2F6FDB"/>
+      <circle cx="30" cy="30" r="18" fill="#C9CED6"/><circle cx="30" cy="30" r="11" fill="#7B838F"/>
+      <circle cx="80" cy="30" r="18" fill="#C9CED6"/><circle cx="80" cy="30" r="11" fill="#7B838F"/>
+      <text x="55" y="16" text-anchor="middle" font-size="7" font-weight="700" fill="#fff">HC-SR04</text>
+    </symbol>
+    <!-- 포토커플러 모듈 -->
+    <symbol id="ic-opto" viewBox="0 0 80 62">
+      <rect x="2" y="2" width="76" height="58" rx="4" fill="#2E8B3E"/>
+      <rect x="6" y="12" width="14" height="36" rx="2" fill="#3FB36A"/><rect x="60" y="12" width="14" height="36" rx="2" fill="#3FB36A"/>
+      <rect x="28" y="20" width="22" height="22" rx="2" fill="#1B1B1B"/>
+      <circle cx="39" cy="31" r="5" fill="#FFC400"/>
+    </symbol>
+    <!-- 릴레이 모듈 -->
+    <symbol id="ic-relay" viewBox="0 0 90 70">
+      <rect x="2" y="2" width="86" height="66" rx="4" fill="#1D1D1F"/>
+      <rect x="6" y="14" width="16" height="42" rx="2" fill="#2563C9"/>
+      <rect x="28" y="8" width="44" height="46" rx="2" fill="#3B7FD8"/>
+      <text x="50" y="30" text-anchor="middle" font-size="7" font-weight="700" fill="#fff">RELAY</text>
+      <text x="50" y="42" text-anchor="middle" font-size="7" fill="#fff">5VDC</text>
+      <g stroke="#C9A227" stroke-width="3"><line x1="78" y1="24" x2="90" y2="24"/><line x1="78" y1="32" x2="90" y2="32"/><line x1="78" y1="40" x2="90" y2="40"/></g>
+    </symbol>
+    <!-- DC 모터 + 날개 -->
+    <symbol id="ic-motor" viewBox="0 0 80 64">
+      <rect x="2" y="16" width="44" height="32" rx="8" fill="#B8BEC7" stroke="#7B838F" stroke-width="2"/>
+      <rect x="46" y="29" width="12" height="6" fill="#7B838F"/>
+      <g fill="#E07000" opacity=".9"><ellipse cx="64" cy="18" rx="6" ry="15"/><ellipse cx="64" cy="46" rx="6" ry="15"/></g>
+      <circle cx="62" cy="32" r="5" fill="#16181D"/>
+    </symbol>
+    <!-- 전구 -->
+    <symbol id="ic-bulb" viewBox="0 0 40 54">
+      <path d="M20,4 A14,14 0 0 1 28,30 V38 H12 V30 A14,14 0 0 1 20,4 Z" fill="currentColor" stroke="#9AA1AB" stroke-width="1.6"/>
+      <rect x="12" y="40" width="16" height="4" rx="1" fill="#9AA1AB"/><rect x="14" y="46" width="12" height="4" rx="1" fill="#9AA1AB"/>
+    </symbol>
+    <!-- 비유 아이콘 -->
+    <symbol id="ic-eye" viewBox="0 0 24 24"><path d="M2,12 Q12,2 22,12 Q12,22 2,12 Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.6" fill="currentColor"/></symbol>
+    <symbol id="ic-skin" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="18" r="4" fill="currentColor"/></symbol>
+    <symbol id="ic-brain" viewBox="0 0 24 24"><path d="M12,4 C7,2 3,6 4,10 C2,13 4,18 8,18 C9,21 15,21 16,18 C20,18 22,13 20,10 C21,6 17,2 12,4 Z M12,4 V19" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-hand" viewBox="0 0 24 24"><path d="M7,12 V5 a1.6,1.6 0 0 1 3.2,0 V11 V3.6 a1.6,1.6 0 0 1 3.2,0 V11 V4.6 a1.6,1.6 0 0 1 3.2,0 V12 V8 a1.6,1.6 0 0 1 3.2,0 V15 c0,4 -3,7 -7,7 c-3,0 -5,-1.6 -6.4,-4 L3.2,13.6 a1.7,1.7 0 0 1 2.8,-1.8 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-mouth" viewBox="0 0 24 24"><path d="M3,9 Q12,6 21,9 Q19,18 12,18 Q5,18 3,9 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5,10 Q12,13 19,10" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="ic-face" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8.6" cy="10" r="1.4" fill="currentColor"/><circle cx="15.4" cy="10" r="1.4" fill="currentColor"/><path d="M7.6,14.6 Q12,18.4 16.4,14.6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="ic-arm" viewBox="0 0 24 24"><path d="M4,20 L9,15 L9,8 Q9,4 13,4 L16,4 L16,7 L13,8 L13,13 Q18,11 21,14 L21,19 Q14,21 4,20 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-lunch" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3,12 H21 M9,4 H15 V8" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12,2 L20,5 V11 C20,16 16.6,20 12,22 C7.4,20 4,16 4,11 V5 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.4,12 L11,14.6 L15.8,9.4" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="ic-bat" viewBox="0 0 64 30"><path d="M32,9 L29,4 L30,10 C22,5 12,4 2,9 C9,11 12,15 13,20 C17,16 21,16 25,20 C27,17 30,18 32,24 C34,18 37,17 39,20 C43,16 47,16 51,20 C52,15 55,11 62,9 C52,4 42,5 34,10 L35,4 Z" fill="#16181D"/></symbol>
+    <symbol id="ic-timer" viewBox="0 0 24 24"><circle cx="12" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12,14 L15,10 M10,2 H14 M12,2 V6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- ════════════════════ 1쪽 · 기본 회로 ════════════════════ -->
+<div class="page">
+  <div class="kicker"><span><span class="tag">학교 작품 전시회</span>사물인터넷(IoT) 작품 · 기본 회로</span><span>최종 배선도대로 만들었어요</span></div>
+  <h1>방의 <em>날씨</em>를 느끼고,<br>화면으로 <em>조종</em>해요</h1>
+  <p class="lead">손바닥보다 작은 컴퓨터가 온도 · 습도 · 밝기를 느껴서 인터넷 화면에 보여 줘요.<br>화면에서 누르면 불빛 색이 바뀌고 작은 팔이 움직여요.</p>
+  <div class="fields"><span><b>작품 이름</b></span><span><b>만든 사람</b></span></div>
+
+  <!-- 큰 흐름 -->
+  <svg width="180mm" height="89mm" viewBox="0 0 1860 920" style="margin:2.6mm auto 0;display:block">
+    <!-- ① 느껴요 -->
+    <rect x="0" y="20" width="440" height="560" rx="40" fill="#F4F5F7"/>
+    <circle cx="56" cy="76" r="30" fill="#E07000"/><text x="56" y="90" text-anchor="middle" font-size="38" font-weight="700" fill="#fff">1</text>
+    <text x="100" y="92" class="hd" font-size="50">느껴요</text>
+    <use href="#ic-dht" x="40" y="130" width="160" height="224"/>
+    <use href="#ic-cds" x="240" y="130" width="160" height="224"/>
+    <text x="120" y="400" text-anchor="middle" font-size="36" font-weight="700">온도 · 습도</text>
+    <text x="320" y="400" text-anchor="middle" font-size="36" font-weight="700">밝기</text>
+    <g color="#8A4300"><rect x="40" y="440" width="360" height="90" rx="45" fill="#FFF1E3"/>
+      <use href="#ic-skin" x="70" y="458" width="54" height="54"/><use href="#ic-eye" x="130" y="458" width="54" height="54"/>
+      <text x="196" y="500" font-size="34" font-weight="700" fill="#8A4300">피부와 눈</text></g>
+    <!-- 화살표 1→2 -->
+    <line x1="452" y1="300" x2="548" y2="300" stroke="#E07000" stroke-width="14" marker-end="url(#arw)"/>
+    <!-- ② 생각해요 -->
+    <rect x="560" y="20" width="520" height="560" rx="40" fill="#F4F5F7"/>
+    <circle cx="616" cy="76" r="30" fill="#E07000"/><text x="616" y="90" text-anchor="middle" font-size="38" font-weight="700" fill="#fff">2</text>
+    <text x="660" y="92" class="hd" font-size="50">생각해요</text>
+    <use href="#ic-pico" x="600" y="160" width="440" height="235"/>
+    <text x="820" y="440" text-anchor="middle" font-size="36" font-weight="700">작은 컴퓨터 Pico 2 W</text>
+    <g color="#8A4300"><rect x="680" y="470" width="280" height="90" rx="45" fill="#FFF1E3"/>
+      <use href="#ic-brain" x="710" y="488" width="54" height="54"/><text x="778" y="530" font-size="34" font-weight="700" fill="#8A4300">뇌</text></g>
+    <!-- 와이파이 ⇄ -->
+    <use href="#ic-wifi" x="1110" y="150" width="120" height="96"/>
+    <line x1="1092" y1="290" x2="1250" y2="290" stroke="#E07000" stroke-width="12" marker-end="url(#arw)"/>
+    <line x1="1250" y1="350" x2="1092" y2="350" stroke="#E07000" stroke-width="12" marker-end="url(#arw)"/>
+    <text x="1171" y="410" text-anchor="middle" font-size="30" font-weight="700" fill="#8A4300">와이파이</text>
+    <text x="1171" y="448" text-anchor="middle" font-size="26" fill="#4B515C">숫자 보내기 →</text>
+    <text x="1171" y="482" text-anchor="middle" font-size="26" fill="#4B515C">← 명령 받기</text>
+    <!-- ③ 보여 줘요 -->
+    <rect x="1262" y="20" width="598" height="560" rx="40" fill="#F4F5F7"/>
+    <circle cx="1318" cy="76" r="30" fill="#E07000"/><text x="1318" y="90" text-anchor="middle" font-size="38" font-weight="700" fill="#fff">3</text>
+    <text x="1362" y="92" class="hd" font-size="50">보여 줘요</text>
+    <use href="#ic-laptop" x="1370" y="130" width="380" height="266"/>
+    <text x="1561" y="440" text-anchor="middle" font-size="36" font-weight="700">웹 화면 (노트북 · 휴대폰)</text>
+    <text x="1561" y="490" text-anchor="middle" font-size="30" fill="#4B515C">숫자와 그래프로 보여 주고</text>
+    <text x="1561" y="530" text-anchor="middle" font-size="30" fill="#4B515C">버튼으로 명령을 보내요</text>
+    <!-- 2 → 4 -->
+    <line x1="820" y1="590" x2="820" y2="660" stroke="#E07000" stroke-width="14" marker-end="url(#arw)"/>
+    <!-- ④ 움직여요 -->
+    <rect x="300" y="672" width="1260" height="240" rx="40" fill="#F4F5F7"/>
+    <circle cx="356" cy="728" r="30" fill="#E07000"/><text x="356" y="742" text-anchor="middle" font-size="38" font-weight="700" fill="#fff">4</text>
+    <text x="400" y="744" class="hd" font-size="50">움직여요</text>
+    <use href="#ic-rgb" x="420" y="770" width="96" height="134"/>
+    <text x="530" y="830" font-size="36" font-weight="700">RGB LED</text><text x="530" y="874" font-size="30" fill="#4B515C">불빛 색이 바뀌어요</text>
+    <use href="#ic-servo" x="860" y="772" width="190" height="135"/>
+    <text x="1066" y="830" font-size="36" font-weight="700">서보 모터</text><text x="1066" y="874" font-size="30" fill="#4B515C">팔이 각도만큼 돌아요</text>
+    <g color="#8A4300"><rect x="1330" y="790" width="200" height="90" rx="45" fill="#FFF1E3"/>
+      <use href="#ic-hand" x="1356" y="808" width="54" height="54"/><text x="1420" y="850" font-size="34" font-weight="700" fill="#8A4300">손발</text></g>
+  </svg>
+
+  <!-- 부품 카드 -->
+  <div class="grid3" style="margin-top:2.6mm">
+    <div class="card"><svg viewBox="0 0 60 84"><use href="#ic-dht"/></svg>
+      <h3>온습도 센서<small>DHT11</small></h3>
+      <p>덥다 · 축축하다를 <b>숫자</b>로 재요.</p>
+      <span class="like"><svg><use href="#ic-skin"/></svg>사람의 피부</span></div>
+    <div class="card"><svg viewBox="0 0 60 84"><use href="#ic-cds"/></svg>
+      <h3>빛 센서<small>CdS 조도 센서</small></h3>
+      <p>밝을수록 전기가 잘 흘러 <b>밝기</b>를 알아요.</p>
+      <span class="like"><svg><use href="#ic-eye"/></svg>사람의 눈</span></div>
+    <div class="card"><svg viewBox="0 0 120 64" style="height:9mm;margin-top:4mm"><use href="#ic-pico"/></svg>
+      <h3>작은 컴퓨터<small>Raspberry Pi Pico 2 W</small></h3>
+      <p>값을 읽고 <b>와이파이</b>로 화면과 이야기해요.</p>
+      <span class="like"><svg><use href="#ic-brain"/></svg>뇌와 입</span></div>
+    <div class="card"><svg viewBox="0 0 60 84"><use href="#ic-rgb"/></svg>
+      <h3>RGB LED<small>빛 3가지가 든 전구</small></h3>
+      <p>빨강 · 초록 · 파랑 빛을 <b>섞어</b> 여러 색을 만들어요.</p>
+      <span class="like"><svg><use href="#ic-face"/></svg>얼굴빛</span></div>
+    <div class="card"><svg viewBox="0 0 90 64" style="height:11mm;margin-top:4mm"><use href="#ic-servo"/></svg>
+      <h3>서보 모터<small>SG90</small></h3>
+      <p>말한 <b>각도</b>(0°~180°)만큼 정확히 돌아요.</p>
+      <span class="like"><svg><use href="#ic-arm"/></svg>사람의 팔</span></div>
+    <div class="card"><svg viewBox="0 0 90 70" style="height:12mm;margin-top:3mm"><use href="#ic-power"/></svg>
+      <h3>모터용 전기<small>5V 어댑터 + 커패시터</small></h3>
+      <p>힘쓰는 모터는 전기를 <b>따로</b> 받아요. 커패시터는 작은 물탱크.</p>
+      <span class="like"><svg><use href="#ic-lunch"/></svg>따로 싼 도시락</span></div>
+  </div>
+
+  <!-- 해 보세요 -->
+  <div class="box soft" style="margin-top:2.6mm;padding:2.4mm 3.4mm">
+    <h2 style="margin-bottom:1.4mm"><span class="num">!</span>해 보세요</h2>
+    <div class="try">
+      <div><svg viewBox="0 0 24 24" style="color:#16181D"><use href="#ic-hand"/></svg><span>빛 센서를 <b>손으로 가려</b> 보세요<br>→ 화면의 밝기 숫자가 내려가요</span></div>
+      <div><svg viewBox="0 0 60 84"><use href="#ic-dht"/></svg><span>온습도 센서에 <b>입김</b>을 불어 보세요<br>→ 잠시 뒤 습도가 올라가요</span></div>
+      <div><svg viewBox="0 0 120 84"><use href="#ic-laptop"/></svg><span>화면에서 <b>색을 골라</b> 보세요<br>→ LED 색이 바뀌어요 (예)</span></div>
+    </div>
+  </div>
+  <div class="nerd"><b>궁금한 분께</b> — 연결된 핀: 온습도 <b>GP16</b> · 빛 <b>GP26</b> · RGB LED <b>GP17 · 18 · 19</b> · 서보 <b>GP15</b>(전기는 외부 5V 어댑터). 자세한 연결은 옆의 「최종 배선도」를 보세요.</div>
+</div>
+
+<!-- ════════════════════ 2쪽 · 추가 회로 ════════════════════ -->
+<div class="page">
+  <div class="kicker"><span><span class="tag">학교 작품 전시회</span>사물인터넷(IoT) 작품 · 추가 회로</span><span>추가 배선도대로 만들었어요</span></div>
+  <h1 style="font-size:24pt">더 해 본 것 — <em>거리</em> 재기 · <em>큰 모터</em> 켜기 · <em>밝기</em> 조절</h1>
+  <p class="lead">기본 회로에 세 가지를 더했어요. 모두 웹 화면에서 보고 조종할 수 있어요.</p>
+
+  <!-- 1 초음파 -->
+  <div class="row" style="margin-top:3.4mm">
+    <svg class="art" width="98mm" height="56mm" viewBox="0 0 980 560">
+      <use href="#ic-bat" x="40" y="30" width="150" height="70"/>
+      <text x="200" y="78" font-size="30" font-weight="700" fill="#4B515C">박쥐도 이렇게 길을 찾아요</text>
+      <use href="#ic-hc" x="40" y="200" width="300" height="164"/>
+      <!-- 나가는 소리 -->
+      <g fill="none" stroke="#E07000" stroke-width="10" stroke-linecap="round">
+        <path d="M370,220 Q395,250 370,280"/><path d="M430,200 Q470,250 430,300"/><path d="M490,180 Q545,250 490,320"/></g>
+      <line x1="560" y1="220" x2="700" y2="220" stroke="#E07000" stroke-width="8" stroke-dasharray="20 14" marker-end="url(#arw)"/>
+      <!-- 돌아오는 소리 -->
+      <line x1="700" y1="330" x2="560" y2="330" stroke="#8A909C" stroke-width="8" stroke-dasharray="20 14" marker-end="url(#arw)"/>
+      <g fill="none" stroke="#8A909C" stroke-width="8" stroke-linecap="round"><path d="M520,300 Q490,330 520,360"/><path d="M470,285 Q430,330 470,375"/></g>
+      <g color="#16181D"><use href="#ic-hand" x="720" y="160" width="210" height="210"/></g>
+      <text x="640" y="150" text-anchor="middle" font-size="32" font-weight="700" fill="#E07000">① 삐— (안 들리는 소리)</text>
+      <text x="630" y="400" text-anchor="middle" font-size="32" font-weight="700" fill="#4B515C">② 메아리가 돌아와요</text>
+      <g color="#16181D"><use href="#ic-timer" x="200" y="440" width="70" height="70"/></g>
+      <text x="290" y="488" font-size="34" font-weight="700">③ 걸린 시간이 짧을수록 = 가까워요</text>
+    </svg>
+    <div>
+      <h2><span class="num">1</span>초음파 거리 센서<small>HC-SR04 · 박쥐처럼 메아리로 재요</small></h2>
+      <ul class="steps">
+        <li data-n="1">사람 귀에 안 들리는 소리를 「삐」 쏴요.</li>
+        <li data-n="2">손에 부딪혀 돌아오는 시간을 재요.</li>
+        <li data-n="3">소리는 1초에 약 340m — 시간으로 거리를 계산해요.</li>
+      </ul>
+      <div class="secret"><b>숨은 비밀 · 전압 나누기</b><br>센서는 <b>5V</b>로 크게 대답하지만 Pico 귀는 <b>3.3V</b>까지만 들어요. 저항 2개로 계단처럼 나눠 줄여요.</div>
+    </div>
+  </div>
+
+  <!-- 2 포토커플러 + 릴레이 -->
+  <div class="row">
+    <svg class="art" width="98mm" height="56mm" viewBox="0 0 980 560">
+      <use href="#ic-pico" x="20" y="200" width="200" height="107"/>
+      <text x="120" y="350" text-anchor="middle" font-size="32" font-weight="700">Pico</text>
+      <text x="120" y="390" text-anchor="middle" font-size="28" fill="#4B515C">작은 신호</text>
+      <line x1="230" y1="254" x2="282" y2="254" stroke="#E07000" stroke-width="12" marker-end="url(#arw)"/>
+      <use href="#ic-opto" x="292" y="196" width="150" height="116"/>
+      <circle cx="365" cy="254" r="40" fill="#FFC400" opacity=".35"/>
+      <text x="367" y="350" text-anchor="middle" font-size="32" font-weight="700">포토커플러</text>
+      <text x="367" y="390" text-anchor="middle" font-size="28" fill="#4B515C">빛으로 쪽지 전달</text>
+      <line x1="452" y1="254" x2="504" y2="254" stroke="#E07000" stroke-width="12" marker-end="url(#arw)"/>
+      <use href="#ic-relay" x="514" y="190" width="164" height="128"/>
+      <text x="596" y="170" text-anchor="middle" font-size="40" font-weight="800" class="hd" fill="#E07000">딸깍!</text>
+      <text x="596" y="350" text-anchor="middle" font-size="32" font-weight="700">릴레이</text>
+      <text x="596" y="390" text-anchor="middle" font-size="28" fill="#4B515C">전자석 스위치</text>
+      <line x1="688" y1="254" x2="740" y2="254" stroke="#E07000" stroke-width="12" marker-end="url(#arw)"/>
+      <use href="#ic-motor" x="750" y="186" width="190" height="152"/>
+      <text x="845" y="370" text-anchor="middle" font-size="32" font-weight="700">모터</text>
+      <text x="845" y="410" text-anchor="middle" font-size="28" fill="#4B515C">빙글빙글</text>
+      <!-- 작은 힘 → 큰 힘 -->
+      <path d="M60,480 L920,440 L920,520 Z" fill="#FFF1E3"/>
+      <text x="80" y="492" font-size="28" font-weight="700" fill="#8A4300">작은 힘</text>
+      <text x="900" y="492" text-anchor="end" font-size="34" font-weight="800" fill="#8A4300">큰 힘</text>
+      <text x="40" y="80" font-size="32" font-weight="700" fill="#4B515C">작은 손가락으로 큰 스위치를 누르는 방법</text>
+    </svg>
+    <div>
+      <h2><span class="num">2</span>포토커플러 + 릴레이<small>힘센 친구에게 부탁하기</small></h2>
+      <ul class="steps">
+        <li data-n="1">Pico 는 힘이 약해 모터를 바로 못 돌려요.</li>
+        <li data-n="2"><b>포토커플러</b>: 안에서 작은 불빛을 켜 신호를 <b>빛</b>으로 건네요. 전선이 닿지 않아 안전해요.</li>
+        <li data-n="3"><b>릴레이</b>: 전자석이 쇠판을 당겨 큰 스위치를 「딸깍」 눌러요.</li>
+      </ul>
+      <div class="secret"><b>귀 기울여 보세요</b><br>모터가 켜질 때 들리는 「딸깍」 = 릴레이가 스위치를 누르는 소리예요.</div>
+    </div>
+  </div>
+
+  <!-- 3 PWM -->
+  <div class="row">
+    <svg class="art" width="98mm" height="56mm" viewBox="0 0 980 560">
+      <text x="40" y="80" font-size="32" font-weight="700" fill="#4B515C">켜진 시간이 길수록 → 더 밝아 보여요</text>
+      <g id="pwmRows"></g>
+    </svg>
+    <div>
+      <h2><span class="num">3</span>밝기 조절 LED<small>PWM · 아주 빠른 깜빡이</small></h2>
+      <ul class="steps">
+        <li data-n="1">불을 <b>1초에 1000번</b> 켰다 껐다 해요.</li>
+        <li data-n="2">켜진 시간이 길수록 밝아 보여요.</li>
+        <li data-n="3">너무 빨라서 눈에는 깜빡임 대신 <b>중간 밝기</b>로 보여요.</li>
+      </ul>
+      <div class="secret"><b>같은 원리</b><br>만화 영화도 그림을 빠르게 넘기면 움직이는 것처럼 보여요 (잔상).</div>
+    </div>
+  </div>
+
+  <!-- 화면 · 왜? -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin-top:3.4mm">
+    <div class="box soft">
+      <h2 style="font-size:12.5pt;margin-bottom:1.4mm">웹 화면과 함께 <span style="font-weight:400;font-size:9pt;color:#8A909C">(예 · 작품마다 조금씩 달라요)</span></h2>
+      <svg width="100%" height="22mm" viewBox="0 0 860 220">
+        <rect x="0" y="20" width="260" height="170" rx="22" fill="#fff" stroke="#D9DCE1" stroke-width="3"/>
+        <text x="130" y="80" text-anchor="middle" font-size="30" fill="#4B515C">거리</text>
+        <text x="130" y="150" text-anchor="middle" font-size="56" font-weight="800" class="hd">23 cm</text>
+        <rect x="300" y="20" width="260" height="170" rx="22" fill="#fff" stroke="#D9DCE1" stroke-width="3"/>
+        <rect x="335" y="70" width="190" height="70" rx="35" fill="#16181D"/>
+        <text x="430" y="116" text-anchor="middle" font-size="32" font-weight="700" fill="#fff">모터 켜기</text>
+        <rect x="600" y="20" width="260" height="170" rx="22" fill="#fff" stroke="#D9DCE1" stroke-width="3"/>
+        <text x="730" y="80" text-anchor="middle" font-size="30" fill="#4B515C">밝기</text>
+        <rect x="640" y="118" width="180" height="12" rx="6" fill="#D9DCE1"/><rect x="640" y="118" width="110" height="12" rx="6" fill="#16181D"/>
+        <circle cx="750" cy="124" r="20" fill="#E07000"/>
+      </svg>
+    </div>
+    <div class="box">
+      <h2 style="font-size:12.5pt;margin-bottom:1.4mm">왜 이렇게 만들었을까?</h2>
+      <div style="display:grid;gap:1.4mm;font-size:10.2pt;line-height:1.4">
+        <div style="display:flex;gap:2mm;align-items:center"><svg viewBox="0 0 24 24" style="width:6mm;height:6mm;color:#E07000;flex:none"><use href="#ic-shield"/></svg><span><b>부품 지키기</b> — 전압을 나눠 Pico 를 보호해요</span></div>
+        <div style="display:flex;gap:2mm;align-items:center"><svg viewBox="0 0 24 24" style="width:6mm;height:6mm;color:#E07000;flex:none"><use href="#ic-shield"/></svg><span><b>안전하게</b> — 빛으로 신호를 넘겨 큰 전기와 떼어 놓아요</span></div>
+        <div style="display:flex;gap:2mm;align-items:center"><svg viewBox="0 0 24 24" style="width:6mm;height:6mm;color:#E07000;flex:none"><use href="#ic-shield"/></svg><span><b>부드럽게</b> — 깜빡이는 시간으로 밝기를 조절해요</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="nerd"><b>궁금한 분께</b> — 초음파 <b>GP10</b>(보내기) · <b>GP11</b>(받기, 1kΩ / 2kΩ 로 5V → 3.3V) · 모터 <b>GP13</b>(포토커플러 → 릴레이) · 밝기 LED <b>GP22</b>(220Ω). 자세한 연결은 옆의 「추가 배선도」를 보세요.</div>
+</div>
+
+<script>
+// 3번 그림: 켜진 시간 25 · 50 · 90% 파형과 그만큼 밝은 전구
+(function () {
+  const g = document.getElementById("pwmRows"), NS = "http://www.w3.org/2000/svg";
+  const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); g.appendChild(e); return e; };
+  [[20, "짧게", "#F6E7B8"], [50, "반쯤", "#FFD75E"], [90, "길게", "#FFC400"]].forEach(([d, word, col], i) => {
+    const top = 130 + i * 140, hi = top, lo = top + 80, x0 = 150, per = 140;
+    mk("text", { x: 40, y: top + 52, "font-size": 30, "font-weight": 700 }).textContent = word;
+    let p = `M${x0},${lo}`;
+    for (let c = 0; c < 4; c++) { const a = x0 + c * per, w = per * d / 100; p += ` L${a},${lo} L${a},${hi} L${a + w},${hi} L${a + w},${lo}`; }
+    p += ` L${x0 + 4 * per},${lo}`;
+    mk("path", { d: p, fill: "none", stroke: "#16181D", "stroke-width": 6, "stroke-linejoin": "round" });
+    mk("line", { x1: 730, y1: top + 40, x2: 790, y2: top + 40, stroke: "#E07000", "stroke-width": 8, "marker-end": "url(#arw)" });
+    const u = mk("use", { href: "#ic-bulb", x: 810, y: top - 14, width: 90, height: 122 });
+    u.setAttribute("color", col);
+    if (d >= 50) for (const [dx, dy] of [[-10, 0], [110, 0], [50, -20]]) {
+      mk("line", { x1: 855 + (dx - 50) * .9, y1: top + 30 + dy, x2: 855 + (dx - 50) * 1.3, y2: top + 18 + dy * 1.6, stroke: col, "stroke-width": d > 80 ? 8 : 5, "stroke-linecap": "round" });
+    }
+  });
+})();
+</script>
+</body>
+</html>
