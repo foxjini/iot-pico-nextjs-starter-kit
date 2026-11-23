@@ -6,7 +6,9 @@
   ② 스텝모터 D-53  28BYJ-48 5V + ULN2003 (IN1~IN4, − · + 5~12V) — 모터 전원은 외부 5V 어댑터, GND 공통
   ③ LCD D-33       PCF8574 I2C, VCC 5V · 주소 0x27/0x3F — 모듈 풀업이 SDA·SCL 을 5V 로 올리므로 레벨 변환(BSS138)을 거친다
   ④ RFID D-7       MFRC522, 3.3V 전용(5V 금지) · SPI — 3V3 직결
-  핀: GP4 SDA · GP5 SCL · GP10~13 IN1~4 · GP26 VRx · GP27 VRy · GP22 SW · GP16 MISO · GP17 SDA(CS) · GP18 SCK · GP19 MOSI · GP20 RST
+  핀: GP16 SDA · GP17 SCL · GP10~13 IN1~4 · GP26 VRx · GP27 VRy · GP22 SW · GP20 MISO · GP21 SDA(CS) · GP18 SCK · GP19 MOSI · RC522 RST → 3.3V
+  레벨 변환 모듈(CJMCU 4채널, 핀헤더)은 브레드보드 26~31행에 가운데 홈을 걸쳐 **180° 돌려** 꽂는다 — HV 가 왼쪽(5V 레일 · LCD 쪽),
+  LV 가 오른쪽(3.3V 레일 쪽). 돌린 순서라 위에서부터 4채널 · 3채널 · GND · HV/LV · 2채널 · 1채널.
 
 배선도는 부품 다리와 점퍼를 데이터로 들고 있다가 브레드보드 넷을 계산해 회로도의 넷과 **같은지 검사한 뒤에만** 저장한다.
 브레드보드 · Pico 그림과 넷 계산은 draw_extra_circuits.py 의 것을 그대로 쓴다.
@@ -34,14 +36,17 @@ C = {"SDA": "#2f6fdb", "SCL": "#d9a300", "IN1": "#8d44c9", "IN2": "#2e9e4f", "IN
 # ════════════════════════════════════════════════════════════════════════
 #  1. 배선 데이터
 # ════════════════════════════════════════════════════════════════════════
-LEGS = [("C1", "+", ("L+", 44)), ("C1", "-", ("L-", 44))]       # 470μF (5V 레일, 모터 순간 전류 보충)
+LEGS = [("C1", "+", ("L+", 44)), ("C1", "-", ("L-", 44)),       # 470μF (5V 레일, 모터 순간 전류 보충)
+        # 레벨 변환 모듈 — 180° 돌려 꽂음: 왼쪽 D열 = HV 쪽, 오른쪽 G열 = LV 쪽
+        ("LS", "GND", ("D", 28)), ("LS", "HV", ("D", 29)), ("LS", "HV2", ("D", 30)), ("LS", "HV1", ("D", 31)),
+        ("LS", "GNDL", ("G", 28)), ("LS", "LV", ("G", 29)), ("LS", "LV2", ("G", 30)), ("LS", "LV1", ("G", 31))]
+LS_ROW0, LS_COLS = 26, ("D", "G")                                 # 모듈 맨 윗줄(4채널)과 두 핀 열
+UNUSED_LEGS = [("D", 26), ("D", 27), ("G", 26), ("G", 27)]        # 3 · 4채널 — 꽂혀만 있고 쓰지 않음
 OFFBOARD = [
     ("EXT5V", "+", ("L+", 56)), ("EXT5V", "-", ("L-", 56)),
-    # LCD (뒷면 I2C 모듈) · 레벨 변환
+    # LCD (뒷면 I2C 모듈) — SDA · SCL 은 레벨 변환의 HV1 · HV2 행으로
     ("LCD", "VCC", ("L+", 9)), ("LCD", "GND", ("L-", 10)),
-    ("LS", "HV", ("L+", 23)), ("LS", "GND", ("L-", 24)),
-    ("LS", "LV", ("R+", 29)),
-    ("LS", "LV1", ("B", 6)), ("LS", "LV2", ("B", 7)),
+    ("LCD", "SDA", ("A", 31)), ("LCD", "SCL", ("A", 30)),
     # 스텝모터 드라이버
     ("ULN", "IN1", ("B", 14)), ("ULN", "IN2", ("B", 15)), ("ULN", "IN3", ("B", 16)), ("ULN", "IN4", ("B", 17)),
     ("ULN", "+", ("L+", 47)), ("ULN", "-", ("L-", 48)),
@@ -49,26 +54,34 @@ OFFBOARD = [
     ("JOY", "GND", ("R-", 8)), ("JOY", "+5V", ("R+", 9)),
     ("JOY", "VRx", ("J", 10)), ("JOY", "VRy", ("J", 9)), ("JOY", "SW", ("J", 12)),
     # RFID
-    ("RC", "3.3V", ("R+", 21)), ("RC", "GND", ("R-", 22)), ("RC", "RST", ("J", 15)),
-    ("RC", "MISO", ("J", 20)), ("RC", "MOSI", ("J", 16)), ("RC", "SCK", ("J", 17)), ("RC", "SDA", ("J", 19)),
+    ("RC", "3.3V", ("R+", 24)), ("RC", "GND", ("R-", 22)), ("RC", "RST", ("R+", 23)),
+    ("RC", "MISO", ("J", 15)), ("RC", "MOSI", ("J", 16)), ("RC", "SCK", ("J", 17)), ("RC", "SDA", ("J", 14)),
 ]
-MODULE_WIRES = [("LCD.SDA", "LS.HV1"), ("LCD.SCL", "LS.HV2")]
+MODULE_WIRES = []
 WIRES = [
     (("I", 5), ("R+", 5), W_3V3),          # Pico 3V3 → 오른쪽 빨강 레일 = 3.3V
     (("I", 18), ("R-", 18), W_BLK),        # Pico GND → 오른쪽 파랑
     (("L-", 60), ("R-", 60), W_BLK),       # 공통 GND 다리
+    # 레벨 변환 전원 — 모두 짧은 점퍼
+    (("A", 29), ("L+", 29), W_5V),         # HV → 5V
+    (("A", 28), ("L-", 28), W_BLK),        # GND(HV 쪽) → GND
+    (("J", 29), ("R+", 29), W_3V3),        # LV → 3.3V
+    (("J", 28), ("R-", 28), W_BLK),        # GND(LV 쪽) → GND
+    # 신호 — Pico GP17 · GP16 행에서 모듈 LV2 · LV1 행으로 (비스듬히, 서로 평행)
+    (("I", 19), ("H", 30), C["SCL"]),
+    (("J", 20), ("I", 31), C["SDA"]),
 ]
 EXPECTED = [
     {"EXT5V.+", "C1.+", "LCD.VCC", "LS.HV", "ULN.+"},
-    {"EXT5V.-", "C1.-", "LCD.GND", "LS.GND", "ULN.-", "JOY.GND", "RC.GND", "Pico.GND"},
-    {"Pico.3V3", "LS.LV", "JOY.+5V", "RC.3.3V"},
-    {"Pico.GP4", "LS.LV1"}, {"Pico.GP5", "LS.LV2"}, {"LS.HV1", "LCD.SDA"}, {"LS.HV2", "LCD.SCL"},
+    {"EXT5V.-", "C1.-", "LCD.GND", "LS.GND", "LS.GNDL", "ULN.-", "JOY.GND", "RC.GND", "Pico.GND"},
+    {"Pico.3V3", "LS.LV", "JOY.+5V", "RC.3.3V", "RC.RST"},
+    {"Pico.GP16", "LS.LV1"}, {"Pico.GP17", "LS.LV2"}, {"LS.HV1", "LCD.SDA"}, {"LS.HV2", "LCD.SCL"},
     {"Pico.GP10", "ULN.IN1"}, {"Pico.GP11", "ULN.IN2"}, {"Pico.GP12", "ULN.IN3"}, {"Pico.GP13", "ULN.IN4"},
     {"Pico.GP26", "JOY.VRx"}, {"Pico.GP27", "JOY.VRy"}, {"Pico.GP22", "JOY.SW"},
-    {"Pico.GP20", "RC.RST"}, {"Pico.GP16", "RC.MISO"}, {"Pico.GP19", "RC.MOSI"}, {"Pico.GP18", "RC.SCK"},
-    {"Pico.GP17", "RC.SDA"},
+    {"Pico.GP20", "RC.MISO"}, {"Pico.GP19", "RC.MOSI"}, {"Pico.GP18", "RC.SCK"},
+    {"Pico.GP21", "RC.SDA"},
 ]
-USED = {"GP4", "GP5", "GP10", "GP11", "GP12", "GP13", "GP16", "GP17", "GP18", "GP19", "GP20", "GP22", "GP26", "GP27", "3V3"}
+USED = {"GP10", "GP11", "GP12", "GP13", "GP16", "GP17", "GP18", "GP19", "GP20", "GP21", "GP22", "GP26", "GP27", "3V3"}
 
 
 def check_netlist():
@@ -84,7 +97,7 @@ def check_netlist():
     def union(a, b):
         parent[find(a)] = find(b)
 
-    used = {}
+    used = {h: "LS.(안 씀)" for h in UNUSED_LEGS}
     for part, leg, hole in LEGS + OFFBOARD:
         if hole[0] not in RAIL_X:
             assert hole not in used, f"{hole} 에 {used.get(hole)} 와 {part}.{leg} 가 겹칩니다"
@@ -187,43 +200,26 @@ def draw_breadboard():
     route([lcd_pins["VCC"], (-11.0, lcd_pins["VCC"][1]), (-11.0, Y(9)), to("LCD", "VCC")], W_5V)
     route([lcd_pins["GND"], (-10.0, lcd_pins["GND"][1]), (-10.0, Y(10)), to("LCD", "GND")], W_BLK)
 
-    # ── 레벨 변환 — 엘레파츠 CJMCU 4채널(BSS138), 사진과 같은 방향: 파란 기판 · 왼쪽 LV(3.3V) · 오른쪽 HV(5V) ──
-    sx, stop_, sw_, sh = -12.6, 19.0, 5.6, 9.4
-    ax.add_patch(FancyBboxPatch((sx, Y(stop_ + sh)), sw_, sh, boxstyle="round,pad=0.02,rounding_size=0.2",
-                                fc="#1d4e89", ec="#0c2a4d", lw=1.0, zorder=10))
-    ax.text(sx + sw_ / 2, Y(stop_ + sh + 2.6), "레벨 변환 CJMCU (파란 기판)", ha="center", va="center", fontsize=5.0,
-            color="#1f3864", fontweight="bold", zorder=14, bbox=BOX)
-    ax.text(sx + 1.2, Y(stop_ + 0.8), "LV 3.3V", ha="center", va="center", fontsize=3.6, color="white", fontweight="bold", zorder=14)
-    ax.text(sx + sw_ - 1.2, Y(stop_ + 0.8), "HV 5V", ha="center", va="center", fontsize=3.6, color="white", fontweight="bold", zorder=14)
-    ls_pins = {}
-    rows = (("LV1", "HV1"), ("LV2", "HV2"), ("LV", "HV"), ("GND ", "GND"), ("LV3", "HV3"), ("LV4", "HV4"))
-    for k, (lv, hv) in enumerate(rows):
-        y = Y(stop_ + 2.2 + k * 1.25)
-        for side, nm in ((-1, lv), (1, hv)):
-            x0 = sx if side < 0 else sx + sw_
-            ax.plot([x0, x0 + side * 0.8], [y, y], color="#c9a227", lw=1.6, zorder=12)
-            pin_label(x0 - side * 0.3, y, nm.strip(), "left" if side < 0 else "right", color="white", fs=4.4)
-            ls_pins[nm] = (x0 + side * 0.8, y)
-    for k in (0, 1, 4, 5):                                        # BSS138 칩 4개 (채널마다 하나)
-        y = Y(stop_ + 2.2 + k * 1.25)
-        ax.add_patch(Rectangle((sx + sw_ / 2 - 0.45, y - 0.35), 0.9, 0.7, fc="#16181d", ec="#000", lw=0.4, zorder=12))
-    ax.text(sx + sw_ / 2, Y(stop_ + 2.2 + 2.6), "BSS138", ha="center", va="center", fontsize=3.4, color="#cfe0f5", zorder=12)
-    # LCD SDA·SCL → 오른쪽 HV1·HV2 (모듈 위로 넘어가서 오른쪽에서 들어감 — 서로 겹치지 않게)
-    for nm, hv, lane, over, side_lane in (("SDA", "HV1", -15.9, 18.5, -5.6), ("SCL", "HV2", -15.1, 18.0, -5.0)):
-        p, q = lcd_pins[nm], ls_pins[hv]
-        route([p, (lane, p[1]), (lane, Y(over)), (side_lane, Y(over)), (side_lane, q[1]), q], C[nm])
-    # HV → 외부 5V 레일, GND → GND 레일 (오른쪽으로 바로)
-    p = ls_pins["HV"]; route([p, (-5.0, p[1]), (-5.0, to("LS", "HV")[1]), to("LS", "HV")], W_5V)
-    p = ls_pins["GND"]; route([p, (-5.4, p[1]), (-5.4, to("LS", "GND")[1]), to("LS", "GND")], W_BLK)
-    # LV1·LV2 → GP4·GP5 : 왼쪽에서 나와 모듈 아래로 돌아 레일 오른쪽 틈으로 올라감
-    for nm, lane, bottom, up in (("LV1", -14.6, 29.9, -1.45), ("LV2", -14.0, 29.4, -0.9)):
-        p, q = ls_pins[nm], to("LS", nm)
-        route([p, (lane, p[1]), (lane, Y(bottom)), (up, Y(bottom)), (up, q[1]), q], C["SDA" if nm == "LV1" else "SCL"])
-    # LV → 3.3V 레일 : 모듈 아래로 돌아 브레드보드 아래쪽(빈 줄)을 가로질러 오른쪽 레일
-    p, q = ls_pins["LV"], to("LS", "LV")
-    route([p, (-13.6, p[1]), (-13.6, Y(28.9)), (q[0], Y(28.9)), q], W_3V3)
-    ax.text(COL["H"], Y(28.2), "LV → 3.3V 레일", ha="center", va="center", fontsize=4.8,
-            color=W_3V3, fontweight="bold", zorder=14, bbox=BOX)
+    # ── 레벨 변환 — CJMCU 4채널(BSS138, 파란 기판)을 브레드보드에 180° 돌려 꽂음 (글씨가 거꾸로) ──
+    xl, xr = COL[LS_COLS[0]], COL[LS_COLS[1]]
+    ax.add_patch(FancyBboxPatch((xl - 0.75, Y(LS_ROW0 + 5.65)), xr - xl + 1.5, 6.3,
+                                boxstyle="round,pad=0.02,rounding_size=0.2", fc="#1d4e89", ec="#0c2a4d", lw=1.0,
+                                zorder=16))
+    order = (("HV4", "LV4"), ("HV3", "LV3"), ("GND", "GND"), ("HV", "LV"), ("HV2", "LV2"), ("HV1", "LV1"))
+    for k, (hv, lv) in enumerate(order):
+        y = Y(LS_ROW0 + k)
+        for x, nm, ha in ((xl, hv, "left"), (xr, lv, "right")):
+            ax.add_patch(Circle((x, y), 0.3, fc="#d8d8d8", ec="#c9a227", lw=1.0, zorder=17))
+            ax.text(x + (0.42 if ha == "left" else -0.42), y, nm, ha=ha, va="center",
+                    fontsize=3.6, color="white", fontweight="bold", rotation=180, zorder=18)
+        if k in (0, 1, 4, 5):                                     # BSS138 칩 (채널마다 하나)
+            ax.add_patch(Rectangle(((xl + xr) / 2 - 0.4, y - 0.3), 0.8, 0.6, fc="#16181d", zorder=17))
+    ax.text(-5.2, Y(LS_ROW0 + 0.6), "레벨 변환 →\n180° 돌려 꽂기\n(HV 왼쪽 · 글씨 거꾸로)", ha="right",
+            va="center", fontsize=4.6, color="#1f3864", fontweight="bold", zorder=19, bbox=BOX, linespacing=1.25)
+    # LCD SDA · SCL → 레벨 변환 HV1 · HV2 행의 A 구멍
+    for nm, lane in (("SDA", -15.9), ("SCL", -15.1)):
+        p, q = lcd_pins[nm], to("LCD", nm)
+        route([p, (lane, p[1]), (lane, q[1]), q], C[nm])
 
     # ── 스텝모터 드라이버 ULN2003 — 사진과 같은 방향(IN 핀 왼쪽, 전원 핀 아래) ──
     ux, utop, uw, uh = -25.0, 33.0, 11.2, 9.8
@@ -299,7 +295,7 @@ def draw_breadboard():
         p, q = joy[nm], to("JOY", nm)
         lane = 21.6 - k * 0.8
         route([p, (lane, p[1]), (lane, q[1]), q], jc[nm])
-    ax.text(jx + jw / 2, Y(jtop + jh + 1.3), "★ +5V 핀에는 3.3V 레일!", ha="center", va="center", fontsize=5.0,
+    ax.text(jx + jw + 1.0, Y(jtop + jh / 2), "★ +5V 핀에는\n3.3V 레일!", ha="left", va="center", fontsize=5.0,
             color=W_3V3, fontweight="bold", zorder=14, bbox=BOX)
 
     # ── RFID-RC522 — 사진과 같은 방향(핀이 오른쪽 끝, 위에서부터 3.3V · RST · GND · IRQ · MISO · MOSI · SCK · SDA) ──
@@ -311,7 +307,7 @@ def draw_breadboard():
     ax.text(rx + 6.5, Y(rtop + rh - 1.2), "RFID-RC522", ha="center", va="center", fontsize=5.0, color="white",
             fontweight="bold", zorder=12)
     ax.add_patch(Rectangle((rx + 12.5, Y(rtop + 7.0)), 2.2, 2.2, fc="#16181d", zorder=11))
-    ax.text(rx + rw / 2, Y(rtop - 1.0), "RFID 리더기 (3.3V 전용)", ha="center", va="center", fontsize=5.2,
+    ax.text(rx + rw / 2, Y(rtop + rh + 1.2), "RFID 리더기 (3.3V 전용 · RST 도 3.3V 레일)", ha="center", va="center", fontsize=5.2,
             color="#1f3864", fontweight="bold", zorder=14, bbox=BOX)
     rc = {}
     names = ("3.3V", "RST", "GND", "IRQ", "MISO", "MOSI", "SCK", "SDA")
@@ -321,7 +317,7 @@ def draw_breadboard():
         pin_label(rx + rw - 0.4, y, nm, "right", color="white", fs=4.4)
         rc[nm] = (rx + rw + 1.0, y)
     ax.text(rx + rw + 1.4, rc["IRQ"][1], "비움", ha="left", va="center", fontsize=4.4, color="#5b616e", zorder=14)
-    rcol = {"3.3V": W_3V3, "RST": C["RST"], "GND": W_BLK, "MISO": C["MISO"], "MOSI": C["MOSI"], "SCK": C["SCK"], "SDA": C["SS"]}
+    rcol = {"3.3V": W_3V3, "RST": W_3V3, "GND": W_BLK, "MISO": C["MISO"], "MOSI": C["MOSI"], "SCK": C["SCK"], "SDA": C["SS"]}
     k = 0
     for nm in names:
         if nm == "IRQ":
@@ -340,13 +336,14 @@ def draw_breadboard():
         ("★ 조이스틱 「+5V」 핀은 3.3V 레일에 — 5V 를 넣으면 Pico ADC(최대 3.3V)를 넘습니다.", W_3V3),
         ("★ RC522 는 3.3V 전용 — 5V 에 꽂으면 망가질 수 있습니다.", W_3V3),
         ("★ 스텝모터 · LCD 는 외부 5V(어댑터). GND 는 Pico · 어댑터 · 모든 모듈 공통.", "#b3261e"),
-        ("★ LCD 의 SDA · SCL 은 레벨 변환을 거쳐서(5V 풀업 → Pico 보호). 제품마다 핀 인쇄 순서를 확인.", "#b3261e"),
+        ("★ LCD 의 SDA · SCL 은 레벨 변환을 거쳐서(5V 풀업 → Pico 보호). 모듈은 HV 가 왼쪽이 되게 180° 돌려 꽂기.", "#b3261e"),
+        ("★ 레벨 변환 핀 두 줄 사이가 브레드보드 4칸이면 D 대신 E 열에 — 같은 행이면 연결은 같습니다.", "#b3261e"),
         ("★ 전원 순서: 켤 때 USB 먼저 → 어댑터, 끌 때 · 선 바꿀 때 어댑터 먼저.", "#b3261e"),
     ]
     for i, (t, col) in enumerate(notes):
         ax.text(19.0, Y(42.0 + i * 1.9), t, ha="left", va="center", fontsize=5.6, color=col, fontweight="bold")
-    rows = [("GP4 · GP5", "LCD SDA · SCL (레벨 변환)"), ("GP10~GP13", "ULN2003 IN1~IN4"), ("GP26 · GP27 · GP22", "조이스틱 VRx · VRy · SW"),
-            ("GP16 · GP17 · GP18 · GP19 · GP20", "RC522 MISO · SDA · SCK · MOSI · RST")]
+    rows = [("GP16 · GP17", "LCD SDA · SCL (레벨 변환)"), ("GP10~GP13", "ULN2003 IN1~IN4"), ("GP26 · GP27 · GP22", "조이스틱 VRx · VRy · SW"),
+            ("GP18 · GP19 · GP20 · GP21", "RC522 SCK · MOSI · MISO · SDA (RST → 3.3V)")]
     ax.text(19.0, Y(53.6), "핀", ha="left", va="center", fontsize=7, fontweight="bold", color="#1f3864")
     for i, (a, b) in enumerate(rows):
         ax.text(19.0, Y(55.6 + i * 1.8), a, ha="left", va="center", fontsize=5.8, fontweight="bold")
@@ -410,8 +407,8 @@ def draw_schematic():
     ax.add_patch(FancyBboxPatch((px0, py0), px1 - px0, py1 - py0, boxstyle="round,pad=0.1,rounding_size=0.8",
                                 fc="#e8f2ec", ec="#1f6b4e", lw=1.6, zorder=2))
     text(50, 21.5, "Raspberry Pi\nPico 2 W", fontsize=8.4, fontweight="bold", color="#1f6b4e", linespacing=1.4)
-    L = {"GP4": 56, "GP5": 53, "GP10": 44, "GP11": 41, "GP12": 38, "GP13": 35, "GND ": 17}
-    R = {"3V3": 57, "GP26": 52, "GP27": 49, "GP22": 46, "GP20": 39, "GP19": 36, "GP18": 33, "GP17": 30, "GP16": 27, "GND": 17}
+    L = {"GP16": 56, "GP17": 53, "GP10": 44, "GP11": 41, "GP12": 38, "GP13": 35, "GND ": 17}
+    R = {"3V3": 57, "GP26": 52, "GP27": 49, "GP22": 46, "GP21": 36, "GP18": 33, "GP19": 30, "GP20": 27, "GND": 17}
     for n, y in L.items():
         pin(px0, y, n.strip(), "r")
     for n, y in R.items():
@@ -435,7 +432,7 @@ def draw_schematic():
     # 레벨 변환 안 (한 채널 원리)
     ax.add_patch(Rectangle((24.0, 49.2), 6.0, 0.01, fc="none"))
     text(27, 58.6, "N-MOSFET + 풀업\n양쪽 10kΩ", fontsize=5.0, color="#8a909c", linespacing=1.2)
-    text(27, 45.4, "실물: 왼쪽 LV · 오른쪽 HV (파란 기판)", fontsize=5.0, color="#5b616e")
+    text(27, 45.4, "브레드보드에는 180° 돌려 꽂음 (HV 왼쪽 · 26~31행)", fontsize=5.0, color="#5b616e")
     box(4, 46.6 + 0.6, 15, 60, "LCD 1602 (I2C, PCF8574)")
     for n, y in (("SDA", 56), ("SCL", 53), ("VCC", 50.5)):
         pin(15, y, n, "l")
@@ -491,7 +488,9 @@ def draw_schematic():
 
     # ── ④ RC522 (오른쪽 아래) ──
     box(70, 18, 90, 41, "RFID-RC522 (MFRC522 · SPI)")
-    rcpins = (("RST", 39, 38.5), ("SDA(CS)", 30, 35.5), ("SCK", 33, 32.5), ("MOSI", 36, 29.5), ("MISO", 27, 26.5))
+    pin(70, 38.5, "RST", "r"); line((69.7, 38.5), (66.5, 38.5), color=W_3V3)
+    text(66.2, 38.5, "3.3V", ha="right", fontsize=6.0, color=W_3V3, fontweight="bold")
+    rcpins = (("SDA(CS)", 36, 35.5), ("SCK", 33, 32.5), ("MOSI", 30, 29.5), ("MISO", 27, 26.5))
     rcc = {"RST": C["RST"], "SDA(CS)": C["SS"], "SCK": C["SCK"], "MOSI": C["MOSI"], "MISO": C["MISO"]}
     for k, (n, gy, y) in enumerate(rcpins):
         pin(70, y, n, "r")
@@ -510,8 +509,8 @@ def draw_schematic():
     rows = [("부품", "전압 · 전류", "인터페이스 · 결론"),
             ("조이스틱 D-50", "가변저항 분압 · 수 mA 이하", "ADC(GP26 · 27) + 디지털(GP22). +5V 핀에 3.3V → 출력 0~3.3V"),
             ("28BYJ-48 + ULN2003 D-53", "5V · 약 200~240mA", "IN 4개(3.3V 로 구동 OK). 별도 5V 전원 필요 — Pico 3V3 불가, USB 공유는 리셋 위험"),
-            ("LCD 1602 I2C D-33", "5V · 약 20~30mA(백라이트)", "I2C 0x27/0x3F. 5V 풀업 → 레벨 변환 거쳐 GP4 · GP5"),
-            ("RC522 D-7", "3.3V 전용 · 13~26mA(최대 30)", "SPI0 1MHz. 3V3 직결, 5V 금지")]
+            ("LCD 1602 I2C D-33", "5V · 약 20~30mA(백라이트)", "I2C 0x27/0x3F. 5V 풀업 → 레벨 변환 거쳐 GP16 · GP17"),
+            ("RC522 D-7", "3.3V 전용 · 13~26mA(최대 30)", "SPI0 1MHz. 3V3 직결(RST 도 3.3V), 5V 금지")]
     for i, (a, b, c) in enumerate(rows):
         y = 10.6 - i * 2.0
         fw = "bold" if i == 0 else "normal"

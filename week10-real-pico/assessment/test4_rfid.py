@@ -1,18 +1,18 @@
 # test4_rfid.py — RFID-RC522 만 시험 (code.py 로 저장해서 실행, 같은 폴더에 mfrc522_lite.py 필요)
-#   배선: 3.3V → 3V3 (★ 5V 금지),  RST → GP20,  GND → GND,  IRQ → 비움,
-#         MISO → GP16,  MOSI → GP19,  SCK → GP18,  SDA → GP17
+#   배선: 3.3V → 3V3 (★ 5V 금지),  RST → 3.3V 레일(항상 켜짐),  GND → GND,  IRQ → 비움,
+#         MISO → GP20,  MOSI → GP19,  SCK → GP18,  SDA → GP21
 #   카드나 키태그를 리더기 가운데(원 무늬)에 1~3cm 로 대면 번호가 나옵니다.
 import time
 import board
 import busio
 from mfrc522_lite import MFRC522, uid_hex
 
-spi = busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP16)
-rfid = MFRC522(spi, cs=board.GP17, rst=board.GP20)
+spi = busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP20)
+rfid = MFRC522(spi, cs=board.GP21)          # RST 는 3.3V 에 — 시작할 때 소프트 리셋
 v = rfid.version()
 print("RC522 버전 레지스터: 0x%02X" % v, "(0x91 · 0x92 = 정품, 그 밖의 값 = 호환 칩일 수 있음)")
 if v in (0x00, 0xFF):
-    print("[실패] RC522 가 응답하지 않습니다 — 3.3V · GND, SCK=GP18 · MOSI=GP19 · MISO=GP16 · SDA=GP17 확인")
+    print("[실패] RC522 가 응답하지 않습니다 — 3.3V · GND, SCK=GP18 · MOSI=GP19 · MISO=GP20 · SDA=GP21 · RST=3.3V 확인")
     while True:
         time.sleep(1)
 print("카드를 대 보세요")

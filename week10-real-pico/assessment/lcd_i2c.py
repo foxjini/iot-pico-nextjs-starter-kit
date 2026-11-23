@@ -6,7 +6,7 @@
 #   쓰는 법
 #     import board, busio
 #     from lcd_i2c import LCD
-#     i2c = busio.I2C(scl=board.GP5, sda=board.GP4, frequency=100_000)
+#     i2c = busio.I2C(scl=board.GP17, sda=board.GP16, frequency=100_000)
 #     lcd = LCD(i2c)            # 주소 자동
 #     lcd.print_at(0, 0, "Hello Pico")
 #

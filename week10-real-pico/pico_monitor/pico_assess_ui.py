@@ -34,8 +34,8 @@ CHIPS = ["연결", "코드", "LCD", "RC522", "조이스틱 가운데", "버튼",
 GUIDE = {
     "LCD": ("✖ LCD 를 찾지 못했습니다 (I2C 주소 응답 없음)", [
         "① LCD 모듈: VCC → 외부 5V(왼쪽 빨강 레일), GND → GND",
-        "② 레벨 변환(파란 기판): 왼쪽 LV → 3.3V 레일, 오른쪽 HV → 5V 레일, 오른쪽 GND → GND",
-        "③ 신호: GP4 → LV1, HV1 → LCD SDA / GP5 → LV2, HV2 → LCD SCL — SDA · SCL 이 바뀌지 않았는지",
+        "② 레벨 변환(파란 기판, 글씨가 거꾸로 보이게 26~31행): 왼쪽 HV → 5V 레일 · GND, 오른쪽 LV → 3.3V 레일 · GND",
+        "③ 신호: GP16 → LV1, HV1 → LCD SDA / GP17 → LV2, HV2 → LCD SCL — SDA · SCL 이 바뀌지 않았는지",
         "④ 외부 5V 어댑터가 켜져 있는지 (LCD · 레벨 변환 HV 가 여기서 전원을 받습니다)",
         "⑤ 고친 뒤 Pico 를 다시 시작(Ctrl+D 또는 USB 다시 꽂기) — 주소는 시작할 때만 찾습니다",
     ]),
@@ -44,14 +44,14 @@ GUIDE = {
         "② 백라이트가 꺼져 있으면 뒷면 백라이트 점퍼가 꽂혀 있는지",
     ]),
     "RC522": ("✖ RC522 가 응답하지 않습니다", [
-        "① 전원: 3.3V → 3.3V 레일(5V 금지!), GND → GND",
-        "② SPI: SCK → GP18, MOSI → GP19, MISO → GP16, SDA(CS) → GP17, RST → GP20, IRQ 비움",
+        "① 전원: 3.3V · RST → 3.3V 레일(5V 금지!), GND → GND",
+        "② SPI: SCK → GP18, MOSI → GP19, MISO → GP20, SDA(CS) → GP21, IRQ 비움",
         "③ 모듈 핀머리를 납땜했는지 — 꽂기만 하면 접촉이 불안정합니다",
         "④ 고친 뒤 Pico 를 다시 시작(Ctrl+D 또는 USB 다시 꽂기)",
     ]),
     "RC522_VER": ("⚠ RC522 버전이 0x91 · 0x92 가 아닙니다", [
         "· 0x12 · 0xB2 · 0x88 은 호환 칩입니다 — 대부분 그대로 동작합니다. 카드를 대서 번호가 나오면 정상",
-        "· 0x00 · 0xFF 처럼 나오면 MISO(GP16) 연결과 3.3V 를 확인하세요",
+        "· 0x00 · 0xFF 처럼 나오면 MISO(GP20) 연결과 3.3V 를 확인하세요",
     ]),
     "JOY": ("✖ 조이스틱 가운데 값이 이상합니다", [
         "① 조이스틱 「+5V」 핀 → 3.3V 레일 (5V 레일이면 ADC 한계를 넘습니다)",
@@ -271,8 +271,8 @@ class AssessApp:
     def _statusbar(self):
         bar = tk.Frame(self.root, bg=C_CARD, highlightbackground=C_LINE, highlightthickness=1)
         bar.pack(side="bottom", fill="x")
-        tk.Label(bar, text="LCD GP4 SDA · GP5 SCL(레벨 변환) · 모터 GP10~13 · 조이스틱 GP26 · GP27 · GP22 · "
-                           "RC522 GP16~20", font=self.f["s"], bg=C_CARD, fg=C_FAINT).pack(side="right", padx=14, pady=4)
+        tk.Label(bar, text="LCD GP16 SDA · GP17 SCL(레벨 변환) · 모터 GP10~13 · 조이스틱 GP26 · GP27 · GP22 · "
+                           "RC522 GP18~21", font=self.f["s"], bg=C_CARD, fg=C_FAINT).pack(side="right", padx=14, pady=4)
 
     # ── 연결 ────────────────────────────────────────────────────────
     def refresh_ports(self):

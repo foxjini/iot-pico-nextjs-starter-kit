@@ -20,8 +20,8 @@
 #   핀
 #     조이스틱  VRx GP26 · VRy GP27 · SW GP22 · +5V 핀 ← 3V3(★)
 #     스텝모터  ULN2003 IN1~IN4 = GP10 · GP11 · GP12 · GP13 · + ← 외부 5V
-#     LCD      I2C0 SDA GP4 · SCL GP5 (레벨 변환 거쳐서) · VCC ← 외부 5V
-#     RFID     SPI0 SCK GP18 · MOSI GP19 · MISO GP16 · SDA(CS) GP17 · RST GP20 · 3.3V ← 3V3(★ 5V 금지)
+#     LCD      I2C0 SDA GP16 · SCL GP17 (브레드보드에 꽂은 레벨 변환 거쳐서) · VCC ← 외부 5V
+#     RFID     SPI0 SCK GP18 · MOSI GP19 · MISO GP20 · SDA(CS) GP21 · RST · 3.3V ← 3V3(★ 5V 금지)
 
 import json
 import sys
@@ -79,23 +79,23 @@ def show(line1, line2):
 
 
 try:
-    lcd = LCD(busio.I2C(scl=board.GP5, sda=board.GP4, frequency=100_000))
+    lcd = LCD(busio.I2C(scl=board.GP17, sda=board.GP16, frequency=100_000))
     print("[준비] LCD 주소", hex(lcd.address))
 except Exception as e:      # noqa: BLE001 — 어떤 이유든 LCD 없이 계속
-    print("[준비] LCD 를 못 찾음 — SDA=GP4 · SCL=GP5 · 레벨 변환(LV=3V3, HV=5V) · LCD VCC=5V · GND 공통 확인:", e)
+    print("[준비] LCD 를 못 찾음 — SDA=GP16 · SCL=GP17 · 레벨 변환(HV 왼쪽=5V, LV 오른쪽=3V3) · LCD VCC=5V · GND 공통 확인:", e)
 show("Tap RFID card", "Joystick: motor")
 
 rfid = None
 rc_ver = 0
 try:
-    rfid = MFRC522(busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP16), cs=board.GP17, rst=board.GP20)
+    rfid = MFRC522(busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP20), cs=board.GP21)   # RST 는 3.3V 레일
     rc_ver = rfid.version()
     if rc_ver in (0x00, 0xFF):
         raise OSError("버전 레지스터 0x%02X" % rc_ver)
     print("[준비] RC522 버전 0x%02X" % rc_ver)
 except Exception as e:      # noqa: BLE001
     rfid = None
-    print("[준비] RC522 응답 없음 — 3.3V(5V 금지) · GND · SCK=GP18 · MOSI=GP19 · MISO=GP16 · SDA=GP17 · RST=GP20 확인:", e)
+    print("[준비] RC522 응답 없음 — 3.3V(5V 금지) · GND · SCK=GP18 · MOSI=GP19 · MISO=GP20 · SDA=GP21 · RST=3.3V 확인:", e)
 
 time.sleep(0.3)
 cx = sum(vrx.value for _ in range(32)) // 32           # 켜질 때 조이스틱을 건드리지 않은 값 = 가운데

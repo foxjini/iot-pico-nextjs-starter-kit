@@ -6,8 +6,8 @@
 #   쓰는 법
 #     import board, busio
 #     from mfrc522_lite import MFRC522
-#     spi = busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP16)
-#     rfid = MFRC522(spi, cs=board.GP17, rst=board.GP20)
+#     spi = busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP20)
+#     rfid = MFRC522(spi, cs=board.GP21)   # RST 핀을 3.3V 에 이으면 rst 생략 (init 에서 소프트 리셋)
 #     print(hex(rfid.version()))        # 0x91 · 0x92 = 정품, 0x00 · 0xFF = 연결 안 됨
 #     uid = rfid.read_uid()             # 카드가 없으면 None, 있으면 4바이트 bytes
 #

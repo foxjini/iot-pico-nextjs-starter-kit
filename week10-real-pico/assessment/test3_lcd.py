@@ -1,5 +1,5 @@
 # test3_lcd.py — I2C LCD 만 시험 (code.py 로 저장해서 실행, 같은 폴더에 lcd_i2c.py 필요)
-#   배선: Pico GP4 → 레벨 변환 LV1 → HV1 → LCD SDA,  GP5 → LV2 → HV2 → LCD SCL
+#   배선: Pico GP16 → 레벨 변환 LV1 → HV1 → LCD SDA,  GP17 → LV2 → HV2 → LCD SCL
 #         레벨 변환 LV → 3V3, HV → 외부 5V, GND → GND.  LCD VCC → 외부 5V, GND → GND
 #   글자가 안 보이고 네모만 보이면 LCD 뒤 파란 가변저항을 드라이버로 돌려 대비를 맞추세요.
 import time
@@ -7,7 +7,7 @@ import board
 import busio
 from lcd_i2c import LCD, find_address
 
-i2c = busio.I2C(scl=board.GP5, sda=board.GP4, frequency=100_000)
+i2c = busio.I2C(scl=board.GP17, sda=board.GP16, frequency=100_000)
 while not i2c.try_lock():
     pass
 found = i2c.scan()
