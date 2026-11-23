@@ -40,7 +40,7 @@ OFFBOARD = [
     # LCD (뒷면 I2C 모듈) · 레벨 변환
     ("LCD", "VCC", ("L+", 9)), ("LCD", "GND", ("L-", 10)),
     ("LS", "HV", ("L+", 23)), ("LS", "GND", ("L-", 24)),
-    ("LS", "LV", ("R+", 2)),
+    ("LS", "LV", ("R+", 29)),
     ("LS", "LV1", ("B", 6)), ("LS", "LV2", ("B", 7)),
     # 스텝모터 드라이버
     ("ULN", "IN1", ("B", 14)), ("ULN", "IN2", ("B", 15)), ("ULN", "IN3", ("B", 16)), ("ULN", "IN4", ("B", 17)),
@@ -187,36 +187,42 @@ def draw_breadboard():
     route([lcd_pins["VCC"], (-11.0, lcd_pins["VCC"][1]), (-11.0, Y(9)), to("LCD", "VCC")], W_5V)
     route([lcd_pins["GND"], (-10.0, lcd_pins["GND"][1]), (-10.0, Y(10)), to("LCD", "GND")], W_BLK)
 
-    # ── 레벨 변환 (BSS138 4채널) — 왼쪽 HV(5V) · 오른쪽 LV(3.3V) ──
-    sx, stop_, sw_, sh = -12.6, 18.0, 5.6, 9.4
+    # ── 레벨 변환 — 엘레파츠 CJMCU 4채널(BSS138), 사진과 같은 방향: 파란 기판 · 왼쪽 LV(3.3V) · 오른쪽 HV(5V) ──
+    sx, stop_, sw_, sh = -12.6, 19.0, 5.6, 9.4
     ax.add_patch(FancyBboxPatch((sx, Y(stop_ + sh)), sw_, sh, boxstyle="round,pad=0.02,rounding_size=0.2",
-                                fc="#c62828", ec="#7a1a14", lw=1.0, zorder=10))
-    ax.text(sx + sw_ / 2, Y(stop_ + 0.9), "레벨 변환", ha="center", va="center", fontsize=5.2,
-            color="white", fontweight="bold", zorder=14)
+                                fc="#1d4e89", ec="#0c2a4d", lw=1.0, zorder=10))
+    ax.text(sx + sw_ / 2, Y(stop_ + sh + 2.6), "레벨 변환 CJMCU (파란 기판)", ha="center", va="center", fontsize=5.0,
+            color="#1f3864", fontweight="bold", zorder=14, bbox=BOX)
+    ax.text(sx + 1.2, Y(stop_ + 0.8), "LV 3.3V", ha="center", va="center", fontsize=3.6, color="white", fontweight="bold", zorder=14)
+    ax.text(sx + sw_ - 1.2, Y(stop_ + 0.8), "HV 5V", ha="center", va="center", fontsize=3.6, color="white", fontweight="bold", zorder=14)
     ls_pins = {}
-    for k, (hv, lv) in enumerate((("HV1", "LV1"), ("HV2", "LV2"), ("HV", "LV"), ("GND", "GND "), ("HV3", "LV3"), ("HV4", "LV4"))):
+    rows = (("LV1", "HV1"), ("LV2", "HV2"), ("LV", "HV"), ("GND ", "GND"), ("LV3", "HV3"), ("LV4", "HV4"))
+    for k, (lv, hv) in enumerate(rows):
         y = Y(stop_ + 2.2 + k * 1.25)
-        for side, nm in ((-1, hv), (1, lv)):
+        for side, nm in ((-1, lv), (1, hv)):
             x0 = sx if side < 0 else sx + sw_
             ax.plot([x0, x0 + side * 0.8], [y, y], color="#c9a227", lw=1.6, zorder=12)
             pin_label(x0 - side * 0.3, y, nm.strip(), "left" if side < 0 else "right", color="white", fs=4.4)
             ls_pins[nm] = (x0 + side * 0.8, y)
-    ax.text(sx + sw_ / 2, Y(30.3), "5V 쪽 │ 3.3V 쪽", ha="center", va="center", fontsize=4.6,
-            color="#5b616e", zorder=14)
-    # LCD SDA·SCL → HV1·HV2
-    for nm, hv, lane in (("SDA", "HV1", -15.9), ("SCL", "HV2", -15.1)):
+    for k in (0, 1, 4, 5):                                        # BSS138 칩 4개 (채널마다 하나)
+        y = Y(stop_ + 2.2 + k * 1.25)
+        ax.add_patch(Rectangle((sx + sw_ / 2 - 0.45, y - 0.35), 0.9, 0.7, fc="#16181d", ec="#000", lw=0.4, zorder=12))
+    ax.text(sx + sw_ / 2, Y(stop_ + 2.2 + 2.6), "BSS138", ha="center", va="center", fontsize=3.4, color="#cfe0f5", zorder=12)
+    # LCD SDA·SCL → 오른쪽 HV1·HV2 (모듈 위로 넘어가서 오른쪽에서 들어감 — 서로 겹치지 않게)
+    for nm, hv, lane, over, side_lane in (("SDA", "HV1", -15.9, 18.5, -5.6), ("SCL", "HV2", -15.1, 18.0, -5.0)):
         p, q = lcd_pins[nm], ls_pins[hv]
-        route([p, (lane, p[1]), (lane, q[1]), q], C[nm])
-    # HV → 5V, GND → GND (왼쪽 레일까지 아래로 돌아서)
-    p = ls_pins["HV"]; route([p, (p[0] - 0.7, p[1]), (p[0] - 0.7, Y(28.0)), (-6.5, Y(28.0)), (-6.5, to("LS", "HV")[1]), to("LS", "HV")], W_5V)
-    p = ls_pins["GND"]; route([p, (p[0] - 1.4, p[1]), (p[0] - 1.4, Y(29.0)), (-5.8, Y(29.0)), (-5.8, to("LS", "GND")[1]), to("LS", "GND")], W_BLK)
-    # LV1·LV2 → GP4·GP5,  LV → 3.3V (보드 위쪽을 넘어 오른쪽 레일)
-    for nm, lane in (("LV1", -6.6), ("LV2", -5.9)):
+        route([p, (lane, p[1]), (lane, Y(over)), (side_lane, Y(over)), (side_lane, q[1]), q], C[nm])
+    # HV → 외부 5V 레일, GND → GND 레일 (오른쪽으로 바로)
+    p = ls_pins["HV"]; route([p, (-5.0, p[1]), (-5.0, to("LS", "HV")[1]), to("LS", "HV")], W_5V)
+    p = ls_pins["GND"]; route([p, (-5.4, p[1]), (-5.4, to("LS", "GND")[1]), to("LS", "GND")], W_BLK)
+    # LV1·LV2 → GP4·GP5 : 왼쪽에서 나와 모듈 아래로 돌아 레일 오른쪽 틈으로 올라감
+    for nm, lane, bottom, up in (("LV1", -14.6, 29.9, -1.45), ("LV2", -14.0, 29.4, -0.9)):
         p, q = ls_pins[nm], to("LS", nm)
-        route([p, (lane, p[1]), (lane, q[1]), q], C["SDA" if nm == "LV1" else "SCL"])
+        route([p, (lane, p[1]), (lane, Y(bottom)), (up, Y(bottom)), (up, q[1]), q], C["SDA" if nm == "LV1" else "SCL"])
+    # LV → 3.3V 레일 : 모듈 아래로 돌아 브레드보드 아래쪽(빈 줄)을 가로질러 오른쪽 레일
     p, q = ls_pins["LV"], to("LS", "LV")
-    route([p, (-7.3, p[1]), (-7.3, 3.4), (16.8, 3.4), (16.8, q[1]), q], W_3V3)
-    ax.text(5.5, 3.95, "레벨 변환 LV → 3.3V 레일 (보드 위로 넘어감)", ha="center", va="center", fontsize=4.8,
+    route([p, (-13.6, p[1]), (-13.6, Y(28.9)), (q[0], Y(28.9)), q], W_3V3)
+    ax.text(COL["H"], Y(28.2), "LV → 3.3V 레일", ha="center", va="center", fontsize=4.8,
             color=W_3V3, fontweight="bold", zorder=14, bbox=BOX)
 
     # ── 스텝모터 드라이버 ULN2003 — 사진과 같은 방향(IN 핀 왼쪽, 전원 핀 아래) ──
@@ -414,7 +420,7 @@ def draw_schematic():
     line((px1 + 0.3, 17), (px1 + 2.0, 17)); gnd(px1 + 2.0, 17)
 
     # ── ① I2C LCD + 레벨 변환 (왼쪽 위) ──
-    box(22, 46.8, 32, 60, "레벨 변환 (BSS138)")
+    box(22, 46.8, 32, 60, "레벨 변환 CJMCU 4채널(BSS138)")
     for n, y in (("LV1", 56), ("LV2", 53), ("LV", 50.5)):
         pin(32, y, n, "l")
     for n, y in (("HV1", 56), ("HV2", 53), ("HV", 50.5)):
@@ -429,6 +435,7 @@ def draw_schematic():
     # 레벨 변환 안 (한 채널 원리)
     ax.add_patch(Rectangle((24.0, 49.2), 6.0, 0.01, fc="none"))
     text(27, 58.6, "N-MOSFET + 풀업\n양쪽 10kΩ", fontsize=5.0, color="#8a909c", linespacing=1.2)
+    text(27, 45.4, "실물: 왼쪽 LV · 오른쪽 HV (파란 기판)", fontsize=5.0, color="#5b616e")
     box(4, 46.6 + 0.6, 15, 60, "LCD 1602 (I2C, PCF8574)")
     for n, y in (("SDA", 56), ("SCL", 53), ("VCC", 50.5)):
         pin(15, y, n, "l")
