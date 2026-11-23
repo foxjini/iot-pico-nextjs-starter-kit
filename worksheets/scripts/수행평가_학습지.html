@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>수행평가 학습지</title>
+<!--
+  3차 수행평가 학습지 — A4 가로 2쪽 (make_assess_worksheet.js 가 PDF 로 만듦)
+  1쪽(앞면): 회로도 + 회로 구성 · 전원 · 동작 · 코드 넣기
+  2쪽(뒷면): 배선 연습 도면 (점퍼선 없이 부품만 — draw_assessment_circuit.py 의 연습 도면)
+  핀 · 수치는 week10-real-pico/assessment/code.py · README.md · 수행평가 회로도와 같음. 흑백 인쇄 기준.
+-->
+<style>
+@page { size: A4 landscape; margin: 9mm 10mm 12mm 10mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: "NanumGothic", "Malgun Gothic", "맑은 고딕", sans-serif; font-size: 8.5pt; color: #111; line-height: 1.36; }
+.page { height: 189mm; overflow: hidden; page-break-after: always; position: relative; }
+.page:last-child { page-break-after: auto; }
+h1 { font-size: 15pt; margin: 0; letter-spacing: -.3px; }
+.top { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 2px solid #111; padding-bottom: 1.8mm; }
+.top .sub { font-size: 8.8pt; color: #444; margin-top: .6mm; }
+.who { font-size: 10pt; white-space: nowrap; }
+.who span { display: inline-block; border-bottom: 1px solid #111; min-width: 12mm; margin: 0 3mm 0 1mm; }
+.who span.name { min-width: 30mm; margin-right: 0; }
+.cols { display: flex; gap: 4mm; margin-top: 2.4mm; }
+.left { width: 196mm; flex: none; }
+.right { flex: 1; min-width: 0; }
+.fig { width: 196mm; display: block; border: 1px solid #bbb; border-radius: 1.5mm; }   /* 제목 · 부품 표를 뺀 학습지용 회로도 (글자 1.25배) */
+.row3 { display: flex; gap: 3mm; margin-top: 2mm; }
+.row3 > .sec { flex: 1; margin-top: 0; }
+dl.parts { margin: 0; }
+dl.parts dt { font-weight: 700; margin-top: .9mm; border-top: 1px solid #ddd; padding-top: .6mm; }
+dl.parts dt:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+dl.parts .pw { float: right; font-weight: 400; color: #333; }
+dl.parts dd { margin: 0; }
+.sec { margin-top: 2mm; border: 1px solid #999; border-radius: 2mm; padding: 1.6mm 2.4mm; }
+.right .sec:first-child { margin-top: 0; }
+.sec > h2 { font-size: 10.6pt; margin: 0 0 1.2mm; }
+.sec > h2 .n { display: inline-block; width: 5.6mm; height: 5.6mm; line-height: 5.6mm; text-align: center; border-radius: 1mm; background: #111; color: #fff; font-size: 9pt; margin-right: 1.6mm; vertical-align: 0.3mm; }
+.sec > h2 small { font-weight: 400; color: #555; font-size: 8.2pt; margin-left: 1.6mm; }
+table { border-collapse: collapse; width: 100%; font-size: 8pt; line-height: 1.25; }
+th, td { border: 1px solid #888; padding: .5mm 1.2mm; text-align: left; vertical-align: top; }
+th { background: #EDEDED; font-weight: 700; }
+ul { margin: 0; padding-left: 4.2mm; }
+li { margin: .3mm 0; }
+.warn { color: #B3261E; font-weight: 700; }
+.flow { display: flex; align-items: center; gap: 1.2mm; margin: .6mm 0 .6mm; flex-wrap: wrap; font-size: 8pt; }
+.flow .b { border: 1.2px solid #111; border-radius: 1.2mm; padding: .2mm 1.4mm; font-weight: 700; background: #fff; white-space: nowrap; }
+.flow .a { font-weight: 700; }
+.two { display: flex; gap: 4mm; }
+.two > div { flex: 1; }
+code { font-family: "D2Coding", "Consolas", monospace; font-size: 8.4pt; background: #F1F1F1; padding: 0 .8mm; border-radius: .6mm; }
+.tip { font-size: 8pt; color: #555; }
+.p2 .line { font-size: 9.4pt; margin-bottom: 1.6mm; }
+.p2 img { display: block; margin: 0 auto; height: 180mm; }
+</style>
+</head>
+<body>
+
+<!-- ════════════ 1쪽 (앞면) ════════════ -->
+<div class="page">
+  <div class="top">
+    <div>
+      <h1>3차 수행평가 — 조이스틱 · 스텝모터 · LCD · RFID 회로</h1>
+      <div class="sub">조이스틱으로 스텝모터를 돌리고, RFID 카드 번호를 LCD 에 보여 주는 회로 (Raspberry Pi Pico 2 W · CircuitPython)</div>
+    </div>
+    <div class="who">반<span></span>번호<span></span>이름<span class="name"></span></div>
+  </div>
+
+  <div class="cols">
+    <div class="left">
+      <img class="fig" src="수행평가_회로도_학습지용.png" alt="수행평가 회로도">
+    </div>
+    <div class="right">
+      <div class="sec">
+        <h2><span class="n">1</span>회로 구성<small>부품 · 전원 · Pico 핀</small></h2>
+        <dl class="parts">
+          <dt>조이스틱 <span class="pw">3.3V <span class="warn">★</span></span></dt>
+          <dd>가변저항 2개(X · Y) + 버튼 → VRx <b>GP26</b> · VRy <b>GP27</b> · SW <b>GP22</b></dd>
+          <dt>스텝모터 + ULN2003 <span class="pw">외부 5V</span></dt>
+          <dd>28BYJ-48, 한 바퀴 = 반 스텝 4096 → IN1~IN4 <b>GP10~GP13</b></dd>
+          <dt>LCD 1602 (I2C) <span class="pw">외부 5V</span></dt>
+          <dd>글자 16칸 × 2줄 → SDA <b>GP16</b> · SCL <b>GP17</b> (레벨 변환 거쳐서)</dd>
+          <dt>RFID-RC522 <span class="pw">3.3V <span class="warn">전용</span></span></dt>
+          <dd>카드 번호(UID) 읽기 → SCK <b>GP18</b> · MOSI <b>GP19</b> · MISO <b>GP20</b> · SDA <b>GP21</b> · RST → 3.3V</dd>
+          <dt>레벨 변환 (CJMCU 4채널) <span class="pw">HV 5V · LV 3.3V</span></dt>
+          <dd>5V 신호 ↔ 3.3V 신호. LV1 ↔ GP16, LV2 ↔ GP17, HV1 · HV2 ↔ LCD</dd>
+        </dl>
+        <ul style="margin-top:1.2mm">
+          <li><span class="warn">★ 조이스틱 「+5V」 핀에는 3.3V</span> — 5V 면 출력이 Pico ADC 한계(3.3V)를 넘습니다.</li>
+          <li><b>레벨 변환이 필요한 까닭</b>: LCD 모듈의 풀업 저항이 SDA · SCL 을 5V 까지 올립니다. Pico 핀은 3.3V 용이라 그대로 이으면 위험합니다.</li>
+          <li>레벨 변환 모듈은 브레드보드 <b>26~31행</b>에 가운데 홈을 걸쳐 <b>180° 돌려</b> 꽂습니다 (HV 왼쪽, 글씨 거꾸로).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="row3">
+    <div class="sec">
+      <h2><span class="n">2</span>전원<small>왜 어댑터가 따로 필요할까</small></h2>
+      <ul>
+        <li><b>왼쪽 레일 = 외부 5V 어댑터</b> → 스텝모터 · LCD · 레벨 변환 HV (+ 470μF)</li>
+        <li><b>오른쪽 레일 = Pico 3V3</b> → 조이스틱 · RC522 · 레벨 변환 LV (합계 약 30mA)</li>
+        <li>모터는 5V · 약 200~240mA. USB 하나로 같이 쓰면 전압이 떨어져 Pico 가 다시 시작될 수 있어요.</li>
+        <li><b>GND 는 모두 공통</b> (왼쪽 − 레일과 오른쪽 − 레일을 잇기).</li>
+        <li class="warn">켤 때 USB 먼저 → 어댑터, 끌 때 · 선 바꿀 때 어댑터 먼저.</li>
+      </ul>
+    </div>
+
+    <div class="sec">
+      <h2><span class="n">3</span>어떻게 움직이나<small>code.py 가 하는 일</small></h2>
+      <div class="flow"><span class="b">조이스틱 X</span><span class="a">→</span><span class="b">Pico (GP26 ADC)</span><span class="a">→</span><span class="b">ULN2003</span><span class="a">→</span><span class="b">모터</span></div>
+      <ul>
+        <li>가운데 ±7% 는 <b>정지</b>. 오른쪽 = 시계, 왼쪽 = 반시계. 많이 기울일수록 빨리.</li>
+        <li>놓으면 코일을 꺼서 모터가 뜨거워지지 않게. 버튼(SW) = 지금 위치를 0°.</li>
+      </ul>
+      <div class="flow"><span class="b">카드</span><span class="a">→</span><span class="b">RC522 (SPI)</span><span class="a">→</span><span class="b">Pico</span><span class="a">→</span><span class="b">레벨 변환 (I2C)</span><span class="a">→</span><span class="b">LCD</span></div>
+      <ul>
+        <li>LCD 1줄 「Card UID:」, 2줄 카드 번호 (예: <code>DE AD BE EF</code>). 같은 카드는 한 번만.</li>
+        <li><b>SPI</b> = 선 4개로 빠르게 · <b>I2C</b> = 선 2개에 주소(0x27)로 장치 고르기.</li>
+      </ul>
+    </div>
+
+    <div class="sec">
+      <h2><span class="n">4</span>코드 넣기<small>라이브러리 설치 없음</small></h2>
+      <ul>
+        <li>CIRCUITPY 맨 위에 파일 3개: <code>code.py</code> · <code>lcd_i2c.py</code> · <code>mfrc522_lite.py</code></li>
+        <li><b>따로 설치할 라이브러리가 없습니다</b> — 나머지는 CircuitPython 에 기본으로 들어 있어요. <code>lib</code> 폴더는 그대로 두세요.</li>
+        <li>부품을 하나 꽂을 때마다 <code>test1</code> → <code>test4</code> 를 <code>code.py</code> 로 바꿔 시험한 뒤 통합 <code>code.py</code>.</li>
+        <li>PC 점검: <code>run_assess_ui.bat</code> 더블클릭 → 점검 칸 8개가 모두 ✔ 이면 완성.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 2쪽 (뒷면) ════════════ -->
+<div class="page p2">
+  <div class="line"><b>배선 연습</b> — 앞면 회로도를 보고 점퍼선을 색연필로 그려 넣으세요. 선이 지나가는 구멍(행 · 열)을 정확히 짚어 그립니다.</div>
+  <img src="../수행평가 연습 도면.png" alt="수행평가 배선 연습 도면">
+</div>
+
+</body>
+</html>

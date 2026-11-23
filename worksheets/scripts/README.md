@@ -31,3 +31,12 @@ node gen_week08.js   # → ../8주차_학생워크시트.docx
 
 > `docx` 는 **9.8.1** 로 확인했습니다. 더 낮은 버전에서는 `new Document({ sections: [...] })` 형태가
 > 달라질 수 있습니다. `package.json` 에 적어 두었으니 `npm install` 만 하면 같은 버전이 깔립니다.
+
+## 회로 그림 · PDF 학습지 (Python matplotlib · Playwright)
+
+| 파일 | 출력 |
+|---|---|
+| `draw_extra_circuits.py` | `../추가 회로도 · 추가 배선도 · 추가 연습 도면 .(pdf\|png)` |
+| `make_extra_worksheet.js` (원본 `추가회로_학습지.html`) | `../추가회로 학습지.pdf` · `(정답).pdf` |
+| `draw_assessment_circuit.py` | `../수행평가 회로도 · 수행평가 배선도 · 수행평가 연습 도면 .(pdf\|png)`, `수행평가_회로도_학습지용.png` |
+| `make_assess_worksheet.js` (원본 `수행평가_학습지.html`) | `../수행평가 학습지.pdf` — A4 가로 2쪽 (앞면 회로도 · 설명, 뒷면 배선 연습). **그림을 먼저 만든 뒤** 실행 |

@@ -13,7 +13,8 @@
 배선도는 부품 다리와 점퍼를 데이터로 들고 있다가 브레드보드 넷을 계산해 회로도의 넷과 **같은지 검사한 뒤에만** 저장한다.
 브레드보드 · Pico 그림과 넷 계산은 draw_extra_circuits.py 의 것을 그대로 쓴다.
 
-  python3 draw_assessment_circuit.py  →  worksheets/수행평가 회로도.(pdf|png), worksheets/수행평가 배선도.(pdf|png)
+  python3 draw_assessment_circuit.py  →  worksheets/수행평가 회로도 · 수행평가 배선도 · 수행평가 연습 도면 .(pdf|png)
+  연습 도면 = 같은 자리에 부품만 (점퍼 · 연결선 · 핀 강조 · 핀 표 없음) — 학습지 뒷면용
 """
 import os
 import sys
@@ -131,13 +132,14 @@ def check_netlist():
 BOX = dict(fc="white", ec="none", alpha=0.92, pad=1.0)
 
 
-def draw_breadboard():
+def draw_breadboard(practice=False):
+    """practice=True → 연습 도면: 같은 자리에 부품만 두고 점퍼 · 연결선 · 핀 강조 · 핀 표를 뺀다 (학생이 그려 넣음)"""
     fig, ax = plt.subplots(figsize=(11.69, 8.27))
     ax.set_xlim(-46, 62)
     ax.set_ylim(-71, 5.4)
     ax.set_aspect("equal")
     ax.axis("off")
-    board_base(ax, used_pins=USED, used_right_rows=(18,),
+    board_base(ax, highlight=not practice, used_pins=USED, used_right_rows=(18,),
                rail_labels=(("외부 5V", W_5V), ("GND", "#2f6fdb"), ("3.3V (Pico)", W_3V3), ("GND", "#2f6fdb")))
 
     def ends(*pts, color):
@@ -145,6 +147,8 @@ def draw_breadboard():
             ax.add_patch(Circle(p, 0.2, fc=color, ec="white", lw=0.4, zorder=15))
 
     def route(pts, color, lw=1.6):
+        if practice:                       # 연습 도면에는 선을 그리지 않음
+            return
         verts, codes = [pts[0]], [Path.MOVETO]
         for i in range(1, len(pts) - 1):
             (x0, y0), (x1, y1), (x2, y2) = pts[i - 1], pts[i], pts[i + 1]
@@ -177,8 +181,9 @@ def draw_breadboard():
                                 fc="#3b4a6b", ec="#1f2b45", lw=0.8, zorder=10))
     ax.text(RAIL_X["L+"], Y(45.95), "+", ha="center", va="center", fontsize=7, color="white", fontweight="bold", zorder=12)
     ax.text(-6.0, Y(46.0), "470μF", ha="right", va="center", fontsize=5.0, color="#1f3864", fontweight="bold", zorder=12)
-    ax.text(COL["H"], Y(61.0), "공통 GND", ha="center", va="center", fontsize=5.4, color="#b3261e", fontweight="bold",
-            zorder=14, bbox=BOX)
+    if not practice:
+        ax.text(COL["H"], Y(61.0), "공통 GND", ha="center", va="center", fontsize=5.4, color="#b3261e", fontweight="bold",
+                zorder=14, bbox=BOX)
 
     # ── LCD 뒷면 (I2C 모듈) — 핀이 오른쪽 끝 ──
     lx, ltop, lw_, lh = -43.0, 3.0, 26.0, 11.7                        # 80 × 36mm
@@ -273,6 +278,11 @@ def draw_breadboard():
                                 fc="#f7f7f7", ec="#7b838f", lw=1.0, zorder=10))
     ax.text(-18.0, Y(57.0), "외부 5V 어댑터\n(5V 2A)", ha="center", va="center", fontsize=5.4, color="#1f2328",
             fontweight="bold", zorder=12, linespacing=1.3)
+    if practice:                           # 어댑터 출력 단자만 (선은 학생이)
+        for yy, sign in ((55.8, "+"), (58.2, "-")):
+            ax.plot([-13.5, -12.3], [Y(yy), Y(yy)], color="#7b838f", lw=2.0, zorder=11, solid_capstyle="round")
+            ax.add_patch(Circle((-12.3, Y(yy)), 0.25, fc="white", ec="#555", lw=0.6, zorder=12))
+            ax.text(-11.7, Y(yy), sign, ha="left", va="center", fontsize=6.0, fontweight="bold", color="#1f2328")
     route([(-13.5, Y(55.8)), (-8.0, Y(55.8)), (-8.0, Y(56)), to("EXT5V", "+")], W_5V, lw=2.0)
     route([(-13.5, Y(58.2)), (-7.2, Y(58.2)), (-7.2, Y(56.6)), to("EXT5V", "-")], W_BLK, lw=2.0)
 
@@ -329,7 +339,8 @@ def draw_breadboard():
         k += 1
 
     # ── 제목 · 주의 ──
-    ax.text(-45.0, 3.6, "수행평가 배선도", ha="left", va="center", fontsize=13, fontweight="bold", color="#1f3864")
+    ax.text(-45.0, 3.6, "수행평가 배선 연습" if practice else "수행평가 배선도", ha="left", va="center", fontsize=13,
+            fontweight="bold", color="#1f3864")
     ax.text(-45.0, 1.4, "조이스틱 → 스텝모터 · RFID 카드 번호 → LCD  (Pico 2 W)", ha="left", va="center", fontsize=6.4,
             color="#555")
     notes = [
@@ -342,6 +353,22 @@ def draw_breadboard():
     ]
     for i, (t, col) in enumerate(notes):
         ax.text(19.0, Y(42.0 + i * 1.9), t, ha="left", va="center", fontsize=5.6, color=col, fontweight="bold")
+    if practice:
+        ax.text(62.0, 3.6, "학번 ________   이름 ______________", ha="right", va="center", fontsize=8.5, color="#1f2328")
+        ax.text(19.0, Y(53.6), "선 색 약속", ha="left", va="center", fontsize=7, fontweight="bold", color="#1f3864")
+        for i, (col, t) in enumerate(((W_5V, "외부 5V"), (W_3V3, "3.3V"), (W_BLK, "GND"),
+                                      ("#2f6fdb", "신호 (서로 다른 색)"))):
+            x0 = 19.0 + i * 9.6
+            ax.plot([x0, x0 + 2.4], [Y(55.4), Y(55.4)], color=col, lw=2.6, solid_capstyle="round")
+            ax.text(x0 + 3.0, Y(55.4), t, ha="left", va="center", fontsize=5.6)
+        ax.text(19.0, Y(57.6), "다 그린 뒤 확인", ha="left", va="center", fontsize=7, fontweight="bold", color="#1f3864")
+        checks = ("□ Pico 3V3 → 오른쪽 + 레일, GND → - 레일, 왼쪽 - 와 오른쪽 - 레일 잇기",
+                  "□ 어댑터 + → 왼쪽 + 레일(5V), - → 왼쪽 - 레일",
+                  "□ 레벨 변환: HV · LV 전원과 GND 두 곳, LV1 · LV2 → Pico, HV1 · HV2 → LCD",
+                  "□ 조이스틱 5개 · ULN2003 6개 · RC522 7개(IRQ 비움) — 핀 번호는 앞면 회로도")
+        for i, t in enumerate(checks):
+            ax.text(19.0, Y(59.4 + i * 1.7), t, ha="left", va="center", fontsize=5.6)
+        return fig
     rows = [("GP16 · GP17", "LCD SDA · SCL (레벨 변환)"), ("GP10~GP13", "ULN2003 IN1~IN4"), ("GP26 · GP27 · GP22", "조이스틱 VRx · VRy · SW"),
             ("GP18 · GP19 · GP20 · GP21", "RC522 SCK · MOSI · MISO · SDA (RST → 3.3V)")]
     ax.text(19.0, Y(53.6), "핀", ha="left", va="center", fontsize=7, fontweight="bold", color="#1f3864")
@@ -520,11 +547,32 @@ def draw_schematic():
     return fig
 
 
+def schematic_for_sheet():
+    """학습지 앞면용 회로도 — 제목과 아래 부품 표(학습지 본문과 겹침)를 빼고 글자를 1.25배로 (작게 인쇄돼도 읽히게)"""
+    fig = draw_schematic()
+    ax = fig.axes[0]
+    for t in list(ax.texts):
+        y = t.get_position()[1]
+        if y > 65.2 or y < 12.6:
+            t.remove()
+        elif t.get_color() != "#1f3864" and y < 62.5:  # 상자 제목 · 맨 위 전원 표시는 그대로 (커지면 서로 겹침)
+            t.set_fontsize(t.get_fontsize() * 1.25)
+    for ln in list(ax.lines):                          # 표 위 구분선
+        if max(ln.get_ydata()) < 12.6:
+            ln.remove()
+    ax.set_ylim(12.6, 65.2)
+    return fig
+
+
 if __name__ == "__main__":
     n = check_netlist()
     print(f"넷 {n}개 — 배선도와 회로도가 같습니다")
-    for name, fig in (("수행평가 회로도", draw_schematic()), ("수행평가 배선도", draw_breadboard())):
+    for name, fig in (("수행평가 회로도", draw_schematic()), ("수행평가 배선도", draw_breadboard()),
+                      ("수행평가 연습 도면", draw_breadboard(practice=True))):
         for ext in ("png", "pdf"):
             out = os.path.join(OUT_DIR, f"{name}.{ext}")
             fig.savefig(out, dpi=250, bbox_inches="tight", facecolor="white")
             print("saved", os.path.normpath(out))
+    out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "수행평가_회로도_학습지용.png")
+    schematic_for_sheet().savefig(out, dpi=300, bbox_inches="tight", facecolor="white")
+    print("saved", os.path.normpath(out))
