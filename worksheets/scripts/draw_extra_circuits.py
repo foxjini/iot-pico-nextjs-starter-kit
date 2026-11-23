@@ -179,8 +179,9 @@ def new_sheet():
     return fig, ax
 
 
-def board_base(ax, highlight=True):
-    """브레드보드 · 레일 · 구멍 번호 · Pico (선과 부품 없이). highlight=False 면 쓰는 핀을 강조하지 않음(연습 도면)"""
+def board_base(ax, highlight=True, used_pins=None, used_right_rows=(18,), rail_labels=None):
+    """브레드보드 · 레일 · 구멍 번호 · Pico (선과 부품 없이). highlight=False 면 쓰는 핀을 강조하지 않음(연습 도면).
+    다른 회로가 쓸 때: used_pins = 강조할 핀 이름, used_right_rows = 강조할 오른쪽 GND 행, rail_labels = 레일 아래 이름 4개"""
     ax.add_patch(FancyBboxPatch((-5.4, Y(64.0)), 21.9, 64.0, boxstyle="round,pad=0.25,rounding_size=0.6",
                                 fc="#f4f2ee", ec="#c9c4bc", lw=1.4, zorder=1))
     ax.add_patch(Rectangle((4.55, Y(63.7)), 1.9, 63.4, fc="#e0dbd3", ec="none", zorder=2))
@@ -207,8 +208,8 @@ def board_base(ax, highlight=True):
             ax.text(COL[c], Y(rr), c, ha="center", va="center", fontsize=5, color="#6b6660", zorder=4)
     for r in range(1, NROWS + 1, 5):
         ax.text(COL["A"] - 1.1, Y(r), str(r), ha="right", va="center", fontsize=5, color="#6b6660", zorder=4)
-    for x, t, col in ((RAIL_X["L+"] - 0.3, "외부 5V", W_5V), (RAIL_X["L-"] + 0.7, "GND", "#2f6fdb"),
-                      (RAIL_X["R+"] - 0.3, "(안 씀)", "#999"), (RAIL_X["R-"] + 0.7, "GND", "#2f6fdb")):
+    labels = rail_labels or (("외부 5V", W_5V), ("GND", "#2f6fdb"), ("(안 씀)", "#999"), ("GND", "#2f6fdb"))
+    for x, (t, col) in zip((RAIL_X["L+"] - 0.3, RAIL_X["L-"] + 0.7, RAIL_X["R+"] - 0.3, RAIL_X["R-"] + 0.7), labels):
         ax.text(x, Y(66.2), t, ha="center", va="center", fontsize=6, color=col, fontweight="bold",
                 rotation=90, zorder=4)
 
@@ -218,14 +219,14 @@ def board_base(ax, highlight=True):
     ax.add_patch(FancyBboxPatch((4.35, Y(0.1)), 2.3, 1.05, boxstyle="round,pad=0.04,rounding_size=0.15",
                                 fc="#c8ccd0", ec="#8f959b", lw=0.8, zorder=7))
     ax.text(5.5, Y(-1.3), "USB", ha="center", va="center", fontsize=5.5, color="#666")
-    used = {"GP10", "GP11", "GP13", "GP22"} if highlight else set()
+    used = (set(used_pins) if used_pins is not None else {"GP10", "GP11", "GP13", "GP22"}) if highlight else set()
     for i in range(20):
         for cx in (COL["C"], COL["H"]):
             ax.add_patch(Circle((cx, Y(i + 1)), 0.30, fc="#e8c15a", ec="#9c7b1f", lw=0.5, zorder=8))
         ln, rn = LEFT[i], RIGHT[i]
         ax.text(COL["C"] + 0.5, Y(i + 1), ln, ha="left", va="center", fontsize=4.1, zorder=9,
                 color="#ffe066" if ln in used else "#bcd8cb", fontweight="bold" if ln in used else "normal")
-        hl = rn in used or (highlight and rn == "GND" and i + 1 == 18)
+        hl = rn in used or (highlight and rn in ("GND", "AGND") and i + 1 in used_right_rows)
         ax.text(COL["H"] - 0.5, Y(i + 1), rn, ha="right", va="center", fontsize=4.1, zorder=9,
                 color="#ffe066" if hl else "#bcd8cb", fontweight="bold" if hl else "normal")
     ax.text(5.5, Y(10.5), "Raspberry Pi Pico 2 W", ha="center", va="center", rotation=90, fontsize=5.4,
