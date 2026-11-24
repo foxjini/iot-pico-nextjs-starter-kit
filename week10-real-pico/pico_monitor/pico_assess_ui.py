@@ -37,7 +37,7 @@ GUIDE = {
         "② 레벨 변환(파란 기판, 글씨가 거꾸로 보이게 26~31행): 왼쪽 HV → 5V 레일 · GND, 오른쪽 LV → 3.3V 레일 · GND",
         "③ 신호: GP16 → LV1, HV1 → LCD SDA / GP17 → LV2, HV2 → LCD SCL — SDA · SCL 이 바뀌지 않았는지",
         "④ 외부 5V 어댑터가 켜져 있는지 (LCD · 레벨 변환 HV 가 여기서 전원을 받습니다)",
-        "⑤ 고친 뒤 Pico 를 다시 시작(Ctrl+D 또는 USB 다시 꽂기) — 주소는 시작할 때만 찾습니다",
+        "⑤ 고쳐 꽂으면 Pico 가 3초 안에 저절로 다시 찾습니다. 그래도 안 되면 위의 「Pico 재시작」",
     ]),
     "LCD_BLANK": ("⚠ LCD 는 응답하지만 글자가 안 보이면", [
         "① 뒷면 파란 가변저항(대비)을 드라이버로 천천히 돌리기 — 네모 칸만 보이거나 아무것도 안 보일 때",
@@ -47,7 +47,7 @@ GUIDE = {
         "① 전원: 3.3V · RST → 3.3V 레일(5V 금지!), GND → GND",
         "② SPI: SCK → GP18, MOSI → GP19, MISO → GP20, SDA(CS) → GP21, IRQ 비움",
         "③ 모듈 핀머리를 납땜했는지 — 꽂기만 하면 접촉이 불안정합니다",
-        "④ 고친 뒤 Pico 를 다시 시작(Ctrl+D 또는 USB 다시 꽂기)",
+        "④ 고쳐 꽂으면 Pico 가 3초 안에 저절로 다시 찾습니다. 그래도 안 되면 위의 「Pico 재시작」",
     ]),
     "RC522_VER": ("⚠ RC522 버전이 0x91 · 0x92 가 아닙니다", [
         "· 0x12 · 0xB2 · 0x88 은 호환 칩입니다 — 대부분 그대로 동작합니다. 카드를 대서 번호가 나오면 정상",
@@ -173,6 +173,12 @@ class AssessApp:
         self.v_desc = tk.Label(txt, text="", font=self.f["n"], bg=LEVEL_BG["idle"], fg=C_SUB, anchor="w", justify="left")
         self.v_desc.pack(fill="x")
         self.v_parts += [txt, self.v_title, self.v_desc]
+        btns = tk.Frame(bar, bg=LEVEL_BG["idle"])
+        btns.pack(side="right", padx=12)
+        self.v_parts.append(btns)
+        FlatButton(btns, "↻ Pico 재시작", self.restart_pico, font=self.f["n"],
+                   tip="Pico 의 code.py 를 처음부터 다시 실행합니다 (Ctrl+D 와 같음). LCD · RC522 를 새로 찾고 "
+                       "조이스틱 가운데도 다시 잽니다 — 누른 뒤 1~2초 동안 조이스틱을 건드리지 마세요").pack(side="right")
         chips = tk.Frame(parent, bg=C_BG)
         chips.pack(fill="x", pady=(8, 0))
         self.chips = {}
@@ -187,7 +193,7 @@ class AssessApp:
             self.chips[name] = (box, head, val)
 
     def _joy_card(self, parent):
-        c = self.card(parent, "① 조이스틱 → 모터 방향 · 속도", padx=(0, 10))
+        c = self.card(parent, "① 조이스틱 → 모터 · LCD 돌리기", padx=(0, 10))
         self.joy_cv = tk.Canvas(c, width=210, height=210, bg=C_CARD, highlightthickness=0)
         self.joy_cv.pack(pady=(8, 4))
         self.joy_val = tk.Label(c, text="X —   Y —", font=self.f["mid"], bg=C_CARD, fg=C_TEXT)
@@ -195,7 +201,8 @@ class AssessApp:
         self.joy_btn = tk.Label(c, text="버튼 —", font=self.f["b"], bg=LEVEL_BG["idle"], fg=LEVEL_FG["idle"],
                                 padx=10, pady=3)
         self.joy_btn.pack(pady=(6, 4))
-        tk.Label(c, text=f"가운데 ±{DEAD}% 는 정지 · 좌우(X)로 모터 방향과 속도 · 버튼 = 지금 위치를 0°",
+        tk.Label(c, text=f"X(좌우) = 모터 방향 · 속도 · Y(위아래) = LCD 카드 표시 돌리기(+ 오른쪽 · - 왼쪽) · "
+                         f"버튼 = LCD 원래대로 + 위치 0° · 가운데 ±{DEAD}% 는 가만히",
                  font=self.f["s"], bg=C_CARD, fg=C_FAINT, wraplength=300, justify="center").pack(padx=10, pady=(0, 12))
 
     def _motor_card(self, parent):
@@ -226,6 +233,8 @@ class AssessApp:
         tk.Label(c, text="마지막 카드", font=self.f["s"], bg=C_CARD, fg=C_SUB).pack(pady=(10, 0))
         self.uid_val = tk.Label(c, text="—", font=self.f["uid"], bg=C_CARD, fg=C_TEXT)
         self.uid_val.pack()
+        self.uid_ascii = tk.Label(c, text="", font=self.f["n"], bg=C_CARD, fg=C_SUB)
+        self.uid_ascii.pack()
         self.uid_time = tk.Label(c, text="카드를 리더기 가운데에 대 보세요", font=self.f["s"], bg=C_CARD, fg=C_FAINT)
         self.uid_time.pack()
         form = tk.Frame(c, bg=C_CARD)
@@ -341,6 +350,16 @@ class AssessApp:
             self.app_line("한 줄은 16자까지입니다 — 넘는 글자는 LCD 에서 잘립니다.")
         self.send(f"LCD {a[:16]}|{b[:16]}")
 
+    def restart_pico(self):
+        if not self.send("RESTART"):
+            return
+        self.app_line("Pico 프로그램을 다시 시작합니다 — LCD · RC522 를 새로 찾고 조이스틱 가운데를 다시 잽니다 "
+                      "(1~2초 동안 조이스틱을 건드리지 마세요).")
+        self.seen_press = self.seen_move = False
+        self.reported.clear()
+        self.card_at = None
+        self.data, self.data_at = None, None
+
     # ── 받기 ────────────────────────────────────────────────────────
     def poll(self):
         changed = False
@@ -390,8 +409,9 @@ class AssessApp:
             return
         if s.startswith("[RFID] 카드 UID:"):
             self.card_at = datetime.datetime.now()
-        tag = "ok" if s.startswith("OK") else "err" if (s.startswith("ERR") or "못 찾음" in s or "응답 없음" in s
-                                                         or "Error" in s or s.startswith("Traceback")) else \
+        tag = "ok" if (s.startswith("OK") or s.startswith("[연결]")) else \
+            "err" if (s.startswith("ERR") or "못 찾음" in s or "응답 없음" in s or "연결이 끊겼습니다" in s
+                      or "Error" in s or s.startswith("Traceback")) else \
             "warn" if s.startswith("[주의]") else ""
         self.add_line(s, tag)
         if "LCD 를 못 찾음" in s:
@@ -428,7 +448,8 @@ class AssessApp:
         out["조이스틱 가운데"] = ("ok" if ok_c else "fail", f"X {cx} · Y {cy}")
         out["버튼"] = ("ok", "눌림 확인") if self.seen_press else ("idle", "한 번 눌러 보기")
         out["모터"] = ("ok", f"돎 · {d.get('angle', 0):.0f}°") if self.seen_move else ("idle", "기울이거나 +90°")
-        out["카드"] = ("ok", d["uid"]) if d.get("uid") else ("idle", "카드 대 보기")
+        out["카드"] = ("ok", d["uid"] + (f" · {d['ascii']}" if d.get("ascii") else "")) if d.get("uid") \
+            else ("idle", "카드 대 보기")
         return out
 
     def watch(self):
@@ -437,6 +458,9 @@ class AssessApp:
         for chip, key in (("LCD", "LCD"), ("RC522", "RC522"), ("조이스틱 가운데", "JOY")):
             if c[chip][0] == "fail":
                 self.report(key)
+            elif c[chip][0] in ("ok", "warn") and key in self.reported:
+                self.reported.discard(key)          # 다시 빠지면 또 안내하도록
+                self.add_line(f"[{key}] ✔ 다시 연결되었습니다 — {c[chip][1]}", "ok")
         if c["RC522"][0] == "warn":
             self.report("RC522_VER")
 
@@ -534,6 +558,10 @@ class AssessApp:
                                       "LCD 를 찾지 못함 — Pico 가 쓰려던 내용만 흐리게 보여 줍니다" if d else ""))
         uid = (d or self.data or {}).get("uid") if self.data else ""
         self.uid_val.configure(text=uid or "—", fg=C_TEXT if uid else C_FAINT)
+        asc = (d or self.data or {}).get("ascii", "") if uid else ""
+        rot = (d or {}).get("rot", 0)
+        self.uid_ascii.configure(text=(f"ASCII  {asc}   (찍을 수 없는 값은 .)" + (f" · LCD 오른쪽으로 {rot}칸 돌림" if rot else ""))
+                                 if uid else "")
         if uid and self.card_at:
             self.uid_time.configure(text=self.card_at.strftime("%H:%M:%S 에 읽음"), fg=C_FAINT)
         elif d and not d.get("rc_ver"):
@@ -555,11 +583,13 @@ class AssessApp:
         cv.create_line(cx, cy - r, cx, cy + r, fill=C_LINE)
         cv.create_text(cx - r + 4, cy - 10, text="◀ 반시계", anchor="w", fill=C_FAINT, font=self.f["s"])
         cv.create_text(cx + r - 4, cy - 10, text="시계 ▶", anchor="e", fill=C_FAINT, font=self.f["s"])
+        cv.create_text(cx + 6, cy - r + 14, text="▲ LCD →", anchor="w", fill=C_FAINT, font=self.f["s"])
+        cv.create_text(cx + 6, cy + r - 14, text="▼ LCD ←", anchor="w", fill=C_FAINT, font=self.f["s"])
         if jx is None:
             return
         x = cx + r * max(-100, min(100, jx)) / 100 * 0.92
         y = cy - r * max(-100, min(100, jy)) / 100 * 0.92
-        col = LEVEL_FG["ok"] if abs(jx) > DEAD else C_TEXT
+        col = LEVEL_FG["ok"] if abs(jx) > DEAD or abs(jy) > DEAD else C_TEXT
         cv.create_line(cx, cy, x, y, fill=col, width=2)
         cv.create_oval(x - 9, y - 9, x + 9, y + 9, fill=col, outline="white", width=2)
 

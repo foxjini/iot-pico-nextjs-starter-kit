@@ -10,6 +10,7 @@
 #     rfid = MFRC522(spi, cs=board.GP21)   # RST 핀을 3.3V 에 이으면 rst 생략 (init 에서 소프트 리셋)
 #     print(hex(rfid.version()))        # 0x91 · 0x92 = 정품, 0x00 · 0xFF = 연결 안 됨
 #     uid = rfid.read_uid()             # 카드가 없으면 None, 있으면 4바이트 bytes
+#     uid_hex(uid), uid_ascii(uid)      # 'DE AD BE EF', 'jp..'(찍을 수 없는 값은 '.')
 #
 #   읽는 것은 UID 1단계(4바이트)입니다 — 함께 들어 있는 흰색 카드 · 키태그(MIFARE Classic 1K)가 여기에 해당합니다.
 
@@ -39,7 +40,18 @@ class MFRC522:
             self.rst.value = True
             time.sleep(0.05)
         self._buf = bytearray(2)
-        self.init()
+        try:
+            self.init()
+        except Exception:
+            self.deinit()                               # 핀을 놓아 두어야 다시 시도할 수 있음
+            raise
+
+    def deinit(self):
+        """CS · RST 핀을 놓습니다 (다시 연결을 시도하기 전에). SPI 는 만든 쪽에서 놓습니다."""
+        for p in (self.cs, self.rst):
+            if p is not None:
+                p.deinit()
+        self.rst = None
 
     # ── SPI 한 바이트 읽기 · 쓰기 ──
     def _lock(self):
@@ -139,3 +151,8 @@ class MFRC522:
 def uid_hex(uid, sep=" "):
     """b'\\xde\\xad\\xbe\\xef' → 'DE AD BE EF'"""
     return sep.join("%02X" % b for b in uid)
+
+
+def uid_ascii(uid):
+    """바이트를 ASCII 글자로. 찍을 수 없는 값(0x20~0x7E 밖)은 '.'  예) 6A 70 F4 BC → 'jp..'"""
+    return "".join(chr(b) if 32 <= b < 127 else "." for b in uid)

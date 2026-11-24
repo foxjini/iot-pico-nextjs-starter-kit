@@ -28,6 +28,7 @@ h1 { font-size: 15pt; margin: 0; letter-spacing: -.3px; }
 .fig { width: 196mm; display: block; border: 1px solid #bbb; border-radius: 1.5mm; }   /* 제목 · 부품 표를 뺀 학습지용 회로도 (글자 1.25배) */
 .row3 { display: flex; gap: 3mm; margin-top: 2mm; }
 .row3 > .sec { flex: 1; margin-top: 0; }
+.row3 > .sec.wide { flex: 1.55; }   /* 「어떻게 움직이나」 가 가장 길어서 넓게 */
 dl.parts { margin: 0; }
 dl.parts dt { font-weight: 700; margin-top: .9mm; border-top: 1px solid #ddd; padding-top: .6mm; }
 dl.parts dt:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
@@ -107,16 +108,17 @@ code { font-family: "D2Coding", "Consolas", monospace; font-size: 8.4pt; backgro
       </ul>
     </div>
 
-    <div class="sec">
+    <div class="sec wide">
       <h2><span class="n">3</span>어떻게 움직이나<small>code.py 가 하는 일</small></h2>
       <div class="flow"><span class="b">조이스틱 X</span><span class="a">→</span><span class="b">Pico (GP26 ADC)</span><span class="a">→</span><span class="b">ULN2003</span><span class="a">→</span><span class="b">모터</span></div>
       <ul>
         <li>가운데 ±7% 는 <b>정지</b>. 오른쪽 = 시계, 왼쪽 = 반시계. 많이 기울일수록 빨리.</li>
-        <li>놓으면 코일을 꺼서 모터가 뜨거워지지 않게. 버튼(SW) = 지금 위치를 0°.</li>
+        <li>놓으면 코일을 꺼서 모터가 뜨거워지지 않게.</li>
       </ul>
       <div class="flow"><span class="b">카드</span><span class="a">→</span><span class="b">RC522 (SPI)</span><span class="a">→</span><span class="b">Pico</span><span class="a">→</span><span class="b">레벨 변환 (I2C)</span><span class="a">→</span><span class="b">LCD</span></div>
       <ul>
-        <li>LCD 1줄 「Card UID:」, 2줄 카드 번호 (예: <code>DE AD BE EF</code>). 같은 카드는 한 번만.</li>
+        <li>LCD 1줄 16진수, 2줄 ASCII. 예) <code>6A 70 F4 BC</code> → 「ASCII: jp..」 (못 찍는 값은 .)</li>
+        <li><b>조이스틱 Y</b> 위 · 아래 = LCD 카드 표시를 오른쪽 · 왼쪽으로 돌리기(전광판, 글자가 사라지지 않음). <b>버튼(SW)</b> = 원래대로 + 모터 위치 0°.</li>
         <li><b>SPI</b> = 선 4개로 빠르게 · <b>I2C</b> = 선 2개에 주소(0x27)로 장치 고르기.</li>
       </ul>
     </div>

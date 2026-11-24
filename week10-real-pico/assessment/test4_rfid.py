@@ -5,7 +5,7 @@
 import time
 import board
 import busio
-from mfrc522_lite import MFRC522, uid_hex
+from mfrc522_lite import MFRC522, uid_hex, uid_ascii
 
 spi = busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP20)
 rfid = MFRC522(spi, cs=board.GP21)          # RST 는 3.3V 에 — 시작할 때 소프트 리셋
@@ -24,6 +24,6 @@ while True:
     now = time.monotonic()
     if uid:
         if uid != shown or now - seen > 1.0:
-            print("카드 UID:", uid_hex(uid))
+            print("카드 UID:", uid_hex(uid), "· ASCII:", uid_ascii(uid))
         shown, seen = uid, now
     time.sleep(0.15)

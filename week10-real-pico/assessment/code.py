@@ -5,8 +5,11 @@
 #
 #   동작
 #     · 조이스틱 X 를 오른쪽으로 → 모터 시계 방향, 왼쪽으로 → 반시계. 많이 기울일수록 빠름. 놓으면 멈추고 코일을 끔
-#     · 조이스틱 버튼(누르기) → 지금 위치를 0° 로
-#     · RFID 카드 · 키태그를 대면 LCD 1줄 「Card UID:」, 2줄에 번호(16진수)
+#     · RFID 카드 · 키태그를 대면 LCD 1줄에 번호(16진수 「6A 70 F4 BC」), 2줄에 ASCII(「ASCII: jp..」, 찍을 수 없는 값은 .)
+#     · 조이스틱 Y 를 + 쪽으로 → LCD 의 카드 표시가 오른쪽으로 한 칸씩 돎(끝으로 나간 글자는 반대쪽에서 다시 나옴),
+#       - 쪽으로 → 왼쪽으로 돎. 많이 기울일수록 빠름
+#     · 조이스틱 버튼(누르기) → LCD 카드 표시를 원래대로 + 지금 모터 위치를 0° 로
+#     · LCD · RC522 가 처음에 안 잡혀도 3초마다 다시 찾음 (선을 고쳐 꽂으면 저절로 연결). 도중에 빠져도 다시 찾음
 #     · 시리얼 모니터: 조이스틱 % · 모터 각도 · 카드 번호.  내장 LED 깜빡임 = 동작 중
 #     · PC 점검 앱(pico_monitor/run_assess_ui.bat)이 읽는 「DATA {...}」 줄을 0.2초마다 보냄
 #
@@ -16,6 +19,7 @@
 #     MOVE +90          지정한 각도만큼 돌고 멈춤 (- 는 반시계)
 #     STOP              바로 멈춤
 #     LCD 글자1|글자2    LCD 두 줄 시험 (영문 · 숫자 · 기호)
+#     RESTART           code.py 를 처음부터 다시 실행 (Ctrl+D 와 같음 — LCD · RC522 · 조이스틱 가운데를 새로 잡음)
 #
 #   핀
 #     조이스틱  VRx GP26 · VRy GP27 · SW GP22 · +5V 핀 ← 3V3(★)
@@ -38,7 +42,7 @@ except ImportError:
     usb_cdc = None
 
 from lcd_i2c import LCD
-from mfrc522_lite import MFRC522, uid_hex
+from mfrc522_lite import MFRC522, uid_hex, uid_ascii
 
 # ── 설정 ──
 DEADZONE = 7            # 가운데 ±7% 는 「가만히」 로 봄 (조이스틱마다 가운데 값이 조금씩 다름)
@@ -47,6 +51,9 @@ SLOW_NS = 8_000_000     # 조금 기울였을 때 8ms
 PC_NS = 2_000_000       # PC 명령(MOVE)으로 돌 때 2ms (≈ 7 rpm)
 STEPS_PER_REV = 4096    # 반 스텝 기준 한 바퀴
 RFID_EVERY_NS = 250_000_000
+RETRY_NS = 3_000_000_000        # 빠진 LCD · RC522 를 다시 찾는 간격 (연결돼 있으면 살아 있는지 확인)
+SHIFT_SLOW_NS = 400_000_000     # 조이스틱 Y 로 LCD 카드 표시를 돌리는 간격 — 조금 기울이면 0.4초
+SHIFT_FAST_NS = 120_000_000     # 끝까지 기울이면 0.12초
 DATA_EVERY_NS = 200_000_000
 PRINT_EVERY_NS = 1_000_000_000
 HALF = ((1, 0, 0, 0), (1, 1, 0, 0), (0, 1, 0, 0), (0, 1, 1, 0),
@@ -67,35 +74,115 @@ for p in (board.GP10, board.GP11, board.GP12, board.GP13):
     c.switch_to_output(value=False)
     coils.append(c)
 
+i2c = spi = None
 lcd = None
 lcd_lines = ["", ""]                            # LCD 에 지금 쓰인 글자 (점검 앱에 똑같이 보여 줌)
+rfid = None
+rc_ver = 0
+
+
+def _free(bus):
+    try:
+        bus.deinit()
+    except Exception:       # noqa: BLE001
+        pass
+
+
+def lcd_lost(e):
+    global lcd, i2c
+    print("[LCD] 연결이 끊겼습니다 — 3초마다 다시 찾습니다:", e)
+    lcd = None
+    if i2c:
+        _free(i2c)
+        i2c = None
 
 
 def show(line1, line2):
     lcd_lines[0], lcd_lines[1] = line1[:16], line2[:16]
     if lcd:
-        lcd.print_at(0, 0, lcd_lines[0])
-        lcd.print_at(0, 1, lcd_lines[1])
+        try:
+            lcd.print_at(0, 0, lcd_lines[0])
+            lcd.print_at(0, 1, lcd_lines[1])
+        except Exception as e:      # noqa: BLE001 — 선이 빠짐
+            lcd_lost(e)
 
 
-try:
-    lcd = LCD(busio.I2C(scl=board.GP17, sda=board.GP16, frequency=100_000))
-    print("[준비] LCD 주소", hex(lcd.address))
-except Exception as e:      # noqa: BLE001 — 어떤 이유든 LCD 없이 계속
-    print("[준비] LCD 를 못 찾음 — SDA=GP16 · SCL=GP17 · 레벨 변환(HV 왼쪽=5V, LV 오른쪽=3V3) · LCD VCC=5V · GND 공통 확인:", e)
-show("Tap RFID card", "Joystick: motor")
+def connect_lcd(first=False):
+    """LCD 를 찾아 초기화합니다. 처음(first)에만 실패를 알리고, 다시 찾을 때는 찾았을 때만 알립니다."""
+    global lcd, i2c
+    try:
+        if i2c is None:
+            i2c = busio.I2C(scl=board.GP17, sda=board.GP16, frequency=100_000)
+        lcd = LCD(i2c)
+    except Exception as e:      # noqa: BLE001 — 어떤 이유든 LCD 없이 계속
+        lcd = None
+        if i2c:
+            _free(i2c)
+            i2c = None
+        if first:
+            print("[준비] LCD 를 못 찾음 — SDA=GP16 · SCL=GP17 · 레벨 변환(HV 왼쪽=5V, LV 오른쪽=3V3) · LCD VCC=5V · "
+                  "GND 공통 확인 (3초마다 다시 찾습니다):", e)
+        return
+    print("[준비] LCD 주소" if first else "[연결] LCD 를 다시 찾았습니다 — 주소", hex(lcd.address))
+    show(lcd_lines[0], lcd_lines[1])            # 그동안 쓰려던 내용을 다시 그림
 
-rfid = None
-rc_ver = 0
-try:
-    rfid = MFRC522(busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP20), cs=board.GP21)   # RST 는 3.3V 레일
-    rc_ver = rfid.version()
-    if rc_ver in (0x00, 0xFF):
-        raise OSError("버전 레지스터 0x%02X" % rc_ver)
-    print("[준비] RC522 버전 0x%02X" % rc_ver)
-except Exception as e:      # noqa: BLE001
+
+def check_lcd():
+    try:
+        lcd.backlight(True)                     # 1바이트만 보내 보기 — 응답이 없으면 빠진 것
+    except Exception as e:      # noqa: BLE001
+        lcd_lost(e)
+
+
+def rfid_lost(why):
+    global rfid, spi
+    print("[RFID] RC522 연결이 끊겼습니다 — 3초마다 다시 찾습니다:", why)
+    if rfid:
+        rfid.deinit()
     rfid = None
-    print("[준비] RC522 응답 없음 — 3.3V(5V 금지) · GND · SCK=GP18 · MOSI=GP19 · MISO=GP20 · SDA=GP21 · RST=3.3V 확인:", e)
+    if spi:
+        _free(spi)
+        spi = None
+
+
+def connect_rfid(first=False):
+    global rfid, spi, rc_ver
+    r = None
+    try:
+        if spi is None:
+            spi = busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP20)
+        r = MFRC522(spi, cs=board.GP21)                 # RST 는 3.3V 레일
+        v = r.version()
+        if v in (0x00, 0xFF):
+            raise OSError("버전 레지스터 0x%02X" % v)
+    except Exception as e:      # noqa: BLE001
+        if r:
+            r.deinit()
+        if spi:
+            _free(spi)
+            spi = None
+        rfid = None
+        if first:
+            print("[준비] RC522 응답 없음 — 3.3V(5V 금지) · GND · SCK=GP18 · MOSI=GP19 · MISO=GP20 · SDA=GP21 · "
+                  "RST=3.3V 확인 (3초마다 다시 찾습니다):", e)
+        return
+    rfid, rc_ver = r, v
+    print("[준비] RC522 버전 0x%02X" % v if first else "[연결] RC522 를 다시 찾았습니다 — 버전 0x%02X" % v)
+
+
+def check_rfid():
+    try:
+        v = rfid.version()
+    except Exception as e:      # noqa: BLE001
+        rfid_lost(e)
+        return
+    if v in (0x00, 0xFF):
+        rfid_lost("버전 레지스터 0x%02X" % v)
+
+
+connect_lcd(first=True)
+show("Tap RFID card", "Joystick: motor")
+connect_rfid(first=True)
 
 time.sleep(0.3)
 cx = sum(vrx.value for _ in range(32)) // 32           # 켜질 때 조이스틱을 건드리지 않은 값 = 가운데
@@ -126,8 +213,12 @@ class S:
     pc_left = 0         # PC 명령(MOVE)으로 남은 반 스텝 (+/-)
     mode = "idle"       # joy · pc · idle
     uid = ""
+    ascii = ""
+    card = None         # LCD 에 보일 카드 두 줄 (16칸씩) — 돌리기 전 원래 모양
+    rot = 0             # 오른쪽으로 몇 칸 돌렸는지 (0~15)
     px = py = 0
     pressed = False
+    restarting = False
 
 
 st = S()
@@ -143,7 +234,7 @@ def send_data():
     print("DATA " + json.dumps({
         "jx": st.px, "jy": st.py, "sw": int(st.pressed), "moving": st.moving, "mode": st.mode,
         "pos": st.position, "angle": round(st.position * 360 / STEPS_PER_REV, 1),
-        "uid": st.uid, "lcd": lcd_lines, "lcd_addr": hex(lcd.address) if lcd else "",
+        "uid": st.uid, "ascii": st.ascii, "rot": st.rot, "lcd": lcd_lines, "lcd_addr": hex(lcd.address) if lcd else "",
         "rc_ver": ("0x%02X" % rc_ver) if rfid else "", "cx": cx, "cy": cy}))
 
 
@@ -171,10 +262,25 @@ def handle(line):
         print("OK STOP")
     elif cmd == "LCD":
         a, _, b = arg.partition("|")
+        st.card = None                          # 시험 글자는 돌리지 않음
         show(a, b)
         print("OK LCD" if lcd else "ERR LCD 가 연결되어 있지 않아 화면에만 반영했습니다")
+    elif cmd == "RESTART":
+        print("OK RESTART — code.py 를 처음부터 다시 실행합니다")
+        st.restarting = True
+        release()
+        show("Restarting...", "")
+        time.sleep(0.2)
+        supervisor.reload()                     # Ctrl+D 와 같음. finally 에서 정리한 뒤 다시 시작
     else:
         print("ERR 알 수 없는 명령:", line.strip())
+
+
+def draw_card():
+    """카드 두 줄을 st.rot 칸만큼 오른쪽으로 돌려 LCD 에 씁니다 (끝으로 나간 글자는 왼쪽에서 다시 나옴)."""
+    k = st.rot % 16
+    a, b = st.card
+    show(a[16 - k:] + a[:16 - k], b[16 - k:] + b[:16 - k])
 
 
 inbox = ""
@@ -200,7 +306,9 @@ def read_commands():
         inbox = inbox[-200:]
 
 
-next_step = next_rfid = next_data = next_print = next_blink = time.monotonic_ns()
+next_step = next_rfid = next_data = next_print = next_blink = next_shift = time.monotonic_ns()
+next_retry = next_step + RETRY_NS
+shifting = False
 seen_at = 0
 shown_uid = None
 sw_was = False
@@ -210,14 +318,42 @@ try:
     while True:
         now = time.monotonic_ns()
         read_commands()
-        st.px, st.py = percent(vrx.value, cx), percent(vry.value, cy)
+        st.px = percent(vrx.value, cx)
+        st.py = -percent(vry.value, cy)         # 이 조이스틱은 Y 값이 반대로 나옴 → 부호를 바꿔 위로 밀면 +
 
-        # 버튼: 누르는 순간 위치를 0 으로
+        # 버튼: 누르는 순간 LCD 카드 표시를 원래대로 + 모터 위치를 0 으로
         st.pressed = not sw.value
         if st.pressed and not sw_was:
             st.position = 0
-            print("[버튼] 지금 위치를 0° 로")
+            if st.card and st.rot:
+                st.rot = 0
+                draw_card()
+            print("[버튼] LCD 카드 표시를 원래대로 · 지금 위치를 0° 로")
         sw_was = st.pressed
+
+        # 조이스틱 Y: LCD 카드 표시 돌리기 (+ = 오른쪽, - = 왼쪽). 기울이고 있는 동안 계속, 많이 기울일수록 빠르게
+        if st.card and abs(st.py) > DEADZONE:
+            if not shifting:
+                shifting, next_shift = True, now
+            if now >= next_shift:
+                st.rot = (st.rot + (1 if st.py > 0 else -1)) % 16
+                draw_card()
+                k = (abs(st.py) - DEADZONE) / (100 - DEADZONE)
+                next_shift = now + int(SHIFT_SLOW_NS - (SHIFT_SLOW_NS - SHIFT_FAST_NS) * k)
+        else:
+            shifting = False
+
+        # 빠진 장치 다시 찾기 · 연결된 장치가 살아 있는지 확인
+        if now >= next_retry:
+            next_retry = now + RETRY_NS
+            if lcd:
+                check_lcd()
+            else:
+                connect_lcd()
+            if rfid:
+                check_rfid()
+            else:
+                connect_rfid()
 
         # 스텝모터: 조이스틱이 먼저, 가만히 있으면 PC 명령(MOVE), 둘 다 없으면 멈추고 코일 끄기
         if abs(st.px) > DEADZONE:
@@ -257,13 +393,15 @@ try:
                 uid = rfid.read_uid()
             except Exception as e:      # noqa: BLE001
                 uid = None
-                print("[RFID] 읽기 오류:", e)
+                rfid_lost(e)
             if uid:
                 # 카드는 한 번 읽히면 다음 요청을 한 번 건너뜀 → 1초 안에 다시 보인 같은 카드는 「계속 대고 있음」
                 if uid != shown_uid or now - seen_at > 1_000_000_000:
-                    st.uid = uid_hex(uid)
-                    print("[RFID] 카드 UID:", st.uid)
-                    show("Card UID:", st.uid)
+                    st.uid, st.ascii = uid_hex(uid), uid_ascii(uid)
+                    print("[RFID] 카드 UID:", st.uid, "· ASCII:", st.ascii)
+                    st.card = ("%-16s" % st.uid, "%-16s" % ("ASCII: " + st.ascii))
+                    st.rot = 0
+                    draw_card()
                 shown_uid, seen_at = uid, now
 
         # 시리얼 · 동작 표시
@@ -283,7 +421,7 @@ except KeyboardInterrupt:
 finally:
     release()
     led.value = False
-    if lcd:
+    if lcd and not st.restarting:
         try:
             lcd.print_at(0, 0, "Stopped")
             lcd.print_at(0, 1, "")
