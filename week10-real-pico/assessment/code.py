@@ -9,6 +9,8 @@
 #     · 조이스틱 Y 를 + 쪽으로 → LCD 의 카드 표시가 오른쪽으로 한 칸씩 돎(끝으로 나간 글자는 반대쪽에서 다시 나옴),
 #       - 쪽으로 → 왼쪽으로 돎. 많이 기울일수록 빠름
 #     · 조이스틱 버튼(누르기) → LCD 카드 표시를 원래대로 + 지금 모터 위치를 0° 로
+#     · LCD 글자 뒤집기(LCD_FLIP): 점퍼선이 짧아 LCD 를 180° 돌려 놓으면(I2C 핀이 Pico 쪽) 글자가 거꾸로 보이므로,
+#       글자를 180° 돌려 그려서 돌려 놓은 LCD 에서 똑바로 읽히게 함. 똑바로 놓았으면 False (PC 명령 FLIP 으로도 바꿈)
 #     · LCD · RC522 가 처음에 안 잡혀도 3초마다 다시 찾음 (선을 고쳐 꽂으면 저절로 연결). 도중에 빠져도 다시 찾음
 #     · 시리얼 모니터: 조이스틱 % · 모터 각도 · 카드 번호.  내장 LED 깜빡임 = 동작 중
 #     · PC 점검 앱(pico_monitor/run_assess_ui.bat)이 읽는 「DATA {...}」 줄을 0.2초마다 보냄
@@ -19,6 +21,7 @@
 #     MOVE +90          지정한 각도만큼 돌고 멈춤 (- 는 반시계)
 #     STOP              바로 멈춤
 #     LCD 글자1|글자2    LCD 두 줄 시험 (영문 · 숫자 · 기호)
+#     FLIP ON / OFF     LCD 글자 뒤집기 켜기 · 끄기 (FLIP 만 쓰면 바꾸기)
 #     RESTART           code.py 를 처음부터 다시 실행 (Ctrl+D 와 같음 — LCD · RC522 · 조이스틱 가운데를 새로 잡음)
 #
 #   핀
@@ -45,6 +48,7 @@ from lcd_i2c import LCD
 from mfrc522_lite import MFRC522, uid_hex, uid_ascii
 
 # ── 설정 ──
+LCD_FLIP = True         # LCD 를 180° 돌려 놓았으면(I2C 핀이 오른쪽 = Pico 쪽) True — 글자를 뒤집어 그려 똑바로 읽히게
 DEADZONE = 7            # 가운데 ±7% 는 「가만히」 로 봄 (조이스틱마다 가운데 값이 조금씩 다름)
 FAST_NS = 1_300_000     # 끝까지 기울였을 때 반 스텝 간격 1.3ms (≈ 11 rpm, 28BYJ-48 의 거의 최고 속도)
 SLOW_NS = 8_000_000     # 조금 기울였을 때 8ms
@@ -101,8 +105,7 @@ def show(line1, line2):
     lcd_lines[0], lcd_lines[1] = line1[:16], line2[:16]
     if lcd:
         try:
-            lcd.print_at(0, 0, lcd_lines[0])
-            lcd.print_at(0, 1, lcd_lines[1])
+            lcd.draw(lcd_lines)
         except Exception as e:      # noqa: BLE001 — 선이 빠짐
             lcd_lost(e)
 
@@ -114,6 +117,7 @@ def connect_lcd(first=False):
         if i2c is None:
             i2c = busio.I2C(scl=board.GP17, sda=board.GP16, frequency=100_000)
         lcd = LCD(i2c)
+        lcd.flip = LCD_FLIP
     except Exception as e:      # noqa: BLE001 — 어떤 이유든 LCD 없이 계속
         lcd = None
         if i2c:
@@ -181,7 +185,8 @@ def check_rfid():
 
 
 connect_lcd(first=True)
-show("Tap RFID card", "Joystick: motor")
+# 첫 화면 — 뒤집기를 쓰면 사용자 글자 8칸 안에 들어가는 대문자로 (뒤집은 글자는 한 화면에 8종류까지)
+show(*(("TAP RFID CARD", "X=MOTOR") if LCD_FLIP else ("Tap RFID card", "Joystick: motor")))
 connect_rfid(first=True)
 
 time.sleep(0.3)
@@ -235,10 +240,11 @@ def send_data():
         "jx": st.px, "jy": st.py, "sw": int(st.pressed), "moving": st.moving, "mode": st.mode,
         "pos": st.position, "angle": round(st.position * 360 / STEPS_PER_REV, 1),
         "uid": st.uid, "ascii": st.ascii, "rot": st.rot, "lcd": lcd_lines, "lcd_addr": hex(lcd.address) if lcd else "",
-        "rc_ver": ("0x%02X" % rc_ver) if rfid else "", "cx": cx, "cy": cy}))
+        "rc_ver": ("0x%02X" % rc_ver) if rfid else "", "cx": cx, "cy": cy, "flip": LCD_FLIP}))
 
 
 def handle(line):
+    global LCD_FLIP
     words = line.strip().split(" ", 1)
     cmd = words[0].upper()
     arg = words[1] if len(words) > 1 else ""
@@ -265,11 +271,18 @@ def handle(line):
         st.card = None                          # 시험 글자는 돌리지 않음
         show(a, b)
         print("OK LCD" if lcd else "ERR LCD 가 연결되어 있지 않아 화면에만 반영했습니다")
+    elif cmd == "FLIP":
+        a = arg.strip().upper()
+        LCD_FLIP = (not LCD_FLIP) if not a else a in ("ON", "1", "TRUE")
+        if lcd:
+            lcd.flip = LCD_FLIP
+        show(lcd_lines[0], lcd_lines[1])
+        print("OK FLIP", "ON" if LCD_FLIP else "OFF")
     elif cmd == "RESTART":
         print("OK RESTART — code.py 를 처음부터 다시 실행합니다")
         st.restarting = True
         release()
-        show("Restarting...", "")
+        show("RESTARTING...", "")
         time.sleep(0.2)
         supervisor.reload()                     # Ctrl+D 와 같음. finally 에서 정리한 뒤 다시 시작
     else:
@@ -423,7 +436,6 @@ finally:
     led.value = False
     if lcd and not st.restarting:
         try:
-            lcd.print_at(0, 0, "Stopped")
-            lcd.print_at(0, 1, "")
+            lcd.draw(["STOPPED", ""])
         except Exception:       # noqa: BLE001
             pass

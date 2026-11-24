@@ -90,7 +90,7 @@ code { font-family: "D2Coding", "Consolas", monospace; font-size: 8.4pt; backgro
         <ul style="margin-top:1.2mm">
           <li><span class="warn">★ 조이스틱 「+5V」 핀에는 3.3V</span> — 5V 면 출력이 Pico ADC 한계(3.3V)를 넘습니다.</li>
           <li><b>레벨 변환이 필요한 까닭</b>: LCD 모듈의 풀업 저항이 SDA · SCL 을 5V 까지 올립니다. Pico 핀은 3.3V 용이라 그대로 이으면 위험합니다.</li>
-          <li>레벨 변환 모듈은 브레드보드 <b>26~31행</b>에 가운데 홈을 걸쳐 <b>180° 돌려</b> 꽂습니다 (HV 왼쪽, 글씨 거꾸로).</li>
+          <li><b>레벨 변환 · LCD · RC522 모두 180° 돌려</b> 핀이 Pico 쪽에 오게 둡니다(10cm 점퍼). 레벨 변환은 <b>26~31행</b>에 홈을 걸쳐, LCD 글자는 <code>LCD_FLIP</code> 이 뒤집어 그려 똑바로 보임.</li>
         </ul>
       </div>
     </div>

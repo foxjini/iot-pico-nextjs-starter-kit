@@ -241,7 +241,7 @@ class AssessApp:
         form.pack(fill="x", padx=14, pady=(12, 4))
         tk.Label(form, text="LCD 글자 넣기 (영문 · 숫자, 줄마다 16자)", font=self.f["s"], bg=C_CARD, fg=C_SUB,
                  anchor="w").grid(row=0, column=0, columnspan=2, sticky="w")
-        self.lcd1, self.lcd2 = tk.StringVar(value="Hello Pico 2 W"), tk.StringVar(value="LCD test OK")
+        self.lcd1, self.lcd2 = tk.StringVar(value="HELLO PICO 2 W"), tk.StringVar(value="LCD OK")   # 뒤집기에서도 8종류 안
         for r, var in ((1, self.lcd1), (2, self.lcd2)):
             tk.Label(form, text=f"{r}줄", font=self.f["s"], bg=C_CARD, fg=C_FAINT).grid(row=r, column=0, sticky="w")
             e = tk.Entry(form, textvariable=var, font=self.f["mono"], relief="flat", highlightthickness=1,
@@ -249,8 +249,14 @@ class AssessApp:
             e.grid(row=r, column=1, sticky="ew", pady=2, padx=(6, 0))
             e.bind("<Return>", lambda _e: self.send_lcd())
         form.columnconfigure(1, weight=1)
-        FlatButton(c, "LCD 에 보내기", self.send_lcd, "primary", self.f["n"],
-                   tip="두 줄을 Pico 로 보내 LCD 에 씁니다 — 글자가 보이면 I2C · 레벨 변환 · 대비 모두 정상").pack(pady=(4, 12))
+        row = tk.Frame(c, bg=C_CARD)
+        row.pack(pady=(4, 12))
+        FlatButton(row, "LCD 에 보내기", self.send_lcd, "primary", self.f["n"],
+                   tip="두 줄을 Pico 로 보내 LCD 에 씁니다 — 글자가 보이면 I2C · 레벨 변환 · 대비 모두 정상").pack(side="left")
+        self.flip_btn = FlatButton(row, "글자 뒤집기: —", lambda: self.send("FLIP"), font=self.f["n"],
+                                   tip="LCD 를 180° 돌려 놓았으면(I2C 핀이 Pico 쪽) 켬 — 글자를 뒤집어 그려 똑바로 읽히게 합니다. "
+                                       "뒤집기를 켜면 한 화면에 대문자 · 숫자 위주로, 서로 다른 글자 8종류까지 정확히 나옵니다")
+        self.flip_btn.pack(side="left", padx=(6, 0))
 
     def _log(self, parent):
         box = tk.Frame(parent, bg=C_CARD, highlightbackground=C_LINE, highlightthickness=1)
@@ -554,7 +560,11 @@ class AssessApp:
 
         # ③ LCD · 카드
         self.draw_lcd(d["lcd"] if d else None, on=bool(d and d.get("lcd_addr")))
-        self.lcd_info.configure(text=(f"Pico 가 LCD 에 쓴 내용 · 주소 {d['lcd_addr']}" if d and d.get("lcd_addr") else
+        if d:
+            self.flip_btn.set_text("글자 뒤집기: " + ("켜짐" if d.get("flip") else "꺼짐"))
+        self.lcd_info.configure(text=(f"Pico 가 LCD 에 쓴 내용 · 주소 {d['lcd_addr']}"
+                                      + (" · 글자 뒤집기 켜짐(LCD 를 돌려 놓고 보면 이렇게)" if d.get("flip") else "")
+                                      if d and d.get("lcd_addr") else
                                       "LCD 를 찾지 못함 — Pico 가 쓰려던 내용만 흐리게 보여 줍니다" if d else ""))
         uid = (d or self.data or {}).get("uid") if self.data else ""
         self.uid_val.configure(text=uid or "—", fg=C_TEXT if uid else C_FAINT)
