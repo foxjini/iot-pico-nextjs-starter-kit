@@ -13,3 +13,6 @@ Thumbs.db
 # 파이썬이 만드는 캐시 — 저장소에 넣지 않습니다
 __pycache__/
 *.pyc
+
+# 수업 영상 프레임 (make_assess_video.js 임시 폴더)
+worksheets/scripts/_video_frames/

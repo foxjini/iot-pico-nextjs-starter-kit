@@ -40,3 +40,4 @@ node gen_week08.js   # → ../8주차_학생워크시트.docx
 | `make_extra_worksheet.js` (원본 `추가회로_학습지.html`) | `../추가회로 학습지.pdf` · `(정답).pdf` |
 | `draw_assessment_circuit.py` | `../수행평가 회로도 · 수행평가 배선도 · 수행평가 연습 도면 .(pdf\|png)`, `수행평가_회로도_학습지용.png` |
 | `make_assess_worksheet.js` (원본 `수행평가_학습지.html`) | `../수행평가 학습지.pdf` — A4 가로 2쪽 (앞면 회로도 · 설명, 뒷면 배선 연습). **그림을 먼저 만든 뒤** 실행 |
+| `make_assess_video.js` (대본이 파일 안에) | `../수행평가 수업 영상.mp4` (약 7분 · 1920×1080 · 자막을 화면에 넣음 · 소리 없음) · `.srt`. 수업 자료 HTML 을 대본대로 조작하며 0.1초마다 찍어 ffmpeg 로 묶음. 약 6분 걸림 |
