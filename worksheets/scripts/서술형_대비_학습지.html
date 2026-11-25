@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>서술형 대비 학습지</title>
+<!--
+  서술형 수행평가 대비 학습지 — 최종 회로 · 추가 회로 (6개 주제)
+  make_written_prep.js 가 PDF 로 만듭니다.  학생용: 빈칸.  ?answer=1 → 정답판(빨간 글씨).  흑백 인쇄 기준.
+  실제 평가 문항(서술형_평가.html)은 그대로 싣지 않고, 같은 개념을 다른 상황 · 숫자 · 방향으로 연습합니다.
+  수치 · 핀: 최종 배선도(draw_final_wiring.py) · 추가 회로도 · 추가회로_학습지.html · code_extra_circuits.py
+-->
+<style>
+@page { size: A4; margin: 11mm 13mm 14mm 13mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: "NanumGothic", "Malgun Gothic", "맑은 고딕", sans-serif; font-size: 10pt; color: #111; line-height: 1.5; }
+h1 { font-size: 16pt; margin: 0; letter-spacing: -.3px; }
+.top { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 2px solid #111; padding-bottom: 2.2mm; }
+.top .sub { font-size: 9pt; color: #444; margin-top: 1mm; }
+.who { font-size: 10.5pt; white-space: nowrap; }
+.who span { display: inline-block; border-bottom: 1px solid #111; min-width: 12mm; margin: 0 3mm 0 1mm; }
+.who span.name { min-width: 30mm; margin-right: 0; }
+.box { margin-top: 2.8mm; border: 1px solid #999; border-radius: 2mm; padding: 2.4mm 3mm 2.6mm; break-inside: avoid; page-break-inside: avoid; }
+.box > h2 { font-size: 11.5pt; margin: 0 0 1.2mm; }
+.box > h2 .n { display: inline-block; min-width: 6.4mm; height: 6.4mm; line-height: 6.4mm; text-align: center; border-radius: 1mm; background: #111; color: #fff; font-size: 10pt; margin-right: 1.8mm; vertical-align: .3mm; padding: 0 1mm; }
+.box > h2 small { font-weight: 400; color: #555; font-size: 8.8pt; margin-left: 2mm; }
+.lbl { display: inline-block; font-size: 8.6pt; font-weight: 700; border: 1px solid #111; border-radius: 1mm; padding: 0 1.6mm; margin-right: 1.4mm; vertical-align: .3mm; }
+.lbl.k { background: #111; color: #fff; }
+.core { margin: 1mm 0 0; padding-left: 4.6mm; }
+.core li { margin: .5mm 0; }
+.sq { margin: 1.6mm 0 0; }
+.sq .k { font-weight: 700; margin-right: 1mm; }
+.bl { display: inline-block; min-width: 18mm; border-bottom: 1px solid #111; text-align: center; padding: 0 1mm; line-height: 1.25; }
+.bl.w { min-width: 30mm; }
+.write { margin-top: .6mm; line-height: 7mm; min-height: calc(var(--n, 2) * 7mm);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 6.7mm, #9A9A9A 6.7mm, #9A9A9A 7mm); }
+.ans { visibility: hidden; color: #C62828; fill: #C62828; stroke: #C62828; font-weight: 700; }
+.write .ans, .bl .ans { font-size: 9.4pt; }
+body.answer .ans { visibility: visible; }
+.words { margin-top: 1.4mm; font-size: 9pt; color: #333; }
+.words b { border: 1px dashed #777; border-radius: 1mm; padding: 0 1.4mm; margin-right: 1mm; font-weight: 700; white-space: nowrap; }
+.given { margin: 1.2mm 0 0; font-size: 9pt; color: #333; background: #F2F2F2; border-radius: 1.4mm; padding: 1.2mm 2.4mm; }
+table { border-collapse: collapse; width: 100%; font-size: 9pt; margin-top: 1mm; }
+th, td { border: 1px solid #777; padding: 1mm 1.6mm; text-align: center; height: 7.4mm; }
+th { background: #EDEDED; font-weight: 700; }
+td.l { text-align: left; }
+.row { display: flex; gap: 4mm; align-items: flex-start; }
+.row > .fig { flex: none; }
+.row > .body { flex: 1; min-width: 0; }
+.cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-top: 1.4mm; }
+.cmp > div { border: 1px solid #999; border-radius: 1.6mm; padding: 1.4mm 2.4mm; font-size: 9.4pt; }
+.cmp .h { font-weight: 700; display: block; margin-bottom: .4mm; }
+.steps3 { display: flex; gap: 2mm; align-items: center; margin-top: 1.2mm; font-size: 9.4pt; }
+.steps3 span { border: 1.2px solid #111; border-radius: 1.4mm; padding: .6mm 2.4mm; font-weight: 700; }
+.chk { display: inline-block; letter-spacing: 2.4mm; color: #444; }
+.answer-badge { display: none; }
+body.answer .answer-badge { display: inline-block; color: #C62828; border: 1.5px solid #C62828; border-radius: 1mm; padding: 0 2mm; font-size: 10pt; font-weight: 700; margin-left: 2mm; vertical-align: 1mm; }
+.part { margin: 4.2mm 0 0; font-size: 12pt; border-left: 4px solid #111; padding-left: 2.4mm; break-after: avoid; page-break-after: avoid; }
+.part small { font-weight: 400; color: #555; font-size: 9pt; margin-left: 2mm; }
+svg text { font-family: inherit; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <h1>서술형 수행평가 대비 학습지<span class="answer-badge">정답</span></h1>
+    <div class="sub">최종 회로(무드등 · 온도 게이지) · 추가 회로(초음파 · 포토커플러 + 릴레이 · PWM LED) — 핵심 정리 · 연습 문제 · 자기 점검</div>
+  </div>
+  <div class="who">반<span></span>번호<span></span>이름<span class="name"></span></div>
+</div>
+
+<!-- ═════════ 0. 평가 안내 · 답 쓰는 법 ═════════ -->
+<div class="box">
+  <h2><span class="n">0</span>평가 안내와 서술형 답 쓰는 법</h2>
+  <div class="row">
+    <div class="body">
+      <ul class="core">
+        <li><b>시간 50분 · 6문항 · 100점</b> — 최종 회로 3문항, 추가 회로 3문항. 회로도 · 배선도 · 학습지 · 영상에서 배운 내용만 나와요.</li>
+        <li><b>나오는 주제 6가지</b>: ① CdS 전압 나누기 ② 서보 전원과 커패시터 ③ 공통 GND 와 전원 레일 ④ 초음파 ECHO 전압 나누기 ⑤ 포토커플러 + 릴레이 ⑥ PWM 과 duty cycle</li>
+        <li><b>컴퓨터실 답안지</b>: 반 · 번호 · 이름 쓰기 → 답 쓰기(자동 보관) → 「답안 저장」 → 만들어진 <b>서술형_반_번호_이름.html</b> 파일을 PC 관리 프로그램으로 제출.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="steps3">서술형은 3단으로 → <span>① 무엇이</span>→<span>② 어떻게 되어서</span>→<span>③ 그래서 (결과)</span></div>
+  <div class="cmp">
+    <div><span class="h">아쉬운 답 (2단계만)</span>문: GP22 LED 에 220Ω 저항을 다는 까닭은?<br>답: 「LED 가 망가지니까.」 → <i>무엇이 · 왜</i> 가 빠짐</div>
+    <div><span class="h">좋은 답 (3단 모두)</span>「저항이 없으면 ① LED 에 흐르는 <b>전류</b>가 ② 너무 커져서 ③ LED 나 Pico 핀이 망가질 수 있다. 그래서 220Ω 으로 전류를 줄인다.」</div>
+  </div>
+  <p class="sq"><span class="k">연습</span>「DHT11 은 오른쪽(3V3) 레일에 잇는다. 왜냐하면 3.3V 라서.」 를 3단으로 고쳐 쓰시오.</p>
+  <div class="write" style="--n:2"><span class="ans">DHT11 의 데이터 신호는 전원 전압까지 올라가는데, 5V 레일에 이으면 데이터 핀(GP16)에 5V 가 들어가 Pico 가 망가질 수 있다. 그래서 Pico 와 같은 3.3V 레일에 잇는다.</span></div>
+</div>
+
+<!-- ═════════ Ⅰ. 최종 회로 ═════════ -->
+<h3 class="part">Ⅰ. 최종 회로<small>「최종 배선도」 를 옆에 펴 놓고 풀어 보세요</small></h3>
+
+<div class="box">
+  <h2><span class="n">1</span>CdS 전압 나누기<small>빛 센서 → GP26</small></h2>
+  <div class="row">
+    <svg class="fig" width="36mm" height="36mm" viewBox="0 0 180 180">
+      <g stroke="#111" stroke-width="2.4" fill="none">
+        <line x1="60" y1="20" x2="60" y2="36"/><rect x="46" y="36" width="28" height="40" fill="#fff"/>
+        <line x1="60" y1="76" x2="60" y2="104"/><circle cx="60" cy="126" r="20" fill="#fff"/>
+        <path d="M49,119 L56,125 L49,131 M63,119 L70,125 L63,131"/>
+        <line x1="60" y1="146" x2="60" y2="162"/><line x1="44" y1="162" x2="76" y2="162"/><line x1="50" y1="168" x2="70" y2="168"/>
+        <line x1="60" y1="90" x2="125" y2="90"/>
+      </g>
+      <circle cx="60" cy="90" r="4.5" fill="#111"/>
+      <text x="60" y="14" text-anchor="middle" font-size="15" font-weight="700">3V3</text>
+      <text x="80" y="62" font-size="14">10kΩ</text><text x="86" y="132" font-size="14">CdS</text>
+      <text x="128" y="95" font-size="15" font-weight="700">GP26</text>
+    </svg>
+    <div class="body">
+      <p style="margin:0"><span class="lbl k">핵심 정리</span></p>
+      <ul class="core">
+        <li>두 저항이 전압을 나눌 때 <b>큰 저항에 큰 전압</b>이 걸린다.</li>
+        <li>CdS 는 어두울수록 저항이 <span class="bl"><span class="ans">커진다</span></span>, 밝을수록 <span class="bl"><span class="ans">작아진다</span></span>.</li>
+        <li>10kΩ 은 <span class="bl"><span class="ans">3V3</span></span> 쪽, CdS 는 <span class="bl"><span class="ans">GND</span></span> 쪽 → GP26 전압 = CdS 양끝 전압.</li>
+        <li>코드: 밝기(%) = 100 − (GP26 값의 %) → GP26 전압이 높을수록 「<span class="bl"><span class="ans">어둡다</span></span>」 로 판단.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="sq"><span class="lbl">연습</span><span class="k">(1)</span>창문을 열어 방이 <b>밝아지면</b> GP26 전압과 코드의 밝기 값은 어떻게 되는지 3단으로 쓰시오.</p>
+  <div class="write" style="--n:2"><span class="ans">밝아지면 CdS 저항이 작아져 CdS 쪽에 걸리는 전압이 줄어든다 → GP26 전압이 낮아진다 → 밝기 = 100 − raw% 이므로 밝기 값이 커진다.</span></div>
+  <p class="sq"><span class="k">(2)</span>V(GP26) = 3.3V × R<sub>CdS</sub> ÷ (10kΩ + R<sub>CdS</sub>) 로 표를 채우시오. (소수 둘째 자리)</p>
+  <table style="width:86%">
+    <tr><th>상황</th><th>R<sub>CdS</sub></th><th>계산</th><th>V(GP26)</th></tr>
+    <tr><td>햇빛 (밝음)</td><td>1kΩ</td><td><span class="ans">3.3 × 1 ÷ 11</span></td><td><span class="ans">0.30 V</span></td></tr>
+    <tr><td>형광등</td><td>10kΩ</td><td><span class="ans">3.3 × 10 ÷ 20</span></td><td><span class="ans">1.65 V</span></td></tr>
+    <tr><td>손으로 가림 (어두움)</td><td>30kΩ</td><td><span class="ans">3.3 × 30 ÷ 40</span></td><td><span class="ans">2.48 V</span></td></tr>
+  </table>
+  <div class="words"><span class="lbl">꼭 넣을 낱말</span><b>저항이 커진다/작아진다</b><b>큰 저항에 큰 전압</b><b>GP26 전압</b><b>밝기 = 100 − raw%</b></div>
+</div>
+
+<div class="box">
+  <h2><span class="n">2</span>서보 전원과 커패시터<small>SG90 · 외부 5V 어댑터 · 470~1000μF</small></h2>
+  <p style="margin:0"><span class="lbl k">핵심 정리</span></p>
+  <table style="width:92%">
+    <tr><th>전원 / 부품</th><th>낼 수 있는 · 필요한 전류</th><th>기억할 점</th></tr>
+    <tr><td>노트북 USB (VBUS)</td><td>약 <span class="bl"><span class="ans">500</span></span> mA</td><td class="l">모자라면 전압이 떨어져 Pico 가 <span class="bl"><span class="ans">리셋</span></span></td></tr>
+    <tr><td>SG90 서보 (움직이기 시작하는 순간)</td><td><span class="bl w"><span class="ans">700~1000</span></span> mA</td><td class="l">그래서 <b>왼쪽 레일 = 외부 5V 어댑터</b></td></tr>
+    <tr><td>커패시터</td><td>순간 전류를 <span class="bl"><span class="ans">보탬</span></span></td><td class="l">작은 <b>물탱크</b> · 긴 다리 = <span class="bl"><span class="ans">+</span></span></td></tr>
+  </table>
+  <p class="sq"><span class="lbl">연습</span><span class="k">(1)</span>모둠 작품에 서보를 <b>두 개</b> 달아 동시에 움직이게 했다. 두 서보를 노트북 USB 에 이으면 왜 더 위험한지 숫자를 넣어 쓰시오.</p>
+  <div class="write" style="--n:2"><span class="ans">두 서보가 동시에 움직이기 시작하면 약 1400~2000mA 가 필요해 USB 약 500mA 를 훨씬 넘는다 → 전압이 크게 떨어져 Pico 가 리셋되거나 USB 포트가 꺼질 수 있다.</span></div>
+  <p class="sq"><span class="k">(2)</span>외부 어댑터는 그대로 두고 <b>커패시터만 뺐다</b>. 서보가 갑자기 큰 각도로 움직이는 순간 생길 수 있는 일을 쓰시오.</p>
+  <div class="write" style="--n:2"><span class="ans">순간 전류를 보태 줄 물탱크가 없어 5V 레일 전압이 잠깐 출렁인다(떨어진다) → 서보가 떨리거나 덜 돌고, 같은 레일의 다른 부품도 불안정해질 수 있다.</span></div>
+  <div class="words"><span class="lbl">꼭 넣을 낱말</span><b>움직이기 시작하는 순간 큰 전류</b><b>USB 500mA</b><b>전압이 떨어짐</b><b>리셋</b><b>순간 전류 보충 · 전압 안정</b></div>
+</div>
+
+<div class="box">
+  <h2><span class="n">3</span>공통 GND 와 전원 레일<small>왼쪽 = 외부 5V · 오른쪽 = Pico 3V3</small></h2>
+  <div class="row">
+    <svg class="fig" width="50mm" height="30mm" viewBox="0 0 250 150">
+      <line x1="10" y1="132" x2="110" y2="132" stroke="#111" stroke-width="3"/>
+      <line x1="140" y1="112" x2="240" y2="112" stroke="#111" stroke-width="3"/>
+      <rect x="40" y="62" width="40" height="70" fill="#DDD" stroke="#111" stroke-width="2"/>
+      <rect x="170" y="62" width="40" height="50" fill="#DDD" stroke="#111" stroke-width="2"/>
+      <line x1="30" y1="62" x2="230" y2="62" stroke="#111" stroke-width="1.6" stroke-dasharray="6 4"/>
+      <text x="60" y="54" text-anchor="middle" font-size="14">70cm?</text>
+      <text x="190" y="54" text-anchor="middle" font-size="14">50cm?</text>
+      <text x="60" y="148" text-anchor="middle" font-size="13">바닥 A</text>
+      <text x="190" y="128" text-anchor="middle" font-size="13">바닥 B</text>
+    </svg>
+    <div class="body">
+      <p style="margin:0"><span class="lbl k">핵심 정리</span></p>
+      <ul class="core">
+        <li>전압은 한 점의 값이 아니라 <b>두 점의 <span class="bl"><span class="ans">차이</span></span></b>다. 그 기준점이 <b>GND</b>.</li>
+        <li>왼쪽 그림: 같은 높이의 꼭대기도 <b>바닥(기준)</b>이 다르면 다른 키로 잰다 → GND 가 다르면 같은 신호도 <span class="bl"><span class="ans">다르게</span></span> 읽힌다.</li>
+        <li>왼쪽 파랑(−) ↔ 오른쪽 파랑(−) 점퍼 = <b>공통 GND</b>. 외부 5V 는 <span class="bl"><span class="ans">왼쪽</span></span> 레일에만.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="sq"><span class="lbl">연습</span><span class="k">(1)</span>최종 회로에서 각 연결이 꽂히는 레일을 쓰시오. (왼쪽 5V / 오른쪽 3V3 / GND 레일)</p>
+  <table>
+    <tr><th>서보 빨강선</th><th>서보 갈색선</th><th>커패시터 긴 다리</th><th>DHT11 VCC</th><th>10kΩ 위쪽</th><th>CdS 아래쪽</th></tr>
+    <tr><td><span class="ans">왼쪽 5V</span></td><td><span class="ans">왼쪽 GND</span></td><td><span class="ans">왼쪽 5V</span></td><td><span class="ans">오른쪽 3V3</span></td><td><span class="ans">오른쪽 3V3</span></td><td><span class="ans">오른쪽 GND</span></td></tr>
+  </table>
+  <p class="sq"><span class="k">(2)</span>위 「바닥」 비유를 써서, GND 가 이어져 있지 않으면 서보가 Pico 의 신호(PWM)를 잘못 읽는 까닭을 쓰시오.</p>
+  <div class="write" style="--n:2"><span class="ans">Pico 와 서보가 서로 다른 바닥(GND)에서 신호의 높이를 재는 셈이라, Pico 가 보낸 HIGH · LOW 를 서보가 다르게 받아들인다 → 펄스 길이를 바르게 읽지 못해 제멋대로 움직인다.</span></div>
+  <div class="words"><span class="lbl">꼭 넣을 낱말</span><b>전압 = 차이</b><b>GND = 기준</b><b>기준이 달라짐</b><b>신호를 잘못 읽음</b></div>
+</div>
+
+<!-- ═════════ Ⅱ. 추가 회로 ═════════ -->
+<h3 class="part">Ⅱ. 추가 회로<small>「추가 회로도 · 배선도」 · 「추가 회로 학습지」 를 옆에 펴 놓고 풀어 보세요</small></h3>
+
+<div class="box">
+  <h2><span class="n">4</span>초음파 ECHO 전압 나누기<small>HC-SR04 ECHO(5V) → GP11</small></h2>
+  <p style="margin:0"><span class="lbl k">핵심 정리</span></p>
+  <ul class="core">
+    <li>V(GP11) = 5V × <span class="bl w"><span class="ans">GND 쪽 저항</span></span> ÷ (두 저항의 합)</li>
+    <li>Pico 입력은 최대 <span class="bl"><span class="ans">3.3</span></span> V 까지 안전, 약 <span class="bl"><span class="ans">2</span></span> V 이상이면 HIGH 로 읽는다. → 두 조건을 <b>모두</b> 지켜야 한다.</li>
+  </ul>
+  <p class="sq"><span class="lbl">연습</span>저항 조합마다 GP11 전압을 구하고 판정하시오. (○ / ✕)</p>
+  <table>
+    <tr><th>ECHO 쪽</th><th>GND 쪽</th><th>계산</th><th>V(GP11)</th><th>3.3V 이하 (안전)</th><th>2V 이상 (HIGH)</th><th>쓸 수 있나</th></tr>
+    <tr><td>1kΩ</td><td>1kΩ</td><td><span class="ans">5 × 1 ÷ 2</span></td><td><span class="ans">2.5 V</span></td><td><span class="ans">○</span></td><td><span class="ans">○</span></td><td><span class="ans">○</span></td></tr>
+    <tr><td>1kΩ</td><td>1.5kΩ</td><td><span class="ans">5 × 1.5 ÷ 2.5</span></td><td><span class="ans">3.0 V</span></td><td><span class="ans">○</span></td><td><span class="ans">○</span></td><td><span class="ans">○</span></td></tr>
+    <tr><td>1kΩ</td><td>3kΩ</td><td><span class="ans">5 × 3 ÷ 4</span></td><td><span class="ans">3.75 V</span></td><td><span class="ans">✕</span></td><td><span class="ans">○</span></td><td><span class="ans">✕ (위험)</span></td></tr>
+    <tr><td>2kΩ</td><td>1kΩ</td><td><span class="ans">5 × 1 ÷ 3</span></td><td><span class="ans">1.67 V</span></td><td><span class="ans">○</span></td><td><span class="ans">✕</span></td><td><span class="ans">✕ (못 읽음)</span></td></tr>
+  </table>
+  <p class="sq"><span class="k">(2)</span>위 표의 1kΩ + 3kΩ 조합으로 오래 쓰면 어떤 일이 생길 수 있는지 3단으로 쓰시오.</p>
+  <div class="write" style="--n:2"><span class="ans">GND 쪽 저항이 커서 GP11 에 3.75V 가 걸린다 → Pico 입력 한계 3.3V 를 넘는다 → GP11 핀이나 Pico 가 망가질 수 있다.</span></div>
+  <div class="words"><span class="lbl">꼭 넣을 낱말</span><b>5V × 저항 비율</b><b>최대 3.3V</b><b>2V 이상 = HIGH</b><b>망가짐 / 못 읽음</b></div>
+</div>
+
+<div class="box">
+  <h2><span class="n">5</span>포토커플러 + 릴레이<small>IN1 = 5V · G = GP13 · COM = 5V · NO → 모터</small></h2>
+  <p style="margin:0"><span class="lbl k">핵심 정리</span> 신호가 건너가는 차례를 채우시오.</p>
+  <div class="steps3" style="flex-wrap:wrap">
+    <span>GP13</span>→<span><span class="bl"><span class="ans">적외선 LED</span></span></span>→<span>(빛)</span>→<span><span class="bl w"><span class="ans">포토트랜지스터</span></span></span>→<span>릴레이 Signal</span>→<span><span class="bl"><span class="ans">코일(전자석)</span></span></span>→<span>COM–<span class="bl"><span class="ans">NO</span></span></span>→<span>모터</span>
+  </div>
+  <ul class="core">
+    <li>칩 안 LED 는 IN1(5V) 과 GP13 의 <b>전압 차</b>로 켜진다. 입력 · 출력 사이에 전선이 없다 = <span class="bl"><span class="ans">절연</span></span>.</li>
+    <li>Pico 핀은 수 mA, 릴레이 코일은 약 <span class="bl"><span class="ans">70</span></span> mA → 모듈의 트랜지스터가 대신 흘린다.</li>
+  </ul>
+  <p class="sq"><span class="lbl">연습</span><span class="k">(1)</span><b>GP13 = HIGH(3.3V)</b> 일 때를 채우시오.</p>
+  <table>
+    <tr><th>LED 양끝 전압 차</th><th>적외선 LED</th><th>포토트랜지스터</th><th>릴레이 코일</th><th>COM 이 붙는 쪽</th><th>모터</th></tr>
+    <tr><td><span class="ans">5 − 3.3 = 1.7V</span></td><td><span class="ans">꺼짐</span></td><td><span class="ans">꺼짐</span></td><td><span class="ans">전류 없음</span></td><td><span class="ans">NC</span></td><td><span class="ans">멈춤</span></td></tr>
+  </table>
+  <p class="sq"><span class="k">(2)</span>실수로 모터 선을 NO 가 아니라 <b>NC</b> 에 꽂았다. GP13 이 HIGH · LOW 일 때 모터는 각각 어떻게 되는지 까닭과 함께 쓰시오.</p>
+  <div class="write" style="--n:2"><span class="ans">NC 는 코일이 꺼져 있을 때 COM 과 붙는 쪽이다 → GP13 HIGH(코일 꺼짐)일 때 모터가 돌고, LOW(코일 켜짐, NO 로 넘어감)일 때 멈춘다 → 원래와 반대로 동작한다.</span></div>
+  <div class="words"><span class="lbl">꼭 넣을 낱말</span><b>LED 켜짐 → 빛</b><b>포토트랜지스터</b><b>전자석이 당김</b><b>COM–NO / NC</b><b>절연</b><b>핀 전류 부족</b></div>
+</div>
+
+<div class="box">
+  <h2><span class="n">6</span>PWM 과 duty cycle<small>GP22 · 1000Hz · duty_cycle 0 ~ 65535</small></h2>
+  <p style="margin:0"><span class="lbl k">핵심 정리</span></p>
+  <ul class="core">
+    <li>PWM = 핀을 아주 빠르게 <span class="bl w"><span class="ans">켜고 끄기</span></span> 를 되풀이하며, 켜진 시간의 비율로 밝기를 조절하는 방법.</li>
+    <li>duty cycle = 한 <b>주기</b> 가운데 <span class="bl w"><span class="ans">켜져(HIGH) 있는</span></span> 시간의 비율. 1000Hz 의 한 주기 = <span class="bl"><span class="ans">1</span></span> ms.</li>
+    <li>평균 전압 = 3.3V × duty. 1000번/초는 눈이 따라가지 못해(<span class="bl"><span class="ans">잔상</span></span>) 평균 밝기로 보인다.</li>
+  </ul>
+  <p class="sq"><span class="lbl">연습</span><span class="k">(1)</span>duty <b>50%</b> 와 <b>75%</b> 파형을 두 주기씩 그리시오. (한 칸 = 0.25ms)</p>
+  <svg width="176mm" height="30mm" viewBox="0 0 880 150" style="display:block;margin-top:1mm">
+    <g font-size="15" font-weight="700"><text x="0" y="46">50%</text><text x="0" y="121">75%</text></g>
+    <g stroke="#BBB" stroke-width="1">
+      <path d="M60,15 V65 M110,15 V65 M160,15 V65 M210,15 V65 M260,15 V65 M310,15 V65 M360,15 V65 M410,15 V65 M460,15 V65"/>
+      <path d="M60,90 V140 M110,90 V140 M160,90 V140 M210,90 V140 M260,90 V140 M310,90 V140 M360,90 V140 M410,90 V140 M460,90 V140"/>
+      <path d="M60,20 H460 M60,60 H460 M60,95 H460 M60,135 H460"/>
+    </g>
+    <g font-size="11" fill="#555"><text x="470" y="24">HIGH 3.3V</text><text x="470" y="64">LOW 0V</text><text x="470" y="99">HIGH</text><text x="470" y="139">LOW</text></g>
+    <g class="ans" style="fill:none" stroke-width="3.4" stroke-linejoin="round">
+      <path d="M60,60 V20 H160 V60 H260 V20 H360 V60 H460"/>
+      <path d="M60,135 V95 H210 V135 H260 V95 H410 V135 H460"/>
+    </g>
+    <g font-size="13" fill="#333"><text x="560" y="36">한 주기 = 4칸 = 1ms</text><text x="560" y="58">50% → HIGH ___칸</text><text x="560" y="110">75% → HIGH ___칸</text></g>
+    <g class="ans" font-size="14" stroke="none"><text x="700" y="58">2</text><text x="700" y="110">3</text></g>
+  </svg>
+  <p class="sq"><span class="k">(2)</span>표를 채우시오.</p>
+  <table style="width:80%">
+    <tr><th>duty</th><th>HIGH 시간 (1주기 중)</th><th>평균 전압</th><th>duty_cycle 값</th><th>LED</th></tr>
+    <tr><td>0%</td><td><span class="ans">0 ms</span></td><td><span class="ans">0 V</span></td><td><span class="ans">0</span></td><td><span class="ans">꺼짐</span></td></tr>
+    <tr><td>10%</td><td><span class="ans">0.1 ms</span></td><td><span class="ans">0.33 V</span></td><td><span class="ans">6553 (≈ 6554)</span></td><td><span class="ans">아주 어두움</span></td></tr>
+    <tr><td>75%</td><td><span class="ans">0.75 ms</span></td><td><span class="ans">약 2.48 V</span></td><td><span class="ans">49151</span></td><td><span class="ans">밝음</span></td></tr>
+    <tr><td>100%</td><td><span class="ans">1 ms</span></td><td><span class="ans">3.3 V</span></td><td><span class="ans">65535</span></td><td><span class="ans">가장 밝음</span></td></tr>
+  </table>
+  <p class="sq"><span class="k">(3)</span>평균 전압이 <b>1.65V</b> 가 되게 하려면 duty 는 몇 % 인지 풀이와 함께 쓰시오. <span class="bl ww" style="min-width:70mm"><span class="ans">1.65 ÷ 3.3 = 0.5 → 50%</span></span></p>
+  <div class="words"><span class="lbl">꼭 넣을 낱말</span><b>빠르게 켜고 끄기</b><b>한 주기 중 켜진 시간의 비율</b><b>평균 전압</b><b>잔상</b></div>
+</div>
+
+<!-- ═════════ 자기 점검 ═════════ -->
+<div class="box">
+  <h2><span class="n">✓</span>자기 점검<small>시험 전에 스스로 확인해요</small></h2>
+  <table>
+    <tr><th style="width:56%">나는 …을 3단(무엇이 → 어떻게 → 그래서)으로 설명할 수 있다</th><th>○ △ ✕</th><th>다시 볼 자료</th></tr>
+    <tr><td class="l">① 어두워지거나 밝아질 때 GP26 전압이 바뀌는 까닭</td><td><span class="chk">○△✕</span></td><td class="l">최종 배선도 · 1주차</td></tr>
+    <tr><td class="l">② 서보를 외부 5V 어댑터와 커패시터에 잇는 까닭</td><td><span class="chk">○△✕</span></td><td class="l">최종 배선도 「꼭 확인할 것」</td></tr>
+    <tr><td class="l">③ 공통 GND 가 필요한 까닭, 레일에 꽂는 부품</td><td><span class="chk">○△✕</span></td><td class="l">최종 배선도 연결표</td></tr>
+    <tr><td class="l">④ ECHO 를 1kΩ + 2kΩ 으로 나누는 까닭과 계산</td><td><span class="chk">○△✕</span></td><td class="l">추가 회로 학습지 1</td></tr>
+    <tr><td class="l">⑤ GP13 신호가 모터까지 가는 차례, 절연, 릴레이를 직접 켜지 않는 까닭</td><td><span class="chk">○△✕</span></td><td class="l">추가 회로 학습지 2 · 3</td></tr>
+    <tr><td class="l">⑥ PWM · duty cycle 의 뜻, duty 와 밝기, 잔상</td><td><span class="chk">○△✕</span></td><td class="l">추가 회로 학습지 4</td></tr>
+  </table>
+  <p class="sq"><span class="k">헷갈리는 것 한 가지</span>와 그것을 어떻게 다시 공부할지 쓰시오.</p>
+  <div class="write" style="--n:2"></div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get("answer") === "1") document.body.classList.add("answer");
+</script>
+</body>
+</html>
