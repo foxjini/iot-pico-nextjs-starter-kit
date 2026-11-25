@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3차 수행평가 수업</title>
+<!--
+  3차 수행평가 수업 자료 — 조이스틱 · 스텝모터 · I2C LCD · RFID (Pico 2 W)
+  내용은 worksheets/수행평가 학습지.pdf · assessment/code.py 와 같습니다 (핀 · 수치 · 동작).
+  흰 바탕 · 파란색 한 가지를 주조색으로, 빨강은 「주의」 에만 씁니다.
+  인터넷 없이 더블클릭으로 열립니다. 외부 글꼴 · 라이브러리 · 이미지 없음.
+  조작: ← → 장면 · 0~9 장면 바로 가기 · Space 움직임 멈춤/재생 · F 전체 화면
+-->
+<style>
+:root{
+  --blue:#0064E0; --blue-d:#004BB0; --blue-l:#E8F1FE; --blue-m:#9CC2F7; --blue-s:#CFE0FC;
+  --ink:#1C2B33; --sub:#5D6C7B; --faint:#93A0AD; --line:#DDE3EA; --soft:#F5F8FC;
+  --red:#D0302F; --red-l:#FDECEC;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;color:var(--ink);overflow:hidden;
+  font-family:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR",sans-serif}
+#stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0;background:#fff}
+header{position:absolute;left:0;top:0;width:1600px;height:72px;display:flex;align-items:center;gap:6px;padding:0 40px}
+header .brand{font-weight:800;font-size:19px;margin-right:auto;color:var(--ink);letter-spacing:-.2px}
+header .brand i{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--blue);margin-right:10px;vertical-align:1px}
+.tab{border:0;background:transparent;color:var(--sub);font:inherit;font-size:14.5px;padding:8px 12px;border-radius:999px;cursor:pointer}
+.tab:hover{background:var(--soft)}
+.tab.on{background:var(--blue);color:#fff;font-weight:700}
+.slide{position:absolute;left:0;top:72px;width:1600px;height:780px;display:none;padding:26px 64px 0}
+.slide.on{display:block}
+.kicker{font-size:17px;font-weight:700;color:var(--blue);letter-spacing:.3px}
+.slide h2{margin:6px 0 0;font-size:46px;letter-spacing:-1px;line-height:1.15}
+.lead{margin:12px 0 0;font-size:23px;color:var(--sub);line-height:1.5}
+.lead b{color:var(--ink)}
+.body{position:absolute;left:64px;top:200px;width:1472px;height:560px}
+footer{position:absolute;left:0;top:852px;width:1600px;height:48px;display:flex;align-items:center;gap:14px;padding:0 40px;color:var(--faint);font-size:14px}
+footer .bar{flex:1;height:4px;background:var(--line);border-radius:4px;overflow:hidden}
+footer .bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .25s}
+.nav{border:1px solid var(--line);background:#fff;color:var(--ink);font:inherit;font-size:15px;padding:6px 14px;border-radius:999px;cursor:pointer}
+.nav:hover{border-color:var(--blue);color:var(--blue)}
+
+.card{background:#fff;border:1.5px solid var(--line);border-radius:22px;padding:24px 28px}
+.card.blue{background:var(--blue-l);border-color:var(--blue-l)}
+.card h3{margin:0 0 10px;font-size:24px;letter-spacing:-.3px}
+.card p,.card li{font-size:19px;line-height:1.55;color:var(--ink)}
+.card ul{margin:0;padding-left:22px}
+.card p{margin:0}
+.muted{color:var(--sub)}
+.warn{color:var(--red);font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;background:var(--blue-l);color:var(--blue-d);font-weight:700;font-size:18px}
+.pill.red{background:var(--red-l);color:var(--red)}
+.btn{border:1.5px solid var(--blue);background:#fff;color:var(--blue);font:inherit;font-size:17px;font-weight:700;padding:10px 20px;border-radius:999px;cursor:pointer;user-select:none}
+.btn:hover{background:var(--blue-l)}
+.btn.on{background:var(--blue);color:#fff}
+.btn.red{border-color:var(--red);color:var(--red)}
+.btn.red.on{background:var(--red);color:#fff}
+.row{display:flex;gap:24px;align-items:flex-start}
+.num{font-size:64px;font-weight:800;color:var(--blue);letter-spacing:-2px;line-height:1}
+.mono{font-family:Consolas,"D2Coding","DejaVu Sans Mono",monospace}
+input[type=range]{width:100%;accent-color:var(--blue);height:28px}
+table.t{border-collapse:collapse;width:100%;font-size:19px}
+table.t th{text-align:left;color:var(--sub);font-weight:700;font-size:16px;padding:8px 10px;border-bottom:2px solid var(--ink)}
+table.t td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+svg text{font-family:inherit}
+.t-s{font-size:15px;fill:var(--sub)} .t-m{font-size:18px;fill:var(--ink);font-weight:700} .t-l{font-size:22px;fill:var(--ink);font-weight:800}
+.lcd{display:inline-grid;grid-template-columns:repeat(16,1fr);gap:4px;padding:16px;background:#B7CC3B;border:10px solid #1D1D1F;border-radius:10px}
+.lcd span{width:34px;height:52px;background:#A9BE30;color:#1E2A08;font:700 34px/52px Consolas,"DejaVu Sans Mono",monospace;text-align:center}
+.chip{display:inline-block;padding:4px 12px;border-radius:8px;background:var(--soft);border:1px solid var(--line);font-size:16px;margin:2px 4px 2px 0}
+@media (prefers-reduced-motion: reduce){ .tab,.btn,footer .bar i{transition:none} }
+</style>
+</head>
+<body>
+<div id="stage">
+<header>
+  <div class="brand"><i></i>3차 수행평가 · 조이스틱 · 스텝모터 · LCD · RFID</div>
+  <button class="tab" data-go="0">시작</button>
+  <button class="tab" data-go="1">구성</button>
+  <button class="tab" data-go="2">전원</button>
+  <button class="tab" data-go="3">조이스틱</button>
+  <button class="tab" data-go="4">스텝모터</button>
+  <button class="tab" data-go="5">LCD · I2C</button>
+  <button class="tab" data-go="6">RFID · SPI</button>
+  <button class="tab" data-go="7">LCD 돌리기</button>
+  <button class="tab" data-go="8">180° 배치</button>
+  <button class="tab" data-go="9">만들고 점검</button>
+</header>
+
+<!-- ═════════════ 0 시작 ═════════════ -->
+<section class="slide" id="s0">
+  <div class="kicker">PICO 2 W · CIRCUITPYTHON</div>
+  <h2 style="font-size:64px;margin-top:10px">조이스틱으로 모터를 돌리고,<br>카드를 대면 LCD 에 번호가 나온다</h2>
+  <p class="lead">오늘 만들 회로가 하는 일은 딱 <b>두 가지</b>입니다. 나머지는 모두 이 두 가지를 위한 준비예요.</p>
+  <div class="body" style="top:330px">
+    <div class="row">
+      <div class="card blue" style="width:716px;height:330px">
+        <div class="kicker">하는 일 ①</div>
+        <h3 style="font-size:30px;margin-top:6px">조이스틱 X → 스텝모터</h3>
+        <svg width="660" height="220" viewBox="0 0 660 220">
+          <rect x="30" y="40" width="150" height="150" rx="18" fill="#1D1D1F"/>
+          <circle cx="105" cy="115" r="52" fill="#2B2B2B"/>
+          <circle id="c0stick" cx="105" cy="115" r="32" fill="#111" stroke="#555" stroke-width="3"/>
+          <text x="105" y="214" text-anchor="middle" class="t-s">기울이기</text>
+          <path d="M215 115 H 395" stroke="#0064E0" stroke-width="6" stroke-linecap="round"/>
+          <path d="M385 100 L 405 115 L 385 130" fill="none" stroke="#0064E0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="305" y="98" text-anchor="middle" class="t-m" fill="#0064E0">방향 · 빠르기</text>
+          <circle cx="530" cy="115" r="78" fill="#fff" stroke="#9CC2F7" stroke-width="4"/>
+          <circle cx="530" cy="115" r="14" fill="#0064E0"/>
+          <line id="c0needle" x1="530" y1="115" x2="530" y2="52" stroke="#0064E0" stroke-width="8" stroke-linecap="round"/>
+          <text x="530" y="214" text-anchor="middle" class="t-s">28BYJ-48 스텝모터</text>
+        </svg>
+      </div>
+      <div class="card blue" style="width:716px;height:330px">
+        <div class="kicker">하는 일 ②</div>
+        <h3 style="font-size:30px;margin-top:6px">RFID 카드 → LCD</h3>
+        <svg width="660" height="220" viewBox="0 0 660 220">
+          <rect x="20" y="50" width="170" height="120" rx="14" fill="#1F5F7A"/>
+          <circle cx="90" cy="110" r="22" fill="none" stroke="#9FC4D3" stroke-width="3"/>
+          <circle cx="90" cy="110" r="40" fill="none" stroke="#9FC4D3" stroke-width="3"/>
+          <g id="c0card"><rect x="60" y="0" width="110" height="70" rx="10" fill="#fff" stroke="#9CC2F7" stroke-width="3"/>
+            <text x="115" y="42" text-anchor="middle" class="t-m">카드</text></g>
+          <path d="M225 115 H 335" stroke="#0064E0" stroke-width="6" stroke-linecap="round"/>
+          <path d="M325 100 L 345 115 L 325 130" fill="none" stroke="#0064E0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="365" y="55" width="280" height="110" rx="8" fill="#1D1D1F"/>
+          <rect x="380" y="70" width="250" height="80" rx="4" fill="#B7CC3B"/>
+          <text id="c0l1" x="392" y="103" class="mono" font-size="24" font-weight="700" fill="#1E2A08"></text>
+          <text id="c0l2" x="392" y="138" class="mono" font-size="24" font-weight="700" fill="#1E2A08"></text>
+          <text x="505" y="214" text-anchor="middle" class="t-s">LCD 1602 (16칸 × 2줄)</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ 1 구성 ═════════════ -->
+<section class="slide" id="s1">
+  <div class="kicker">01 · 회로 구성</div>
+  <h2>Pico 하나에 부품 다섯 개</h2>
+  <p class="lead">부품을 <b>눌러 보세요</b>. Pico 와 어떤 선으로, 어떤 방식으로 이어지는지 나옵니다.</p>
+  <div class="body">
+    <div class="row">
+      <svg width="930" height="560" viewBox="0 0 930 560" id="blk">
+        <g id="wires"></g>
+        <rect x="380" y="60" width="170" height="440" rx="22" fill="#fff" stroke="#1C2B33" stroke-width="3"/>
+        <text x="465" y="270" text-anchor="middle" class="t-l">Pico 2 W</text>
+        <text x="465" y="298" text-anchor="middle" class="t-s">두뇌 · 3.3V</text>
+        <g id="blocks"></g>
+      </svg>
+      <div class="card" style="width:518px;height:540px" id="blkInfo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ 2 전원 ═════════════ -->
+<section class="slide" id="s2">
+  <div class="kicker">02 · 전원</div>
+  <h2>전기는 두 갈래 — 5V 와 3.3V</h2>
+  <p class="lead">브레드보드 <b>왼쪽 레일은 외부 5V 어댑터</b>, <b>오른쪽 레일은 Pico 의 3.3V</b>. GND(−)는 모두 하나로 잇습니다.</p>
+  <div class="body">
+    <div class="row">
+      <div class="card" style="width:700px;height:540px">
+        <svg width="644" height="506" viewBox="0 0 644 506">
+          <text x="10" y="30" class="t-m">왼쪽 레일 · 외부 5V 어댑터 (5V 2A)</text>
+          <rect x="10" y="44" width="620" height="16" rx="8" fill="#0064E0"/>
+          <g id="p5"></g>
+          <text x="10" y="270" class="t-m">오른쪽 레일 · Pico 3V3 (3.3V)</text>
+          <rect x="10" y="284" width="620" height="16" rx="8" fill="#9CC2F7"/>
+          <g id="p3"></g>
+          <rect x="10" y="466" width="620" height="16" rx="8" fill="#1C2B33"/>
+          <text x="10" y="500" class="t-s">GND (−) — Pico · 어댑터 · 모든 부품을 하나로 (왼쪽 − 와 오른쪽 − 레일을 잇는 점퍼)</text>
+        </svg>
+      </div>
+      <div style="width:748px">
+        <div class="card blue">
+          <h3>모터에 왜 따로 어댑터가 필요할까?</h3>
+          <div class="row" style="gap:12px;margin:6px 0 12px">
+            <button class="btn on" id="pwSep">어댑터 따로</button>
+            <button class="btn red" id="pwUsb">USB 하나로 다</button>
+          </div>
+          <svg width="690" height="200" viewBox="0 0 690 200" id="pwBars"></svg>
+          <p id="pwMsg" style="margin-top:8px"></p>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <p><span class="warn">전원 순서</span> 켤 때 <b>USB 먼저 → 어댑터</b>, 끌 때 · 선을 바꿀 때 <b>어댑터 먼저</b>.<br>
+          <span class="warn">RC522 는 3.3V 전용</span> — 5V 레일에 꽂으면 망가질 수 있어요.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ 3 조이스틱 ═════════════ -->
+<section class="slide" id="s3">
+  <div class="kicker">03 · 조이스틱 = 가변저항 2개 + 버튼</div>
+  <h2>기울인 만큼 전압이 바뀐다</h2>
+  <p class="lead">조이스틱 안의 가변저항이 3.3V 를 나눠 0~3.3V 를 내보내고, Pico 의 <b>ADC</b> 가 이것을 <b>0~65535</b> 숫자로 읽습니다.</p>
+  <div class="body">
+    <div class="row">
+      <div class="card" style="width:520px;height:540px">
+        <svg width="464" height="360" viewBox="0 0 464 360">
+          <rect x="62" y="20" width="340" height="300" rx="26" fill="#1D1D1F"/>
+          <circle cx="232" cy="170" r="118" fill="#2B2B2B"/>
+          <rect id="j3dead" x="222" y="58" width="20" height="224" fill="#3A3A3A"/>
+          <circle id="j3knob" cx="232" cy="170" r="54" fill="#111" stroke="#666" stroke-width="4"/>
+          <text x="232" y="350" text-anchor="middle" class="t-s">위에서 본 조이스틱 · 가운데 회색 띠 = ±7% 「가만히」</text>
+        </svg>
+        <p style="margin:10px 0 6px;font-size:18px">X 기울이기 <b id="j3pct">0%</b></p>
+        <input type="range" min="-100" max="100" value="0" id="j3x">
+      </div>
+      <div style="width:928px">
+        <div class="card blue">
+          <svg width="872" height="250" viewBox="0 0 872 250" id="j3chain"></svg>
+        </div>
+        <div class="row" style="margin-top:18px">
+          <div class="card" style="flex:1">
+            <h3>「+5V」 핀에는 3.3V 를!</h3>
+            <p class="muted" style="font-size:17px">핀 이름은 +5V 지만, 5V 를 넣으면 출력이 Pico ADC 한계(3.3V)를 넘습니다.</p>
+            <div class="row" style="gap:10px;margin-top:12px">
+              <button class="btn on" id="j3v33">3.3V 레일 (맞음)</button>
+              <button class="btn red" id="j3v5">5V 레일 (틀림)</button>
+            </div>
+          </div>
+          <div class="card" style="width:380px">
+            <h3>버튼 (SW)</h3>
+            <p style="font-size:17px">누르면 LOW(0). Pico 안의 풀업 저항이 평소엔 HIGH 로 잡아 줍니다.<br>누르면 → <b>LCD 원래대로 + 모터 위치 0°</b></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ 4 스텝모터 ═════════════ -->
+<section class="slide" id="s4">
+  <div class="kicker">04 · 스텝모터 28BYJ-48 + ULN2003</div>
+  <h2>코일 4개를 차례로 켜면 한 칸씩 돈다</h2>
+  <p class="lead">Pico 는 약한 신호만 보내고, <b>ULN2003</b> 이 외부 5V 로 코일에 전류를 흘립니다. 반 스텝 <b>4096 번 = 한 바퀴</b>(기어 1:64).</p>
+  <div class="body">
+    <div class="row">
+      <div class="card" style="width:560px;height:540px">
+        <svg width="504" height="380" viewBox="0 0 504 380" id="m4">
+          <circle cx="252" cy="190" r="150" fill="#fff" stroke="#DDE3EA" stroke-width="3"/>
+          <g id="m4coils"></g>
+          <circle cx="252" cy="190" r="62" fill="#E8F1FE" stroke="#9CC2F7" stroke-width="3"/>
+          <g id="m4rotor"><rect x="246" y="134" width="12" height="112" rx="6" fill="#0064E0"/>
+            <circle cx="252" cy="140" r="10" fill="#0064E0"/><text x="252" y="128" text-anchor="middle" class="t-m" fill="#0064E0">N</text></g>
+        </svg>
+        <p style="margin:0;font-size:17px" class="muted">안쪽 자석(회전자)은 켜진 코일 쪽으로 끌려갑니다. <b>천천히 보여 주는 그림</b> — 실제로는 1초에 수백 번 바뀝니다.</p>
+      </div>
+      <div style="width:888px">
+        <div class="card blue">
+          <h3>반 스텝 순서 (code.py 의 HALF)</h3>
+          <div id="m4seq" style="display:grid;grid-template-columns:120px repeat(8,1fr);gap:6px;font-size:18px"></div>
+        </div>
+        <div class="row" style="margin-top:18px">
+          <div class="card" style="flex:1">
+            <h3>조이스틱 X 로 빠르기</h3>
+            <p style="font-size:17px">기울기 <b id="m4pct">60%</b> → 한 칸 간격 <b id="m4int"></b> → <b id="m4rpm"></b></p>
+            <input type="range" min="8" max="100" value="60" id="m4x">
+            <p class="muted" style="font-size:16px">조금 = 8ms(약 1.8rpm) · 끝까지 = 1.3ms(약 11rpm) · 놓으면 코일을 꺼서 열이 안 나게</p>
+          </div>
+          <div class="card" style="width:300px;text-align:center">
+            <h3>출력축 (실제 빠르기)</h3>
+            <svg width="150" height="150" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="84" fill="#fff" stroke="#9CC2F7" stroke-width="4"/>
+              <line id="m4shaft" x1="100" y1="100" x2="100" y2="26" stroke="#0064E0" stroke-width="8" stroke-linecap="round"/>
+              <circle cx="100" cy="100" r="10" fill="#0064E0"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ 5 LCD · I2C · 레벨 변환 ═════════════ -->
+<section class="slide" id="s5">
+  <div class="kicker">05 · LCD 1602 + I2C + 레벨 변환</div>
+  <h2>선 2개로 LCD 에 글자를 보낸다</h2>
+  <p class="lead"><b>I2C</b>: SDA(데이터) · SCL(박자) 두 선에 <b>주소 0x27</b> 을 붙여 보냅니다. LCD 는 5V, Pico 는 3.3V 라 가운데에 <b>레벨 변환</b>이 필요해요.</p>
+  <div class="body">
+    <div class="card" style="height:330px;padding:16px 24px">
+      <svg width="1420" height="300" viewBox="0 0 1420 300" id="i2c"></svg>
+    </div>
+    <div class="row" style="margin-top:18px">
+      <div class="card blue" style="flex:1">
+        <h3>왜 레벨 변환?</h3>
+        <p style="font-size:18px">LCD 뒤 I2C 모듈의 풀업 저항이 SDA · SCL 을 <b>5V</b> 까지 올립니다. 그대로 이으면 3.3V 용 Pico 핀에 5V 가 들어가요.</p>
+        <div class="row" style="gap:10px;margin-top:12px"><button class="btn on" id="i2On">레벨 변환 있음</button><button class="btn red" id="i2Off">빼고 바로 이으면?</button></div>
+      </div>
+      <div class="card" style="width:560px">
+        <h3>속도는 충분할까? — 예</h3>
+        <ul style="font-size:17px">
+          <li>100kHz (LCD 의 PCF8574 최대) · 신호 오르는 시간 0.2~0.5μs &lt; 허용 1μs</li>
+          <li>글자 1개 ≈ 0.6ms · 두 줄 전체 ≈ 20ms</li>
+          <li>주소는 0x27 또는 0x3F — 코드가 알아서 찾음</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ 6 RFID · SPI · ASCII ═════════════ -->
+<section class="slide" id="s6">
+  <div class="kicker">06 · RFID-RC522 + SPI</div>
+  <h2>카드와 리더기의 짧은 대화</h2>
+  <p class="lead">RC522 는 13.56MHz 전파로 카드와 이야기하고, Pico 와는 <b>SPI</b>(SCK · MOSI · MISO · SDA 4선)로 빠르게 주고받습니다.</p>
+  <div class="body">
+    <div class="row">
+      <div class="card" style="width:780px;height:540px">
+        <div class="row" style="gap:8px;margin-bottom:10px" id="r6steps"></div>
+        <svg width="724" height="430" viewBox="0 0 724 430" id="r6"></svg>
+      </div>
+      <div class="card blue" style="width:668px;height:540px">
+        <h3>카드 번호 → ASCII 글자</h3>
+        <p class="muted" style="font-size:17px">16진수 두 자리 = 1바이트(0~255). 0x20~0x7E 이면 글자로, 아니면 「.」</p>
+        <div class="row" style="gap:10px;margin:14px 0" id="r6in"></div>
+        <table class="t" id="r6tab"></table>
+        <p style="margin-top:14px;font-size:20px">LCD 2줄: <b class="mono" id="r6asc"></b></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ 7 LCD 돌리기 ═════════════ -->
+<section class="slide" id="s7">
+  <div class="kicker">07 · 조이스틱 Y 로 LCD 표시 돌리기</div>
+  <h2>전광판처럼 — 글자가 사라지지 않고 돈다</h2>
+  <p class="lead">Y 를 <b>위(+)</b>로 → 오른쪽으로 한 칸씩, <b>아래(−)</b>로 → 왼쪽으로. 끝으로 나간 글자는 반대쪽에서 다시 나옵니다. <b>버튼</b> = 원래대로.</p>
+  <div class="body">
+    <div style="text-align:center">
+      <div class="lcd" id="l7a"></div><br>
+      <div class="lcd" id="l7b" style="margin-top:-10px;border-top:0;border-radius:0 0 10px 10px"></div>
+    </div>
+    <div class="row" style="justify-content:center;margin-top:26px;gap:14px">
+      <button class="btn" id="l7left">◀ Y − (왼쪽)</button>
+      <button class="btn" id="l7right">Y + (오른쪽) ▶</button>
+      <button class="btn" id="l7auto">계속 기울이기</button>
+      <button class="btn red" id="l7sw">버튼 = 원래대로</button>
+    </div>
+    <div class="row" style="justify-content:center;margin-top:26px">
+      <div class="card blue" style="width:1100px">
+        <p style="font-size:20px">돌린 칸 수 <b id="l7k">0</b> — 코드: <span class="mono">줄[16−k:] + 줄[:16−k]</span> (오른쪽으로 k칸) ·
+        조금 기울이면 0.4초, 끝까지 기울이면 0.12초 간격 · 새 카드를 대면 0칸부터</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ 8 180° 배치 ═════════════ -->
+<section class="slide" id="s8">
+  <div class="kicker">08 · 10cm 점퍼선에 맞춘 배치</div>
+  <h2>세 모듈을 180° 돌려 놓는다</h2>
+  <p class="lead">점퍼선이 짧아서 <b>핀이 Pico 쪽</b>을 보게 돌립니다 — 레벨 변환기 · LCD · RC522. LCD 글씨는 코드가 뒤집어 그려요.</p>
+  <div class="body">
+    <div class="row">
+      <div class="card" style="width:760px;height:540px">
+        <h3>LCD — 돌려 놓으면 글씨가 거꾸로?</h3>
+        <div class="row" style="gap:10px;margin:8px 0 18px">
+          <button class="btn" id="f8rot">LCD 180° 돌려 놓기</button>
+          <button class="btn" id="f8flip">LCD_FLIP 켜기</button>
+        </div>
+        <div style="display:flex;justify-content:center;align-items:center;height:250px">
+          <div id="f8panel" style="transition:transform .6s;display:flex;align-items:center">
+            <div style="background:#2E8B3E;border-radius:12px;padding:18px 18px 18px 18px;display:flex;align-items:center;gap:10px">
+              <div id="f8pins" style="display:flex;flex-direction:column;gap:6px;font:700 13px/1 sans-serif;color:#fff"></div>
+              <div style="background:#1D1D1F;padding:12px;border-radius:6px"><div id="f8lcd" style="background:#B7CC3B;padding:10px 14px;border-radius:3px"></div></div>
+            </div>
+          </div>
+        </div>
+        <p id="f8msg" style="font-size:19px;margin-top:6px"></p>
+      </div>
+      <div style="width:688px">
+        <div class="card blue">
+          <h3>LCD_FLIP 은 어떻게 뒤집을까?</h3>
+          <ul style="font-size:17px">
+            <li>LCD 칩에는 화면을 뒤집는 기능이 <b>없어요</b>.</li>
+            <li>그래서 글자마다 <b>180° 돌린 모양</b>을 직접 그려 「사용자 글자 8칸」 에 넣고, 줄 순서 · 글자 순서도 거꾸로 씁니다.</li>
+            <li>0 · 8 · H · I · N · O · S · X · Z 와 6↔9 는 돌려도 같은 글자라 칸을 안 씀.</li>
+            <li class="muted">한 화면에 그 밖의 글자가 8종류를 넘으면 비슷한 글자로 대신 나와요.</li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <h3>돌려 놓은 뒤 핀 순서 (위 → 아래)</h3>
+          <table class="t" style="font-size:17px">
+            <tr><td style="width:190px"><b>레벨 변환</b></td><td>26~31행, 홈을 걸쳐 · <b>HV 왼쪽</b>(5V) · LV 오른쪽(3.3V)</td></tr>
+            <tr><td><b>LCD</b> (핀 오른쪽)</td><td>SCL · SDA · VCC · GND</td></tr>
+            <tr><td><b>RC522</b> (핀 왼쪽)</td><td>SDA · SCK · MOSI · MISO · IRQ · GND · RST · 3.3V</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ 9 만들고 점검 ═════════════ -->
+<section class="slide" id="s9">
+  <div class="kicker">09 · 만들고 점검하기</div>
+  <h2>한 부품씩 꽂고, 한 부품씩 확인</h2>
+  <p class="lead">CIRCUITPY 에 <span class="mono"><b>code.py · lcd_i2c.py · mfrc522_lite.py</b></span> 3개만. <b>따로 설치할 라이브러리는 없습니다.</b></p>
+  <div class="body">
+    <div class="row">
+      <div class="card" style="width:760px">
+        <h3>시험 순서 — 꽂을 때마다 그 테스트를 code.py 로</h3>
+        <table class="t">
+          <tr><th style="width:70px">순서</th><th>파일</th><th>되면</th></tr>
+          <tr><td class="num" style="font-size:30px">1</td><td class="mono">test1_joystick.py</td><td>X · Y % 가 기울기를 따라 바뀜, 버튼</td></tr>
+          <tr><td class="num" style="font-size:30px">2</td><td class="mono">test2_stepper.py</td><td>정방향 한 바퀴 → 역방향 한 바퀴</td></tr>
+          <tr><td class="num" style="font-size:30px">3</td><td class="mono">test3_lcd.py</td><td>주소 찾기 → 「HI PICO」 + 숫자</td></tr>
+          <tr><td class="num" style="font-size:30px">4</td><td class="mono">test4_rfid.py</td><td>버전 0x91 · 0x92 → 카드 번호 · ASCII</td></tr>
+          <tr><td class="num" style="font-size:30px">✔</td><td class="mono">code.py</td><td>전체 동작 + PC 점검 앱 8칸 모두 ✔</td></tr>
+        </table>
+      </div>
+      <div class="card blue" style="width:688px">
+        <h3>안 될 때 먼저 볼 곳</h3>
+        <table class="t" style="font-size:17px">
+          <tr><td style="width:230px"><b>모터가 떨기만 함</b></td><td>IN1~IN4 순서 · 외부 5V · On/Off 점퍼</td></tr>
+          <tr><td><b>「LCD 를 못 찾음」</b></td><td>SDA·SCL 바뀜 · 레벨 변환 방향(HV 왼쪽) · LCD VCC=5V</td></tr>
+          <tr><td><b>LCD 네모만 보임</b></td><td>뒤 파란 가변저항(대비) 돌리기</td></tr>
+          <tr><td><b>「RC522 응답 없음」</b></td><td>3.3V · GND · SPI 4선 · RST=3.3V</td></tr>
+          <tr><td><b>카드를 대도 무반응</b></td><td>1~3cm · 13.56MHz 카드 · 모듈 바꿔 보기</td></tr>
+          <tr><td><b>고쳐 꽂았는데 안 잡힘</b></td><td>3초 기다리기 → 앱 「↻ Pico 재시작」</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="row" style="margin-top:20px;gap:20px">
+      <div class="card" style="flex:1;border-color:#F3C6C5"><p><span class="warn">안전 ①</span> 켤 때 USB → 어댑터, 끌 때 · 선 바꿀 때 어댑터 먼저</p></div>
+      <div class="card" style="flex:1;border-color:#F3C6C5"><p><span class="warn">안전 ②</span> RC522 와 조이스틱 「+5V」 핀은 <b>3.3V 레일</b>에</p></div>
+      <div class="card" style="flex:1;border-color:#F3C6C5"><p><span class="warn">안전 ③</span> GND 는 Pico · 어댑터 · 모든 부품 공통</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <button class="nav" id="prev">← 이전</button>
+  <span id="pageNo">1 / 10</span>
+  <div class="bar"><i id="prog"></i></div>
+  <span>← → 넘기기 · F 전체 화면 · Space 움직임 멈춤</span>
+  <button class="nav" id="playBtn">멈춤</button>
+  <button class="nav" id="next">다음 →</button>
+</footer>
+</div>
+
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const NS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(x, y, s, cls, parent, extra) {
+  const ex = Object.assign({}, extra || {}), fill = ex.fill; delete ex.fill;
+  const t = svgEl("text", Object.assign({ x, y, class: cls }, ex), parent);
+  if (fill) t.style.fill = fill;                      // class 의 색보다 앞서게
+  t.textContent = s; return t;
+}
+const BLUE = "#0064E0", BLUE_M = "#9CC2F7", BLUE_L = "#E8F1FE", INK = "#1C2B33", SUB = "#5D6C7B", LINE = "#DDE3EA", RED = "#D0302F";
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ── 화면 맞추기 ── */
+function fit() {
+  const s = Math.min(innerWidth / 1600, innerHeight / 900);
+  const st = $("#stage");
+  st.style.transform = `scale(${s})`;
+  st.style.left = (innerWidth - 1600 * s) / 2 + "px";
+  st.style.top = (innerHeight - 900 * s) / 2 + "px";
+}
+addEventListener("resize", fit); fit();
+
+/* ── 장면 넘기기 ── */
+const slides = $$(".slide");
+let cur = 0, playing = !reduceMotion;
+const anim = {}, enter = {};
+function go(i) {
+  cur = Math.max(0, Math.min(slides.length - 1, i));
+  slides.forEach((s, k) => s.classList.toggle("on", k === cur));
+  $$(".tab").forEach(t => t.classList.toggle("on", +t.dataset.go === cur));
+  $("#prog").style.width = (cur / (slides.length - 1) * 100) + "%";
+  $("#pageNo").textContent = `${cur + 1} / ${slides.length}`;
+  enter[cur] && enter[cur]();
+}
+$$("[data-go]").forEach(b => b.addEventListener("click", () => go(+b.dataset.go)));
+$("#prev").addEventListener("click", () => go(cur - 1));
+$("#next").addEventListener("click", () => go(cur + 1));
+function setPlaying(p) { playing = p; $("#playBtn").textContent = p ? "멈춤" : "재생"; }
+$("#playBtn").addEventListener("click", () => setPlaying(!playing));
+addEventListener("keydown", e => {
+  if (e.target.matches && e.target.matches("input")) {
+    if (e.target.type === "text") return;
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+  }
+  if (e.key === "ArrowRight" || e.key === "PageDown") { go(cur + 1); e.preventDefault(); }
+  else if (e.key === "ArrowLeft" || e.key === "PageUp") { go(cur - 1); e.preventDefault(); }
+  else if (e.key === " ") { setPlaying(!playing); e.preventDefault(); }
+  else if (e.key === "f" || e.key === "F") {
+    if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {});
+  } else if (/^[0-9]$/.test(e.key)) go(+e.key);
+});
+let last = performance.now(), T = 0;
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (playing) { T += dt; anim[cur] && anim[cur](dt, T); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ═════════ 0 시작 ═════════ */
+(() => {
+  const words = [["6A 70 F4 BC", "ASCII: jp.."], ["DE AD BE EF", "ASCII: ...."]];
+  let ang = 0;
+  anim[0] = (dt, t) => {
+    const tilt = Math.sin(t * 0.9);
+    $("#c0stick").setAttribute("cx", 105 + 24 * tilt);
+    ang += dt * 120 * tilt;
+    $("#c0needle").setAttribute("transform", `rotate(${ang} 530 115)`);
+    const ph = (t % 4) / 4;
+    const y = ph < 0.3 ? -40 + ph / 0.3 * 120 : ph < 0.75 ? 80 : 80 - (ph - 0.75) / 0.25 * 120;
+    $("#c0card").setAttribute("transform", `translate(-25 ${y})`);
+    const w = words[Math.floor(t / 4) % 2];
+    const show = ph > 0.3;
+    $("#c0l1").textContent = show ? w[0] : "TAP RFID CARD";
+    $("#c0l2").textContent = show ? w[1] : "X=MOTOR";
+  };
+})();
+
+/* ═════════ 1 구성 ═════════ */
+(() => {
+  const parts = {
+    lcd: { name: "LCD 1602", x: 20, y: 120, w: 170, h: 90, side: "L", pins: [[150, "GP16 SDA"], [180, "GP17 SCL"]], via: true,
+      info: ["글자 16칸 × 2줄 표시", "외부 5V", "I2C — 선 2개(SDA · SCL) + 주소 0x27", "카드 번호(16진수)와 ASCII 를 보여 줌", "레벨 변환을 거쳐서 Pico 로"] },
+    ls: { name: "레벨 변환", x: 220, y: 120, w: 130, h: 90, side: "L", pins: [], info: ["5V ↔ 3.3V 신호 바꾸기", "HV = 외부 5V · LV = Pico 3.3V", "I2C 두 선이 이 안을 지나감", "LV1 ↔ GP16 · LV2 ↔ GP17 · HV1 · HV2 ↔ LCD", "브레드보드 26~31행에 180° 돌려 꽂음"] },
+    uln: { name: "ULN2003 + 스텝모터", x: 20, y: 300, w: 240, h: 130, side: "L", pins: [[330, "GP10 IN1"], [360, "GP11 IN2"], [390, "GP12 IN3"], [420, "GP13 IN4"]],
+      info: ["28BYJ-48 모터를 돌리는 드라이버", "외부 5V (모터 약 200~240mA)", "디지털 출력 4개 — 코일 4개를 차례로 켬", "반 스텝 4096 번 = 한 바퀴", "On/Off 점퍼를 꽂아야 동작"] },
+    joy: { name: "조이스틱", x: 720, y: 40, w: 190, h: 150, side: "R", pins: [[120, "GP26 X"], [150, "GP27 Y"], [180, "GP22 SW"]],
+      info: ["가변저항 2개(X · Y) + 버튼", "Pico 3.3V (「+5V」 핀에 3.3V!)", "아날로그 입력(ADC) 2개 + 디지털 입력 1개", "X = 모터 · Y = LCD 돌리기 · 버튼 = 원래대로", "가운데 ±7% 는 가만히"] },
+    rc: { name: "RFID-RC522", x: 720, y: 290, w: 190, h: 170, side: "R", pins: [[330, "GP21 SDA(CS)"], [360, "GP20 MISO"], [390, "GP19 MOSI"], [420, "GP18 SCK"]],
+      info: ["13.56MHz 카드 번호(UID) 읽기", "3.3V 전용 (5V 금지!) · RST 도 3.3V", "SPI — 선 4개(SCK · MOSI · MISO · SDA)", "0.25초마다 카드가 있는지 물어봄", "180° 돌려 놓아 핀이 Pico 쪽"] },
+  };
+  const blocks = $("#blocks"), wires = $("#wires");
+  let sel = "lcd";
+  function draw() {
+    blocks.innerHTML = ""; wires.innerHTML = "";
+    for (const [k, p] of Object.entries(parts)) {
+      const on = k === sel || (sel === "lcd" && k === "ls") || (sel === "ls" && k === "lcd");
+      for (const [py, lab] of p.pins) {
+        const x0 = p.side === "L" ? (p.via ? 350 : p.x + p.w) : 550, x1 = p.side === "L" ? 380 : p.x;
+        const yy = py;
+        if (p.via) {   // LCD → 레벨 변환 → Pico
+          svgEl("path", { d: `M ${p.x + p.w} ${yy} H 220`, stroke: on ? BLUE : LINE, "stroke-width": on ? 5 : 3, fill: "none" }, wires);
+        }
+        svgEl("path", { d: `M ${x0} ${yy} H ${x1}`, stroke: on ? BLUE : LINE, "stroke-width": on ? 5 : 3, fill: "none" }, wires);
+        txt(p.side === "L" ? 392 : 538, yy + 5, lab.split(" ")[0], "t-s", blocks, { "text-anchor": p.side === "L" ? "start" : "end", fill: on ? BLUE : SUB });
+      }
+      const g = svgEl("g", { style: "cursor:pointer" }, blocks);
+      svgEl("rect", { x: p.x, y: p.y, width: p.w, height: p.h, rx: 18, fill: k === sel ? BLUE : (on ? BLUE_L : "#fff"), stroke: k === sel ? BLUE : (on ? BLUE_M : LINE), "stroke-width": 3 }, g);
+      txt(p.x + p.w / 2, p.y + p.h / 2 + 7, p.name, "t-m", g, { "text-anchor": "middle", fill: k === sel ? "#fff" : INK });
+      g.addEventListener("click", () => { sel = k; draw(); });
+    }
+    const p = parts[sel];
+    $("#blkInfo").innerHTML = `<div class="kicker">눌러 본 부품</div><h3 style="font-size:32px;margin-top:6px">${p.name}</h3>` +
+      [["하는 일", p.info[0]], ["전원", p.info[1]], ["잇는 방식", p.info[2]], ["코드에서", p.info[3]], ["기억할 것", p.info[4]]]
+        .map(([a, b]) => `<div style="margin-top:16px"><div class="muted" style="font-size:15px;font-weight:700">${a}</div><div style="font-size:21px;margin-top:2px">${b}</div></div>`).join("") +
+      (p.pins.length ? `<div style="margin-top:16px">${p.pins.map(([, l]) => `<span class="chip mono">${l}</span>`).join("")}</div>` : "");
+  }
+  draw();
+})();
+
+/* ═════════ 2 전원 ═════════ */
+(() => {
+  const p5 = $("#p5"), p3 = $("#p3");
+  const five = [["스텝모터 + ULN2003", "약 200~240mA"], ["LCD (백라이트)", "약 20~30mA"], ["레벨 변환 HV", "아주 조금"]];
+  const three = [["조이스틱", "수 mA"], ["RC522", "13~26mA"], ["레벨 변환 LV", "아주 조금"]];
+  function cards(g, list, y, col) {
+    list.forEach(([n, a], i) => {
+      const x = 10 + i * 210;
+      svgEl("line", { x1: x + 95, x2: x + 95, y1: y - 40, y2: y, stroke: col, "stroke-width": 4 }, g);
+      svgEl("rect", { x, y, width: 190, height: 110, rx: 16, fill: "#fff", stroke: col, "stroke-width": 2.5 }, g);
+      txt(x + 95, y + 48, n, "t-m", g, { "text-anchor": "middle" });
+      txt(x + 95, y + 80, a, "t-s", g, { "text-anchor": "middle" });
+    });
+  }
+  cards(p5, five, 100, BLUE); cards(p3, three, 340, BLUE_M);
+  const bars = $("#pwBars");
+  function show(usb) {
+    bars.innerHTML = "";
+    const scale = 0.95;                // px per mA
+    const items = usb ? [["Pico", 50, BLUE_M], ["RC522 · LCD · 조이스틱", 60, BLUE_M], ["모터 (켜질 때 순간 더 큼)", 240, RED]]
+                      : [["Pico", 50, BLUE_M], ["RC522 · 조이스틱", 30, BLUE_M]];
+    let x = 10;
+    txt(10, 122, items.map(([n, mA]) => `${n} 약 ${mA}mA`).join(" · "), "t-s", bars);
+    txt(10, 26, usb ? "USB 하나(PC 포트 약 500mA)로 모두" : "USB 는 Pico 쪽만 — 모터 · LCD 는 어댑터가 따로", "t-m", bars);
+    for (const [n, mA, c] of items) {
+      svgEl("rect", { x, y: 50, width: mA * scale, height: 56, rx: 8, fill: c }, bars);
+      if (mA > 40) txt(x + 10, 86, n, "t-s", bars, { fill: "#fff", "font-weight": 700 });
+      x += mA * scale + 4;
+    }
+    const lim = 10 + 500 * scale;
+    svgEl("line", { x1: lim, x2: lim, y1: 40, y2: 104, stroke: INK, "stroke-width": 3, "stroke-dasharray": "6 5" }, bars);
+    txt(lim + 8, 80, "USB 한계 500mA", "t-s", bars);
+    txt(10, 180, usb ? "여유가 거의 없음 — 모터가 켜고 꺼질 때 전압이 출렁여 Pico 가 다시 켜질 수 있어요" : "넉넉함 — 모터 전류는 외부 5V 2A 어댑터가 맡음", "t-m", bars, { fill: usb ? RED : BLUE });
+    $("#pwMsg").innerHTML = usb ? "<span class='warn'>✖ 위험</span> — 모터 · LCD 를 USB 에 같이 물리면 여유가 없고 전압이 흔들립니다."
+                                : "<b style='color:#0064E0'>✔ 이렇게 만듭니다</b> — 5V 2A 어댑터 → 왼쪽 레일, 470μF 로 순간 전류를 보충.";
+    $("#pwSep").classList.toggle("on", !usb); $("#pwUsb").classList.toggle("on", usb);
+  }
+  $("#pwSep").addEventListener("click", () => show(false));
+  $("#pwUsb").addEventListener("click", () => show(true));
+  show(false);
+})();
+
+/* ═════════ 3 조이스틱 ═════════ */
+(() => {
+  let vcc = 3.3;
+  const chain = $("#j3chain");
+  function draw() {
+    const x = +$("#j3x").value;                         // -100 ~ 100
+    $("#j3pct").textContent = (x > 0 ? "+" : "") + x + "%";
+    $("#j3knob").setAttribute("cx", 232 + x * 0.62);
+    const v = vcc * (0.5 + x / 200);                    // 가변저항 출력
+    const adc = Math.min(65535, Math.round(v / 3.3 * 65535));
+    const over = v > 3.3;
+    const dead = Math.abs(x) <= 7;
+    chain.innerHTML = "";
+    const box = (bx, w, head, big, small, col) => {
+      svgEl("rect", { x: bx, y: 20, width: w, height: 160, rx: 18, fill: "#fff", stroke: col || BLUE_M, "stroke-width": 2.5 }, chain);
+      txt(bx + 18, 52, head, "t-s", chain);
+      txt(bx + 18, 104, big, "t-l", chain, { "font-size": 36, fill: col === RED ? RED : INK });
+      txt(bx + 18, 146, small, "t-s", chain, { fill: col === RED ? RED : SUB });
+    };
+    box(0, 250, "가변저항 출력 전압", v.toFixed(2) + " V", over ? "3.3V 넘음 — 위험!" : `0 ~ ${vcc}V 사이`, over ? RED : null);
+    box(310, 250, "Pico ADC 값 (GP26)", over ? "65535+" : adc.toLocaleString(), over ? "더 못 읽음 (한계)" : "0 ~ 65535", over ? RED : null);
+    box(620, 252, "code.py 의 판단", dead ? "가만히" : (x > 0 ? "시계 ▶" : "◀ 반시계"),
+      dead ? "±7% 안 → 모터 정지" : `X ${x > 0 ? "+" : ""}${x}% → 기울인 만큼 빠르게`);
+    for (const ax of [262, 572]) {
+      svgEl("path", { d: `M ${ax} 100 h 36`, stroke: BLUE, "stroke-width": 5 }, chain);
+      svgEl("path", { d: `M ${ax + 26} 90 l 12 10 l -12 10`, stroke: BLUE, "stroke-width": 5, fill: "none" }, chain);
+    }
+    txt(0, 222, "ADC 값 = 전압 ÷ 3.3V × 65535 · 켜질 때 잰 가운데 값과 비교해 −100 ~ +100% 로", "t-s", chain);
+    $("#j3v33").classList.toggle("on", vcc === 3.3); $("#j3v5").classList.toggle("on", vcc === 5);
+  }
+  $("#j3x").addEventListener("input", draw);
+  $("#j3v33").addEventListener("click", () => { vcc = 3.3; draw(); });
+  $("#j3v5").addEventListener("click", () => { vcc = 5; draw(); });
+  draw();
+})();
+
+/* ═════════ 4 스텝모터 ═════════ */
+(() => {
+  const HALF = [[1,0,0,0],[1,1,0,0],[0,1,0,0],[0,1,1,0],[0,0,1,0],[0,0,1,1],[0,0,0,1],[1,0,0,1]];
+  const coilAng = [0, 90, 180, 270];                    // 코일 A~D 자리
+  const g = $("#m4coils"), cells = [];
+  coilAng.forEach((a, i) => {
+    const r = a * Math.PI / 180, cx = 252 + 112 * Math.sin(r), cy = 190 - 112 * Math.cos(r);
+    const c = svgEl("rect", { x: cx - 30, y: cy - 22, width: 60, height: 44, rx: 10, fill: "#fff", stroke: BLUE_M, "stroke-width": 3,
+      transform: `rotate(${a} ${cx} ${cy})` }, g);
+    txt(cx, cy + 7, "ABCD"[i], "t-m", g, { "text-anchor": "middle" });
+    cells.push(c);
+  });
+  const seq = $("#m4seq");
+  seq.innerHTML = `<div></div>` + HALF.map((_, i) => `<div style="text-align:center;font-weight:700;color:#5D6C7B">${i + 1}</div>`).join("") +
+    ["IN1 · A", "IN2 · B", "IN3 · C", "IN4 · D"].map((n, c) => `<div style="font-weight:700">${n}</div>` +
+      HALF.map((h, i) => `<div data-c="${c}" data-i="${i}" style="height:34px;border-radius:8px;background:${h[c] ? BLUE : "#fff"};border:1.5px solid ${h[c] ? BLUE : LINE}"></div>`).join("")).join("");
+  let phase = 0, acc = 0, shaft = 0;
+  function speed() {
+    const p = +$("#m4x").value;
+    const k = (p - 7) / 93;
+    const ms = 8 - (8 - 1.3) * Math.max(0, k);
+    $("#m4pct").textContent = p + "%";
+    $("#m4int").textContent = ms.toFixed(1) + "ms";
+    $("#m4rpm").textContent = "약 " + (60 / (4096 * ms / 1000)).toFixed(1) + "rpm";
+    return ms;
+  }
+  $("#m4x").addEventListener("input", speed);
+  let ms = speed();
+  $("#m4x").addEventListener("input", () => { ms = speed(); });
+  function show() {
+    const h = HALF[phase];
+    cells.forEach((c, i) => { c.setAttribute("fill", h[i] ? BLUE : "#fff"); c.setAttribute("stroke", h[i] ? BLUE : BLUE_M); });
+    $$("#m4seq [data-i]").forEach(d => d.style.outline = +d.dataset.i === phase ? "3px solid #1C2B33" : "none");
+    $("#m4rotor").setAttribute("transform", `rotate(${phase * 45} 252 190)`);
+  }
+  show();
+  anim[4] = (dt) => {
+    acc += dt;
+    const slow = 0.55 - 0.4 * ((+$("#m4x").value - 8) / 92);   // 보여 주기용 (실제보다 아주 느리게)
+    if (acc > slow) { acc = 0; phase = (phase + 1) % 8; show(); }
+    shaft += dt * 360 / (4096 * ms / 1000);
+    $("#m4shaft").setAttribute("transform", `rotate(${shaft % 360} 100 100)`);
+  };
+})();
+
+/* ═════════ 5 I2C · 레벨 변환 ═════════ */
+(() => {
+  const svg = $("#i2c");
+  let shifter = true, off = 0;
+  // 주소 0x27 + 쓰기(0) = 0100 1110
+  const bits = [0, 1, 0, 0, 1, 1, 1, 0];
+  function wave(x0, y0, w, h, vtop, col, label) {
+    const g = svgEl("g", {}, svg);
+    svgEl("rect", { x: x0, y: y0, width: w, height: h, rx: 14, fill: "#fff", stroke: LINE, "stroke-width": 2 }, g);
+    txt(x0 + 14, y0 + 26, label, "t-s", g);
+    txt(x0 + w - 14, y0 + 26, vtop + "V", "t-m", g, { "text-anchor": "end", fill: col });
+    const path = svgEl("path", { fill: "none", stroke: col, "stroke-width": 4 }, g);
+    return { path, x0, y0, w, h };
+  }
+  function draw() {
+    svg.innerHTML = "";
+    const boxes = [[20, "Pico (3.3V)", "GP16 SDA · GP17 SCL"], [560, shifter ? "레벨 변환" : "(없음)", shifter ? "LV ↔ HV" : "바로 이음"], [1100, "LCD I2C 모듈 (5V)", "풀업 저항 → 5V"]];
+    for (const [x, a, b] of boxes) {
+      svgEl("rect", { x, y: 20, width: 300, height: 90, rx: 18, fill: x === 560 && !shifter ? RED + "18" : BLUE_L, stroke: x === 560 && !shifter ? RED : BLUE_M, "stroke-width": 2.5 }, svg);
+      txt(x + 150, 58, a, "t-m", svg, { "text-anchor": "middle", fill: x === 560 && !shifter ? RED : INK });
+      txt(x + 150, 86, b, "t-s", svg, { "text-anchor": "middle" });
+    }
+    for (const x of [320, 860]) {
+      svgEl("line", { x1: x, x2: x + 240, y1: 50, y2: 50, stroke: BLUE, "stroke-width": 4 }, svg);
+      svgEl("line", { x1: x, x2: x + 240, y1: 80, y2: 80, stroke: BLUE_M, "stroke-width": 4 }, svg);
+      txt(x + 120, 42, "SDA", "t-s", svg, { "text-anchor": "middle" }); txt(x + 120, 100, "SCL", "t-s", svg, { "text-anchor": "middle" });
+    }
+    W.lv = wave(20, 130, 660, 150, shifter ? 3.3 : 5, shifter ? BLUE : RED, shifter ? "Pico 쪽 SDA — 0x27 을 보내는 중" : "Pico 핀에 들어오는 SDA");
+    W.hv = wave(740, 130, 660, 150, 5, BLUE, "LCD 쪽 SDA");
+    if (!shifter) txt(350, 300, "✖ 3.3V 용 Pico 핀에 5V — 망가질 수 있어요", "t-m", svg, { "text-anchor": "middle", fill: RED });
+    $("#i2On").classList.toggle("on", shifter); $("#i2Off").classList.toggle("on", !shifter);
+  }
+  const W = {};
+  function trace(wv, top) {
+    const { x0, y0, w, h } = wv, bw = (w - 40) / 8, base = y0 + h - 22, hi = y0 + 44 + (5 - top) / 5 * (h - 66);
+    let d = "";
+    for (let i = 0; i <= 8; i++) {
+      const b = bits[(i + off) % 8], y = b ? hi : base, x = x0 + 20 + i * bw;
+      d += (i === 0 ? `M ${x} ${y}` : ` V ${y}`) + ` H ${Math.min(x + bw, x0 + w - 20)}`;
+    }
+    wv.path.setAttribute("d", d);
+  }
+  function tick() { trace(W.lv, shifter ? 3.3 : 5); trace(W.hv, 5); }
+  $("#i2On").addEventListener("click", () => { shifter = true; draw(); tick(); });
+  $("#i2Off").addEventListener("click", () => { shifter = false; draw(); tick(); });
+  draw(); tick();
+  let acc = 0;
+  anim[5] = (dt) => { acc += dt; if (acc > 0.45) { acc = 0; off = (off + 1) % 8; tick(); } };
+})();
+
+/* ═════════ 6 RFID · SPI · ASCII ═════════ */
+(() => {
+  const svg = $("#r6");
+  let uid = [0x6A, 0x70, 0xF4, 0xBC], step = 0;
+  const hex = b => b.toString(16).toUpperCase().padStart(2, "0");
+  const steps = ["① 카드 있니?", "② 있어요", "③ 번호 알려줘", "④ LCD 로"];
+  const bar = $("#r6steps");
+  steps.forEach((s, i) => { const b = document.createElement("button"); b.className = "btn"; b.textContent = s; b.onclick = () => { step = i; draw(); }; bar.appendChild(b); });
+  function draw() {
+    svg.innerHTML = "";
+    $$(".btn", bar).forEach((b, i) => b.classList.toggle("on", i === step));
+    // 리더기 · 카드 · Pico
+    svgEl("rect", { x: 20, y: 60, width: 200, height: 150, rx: 16, fill: "#1F5F7A" }, svg);
+    txt(120, 230, "RC522 리더기", "t-m", svg, { "text-anchor": "middle" });
+    for (const r of [24, 44, 64]) svgEl("circle", { cx: 120, cy: 135, r, fill: "none", stroke: "#9FC4D3", "stroke-width": 3 }, svg);
+    svgEl("rect", { x: 500, y: 70, width: 200, height: 130, rx: 16, fill: "#fff", stroke: BLUE_M, "stroke-width": 3 }, svg);
+    txt(600, 230, "카드 (MIFARE)", "t-m", svg, { "text-anchor": "middle" });
+    txt(600, 145, uid.map(hex).join(" "), "t-m", svg, { "text-anchor": "middle", class: "mono", fill: BLUE });
+    const msgs = [["→", "REQA (0x26)", "「근처에 카드 있니?」 — 0.25초마다"], ["←", "ATQA 04 00", "「있어요!」 (MIFARE Classic)"],
+                  ["←", uid.map(hex).join(" ") + " + " + hex(uid.reduce((a, b) => a ^ b)), "번호 4바이트 + 검사 바이트(BCC)"],
+                  ["→", "Pico 로 (SPI)", "Pico 가 LCD 에 씀 (I2C)"]];
+    const [dir, big, small] = msgs[step];
+    const y = 120;
+    svgEl("path", { d: dir === "→" ? `M 240 ${y} H 470` : `M 480 ${y} H 250`, stroke: BLUE, "stroke-width": 6, fill: "none" }, svg);
+    svgEl("path", { d: dir === "→" ? `M 455 ${y - 14} L 475 ${y} L 455 ${y + 14}` : `M 265 ${y - 14} L 245 ${y} L 265 ${y + 14}`, stroke: BLUE, "stroke-width": 6, fill: "none" }, svg);
+    if (step === 3) svgEl("path", { d: `M 240 ${y} H 470`, stroke: "none" }, svg);
+    txt(360, y - 18, big, "t-m", svg, { "text-anchor": "middle", fill: BLUE });
+    txt(360, y + 36, small, "t-s", svg, { "text-anchor": "middle" });
+    // 아래: 설명
+    const notes = [
+      "리더기가 13.56MHz 전파를 내보내며 묻습니다. 카드는 전지가 없어도 이 전파로 깨어나요.",
+      "카드가 「종류 표시(ATQA)」 로 대답합니다. 대답이 없으면 = 카드 없음.",
+      `BCC = 4바이트를 XOR 한 값 (${uid.map(hex).join(" ⊕ ")} = ${hex(uid.reduce((a, b) => a ^ b))}). 맞으면 번호를 믿습니다.`,
+      "같은 카드를 계속 대고 있으면 한 번만 표시 · 떼었다 다시 대면 다시 표시."];
+    const fo = svgEl("foreignObject", { x: 20, y: 270, width: 684, height: 150 }, svg);
+    fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="font-size:20px;line-height:1.55">${notes[step]}<br>` +
+      `<span style="color:#5D6C7B;font-size:17px">SPI 4선: SCK(박자, GP18) · MOSI(Pico→RC522, GP19) · MISO(RC522→Pico, GP20) · SDA=CS(고르기, GP21)</span></div>`;
+  }
+  // 오른쪽: 바이트 → ASCII
+  const inp = $("#r6in");
+  uid.forEach((b, i) => {
+    const e = document.createElement("input");
+    e.type = "text"; e.maxLength = 2; e.value = hex(b); e.className = "mono";
+    e.style.cssText = "width:90px;font-size:30px;font-weight:700;text-align:center;padding:8px;border:2px solid #9CC2F7;border-radius:14px;color:#0064E0";
+    e.addEventListener("input", () => { const v = parseInt(e.value, 16); if (!isNaN(v) && e.value.length) { uid[i] = v & 255; table(); draw(); } });
+    inp.appendChild(e);
+  });
+  function table() {
+    const asc = b => (b >= 0x20 && b <= 0x7E) ? String.fromCharCode(b) : ".";
+    $("#r6tab").innerHTML = `<tr><th>16진수</th><th>2진수</th><th>10진수</th><th>글자</th></tr>` + uid.map(b =>
+      `<tr><td class="mono"><b>${hex(b)}</b></td><td class="mono">${b.toString(2).padStart(8, "0").replace(/(\d{4})/, "$1 ")}</td><td>${b}</td>` +
+      `<td class="mono" style="font-size:24px;font-weight:800;color:${b >= 0x20 && b <= 0x7E ? BLUE : SUB}">${asc(b)}${b >= 0x20 && b <= 0x7E ? "" : " <span style='font-size:14px;font-weight:400'>(못 찍는 값)</span>"}</td></tr>`).join("");
+    $("#r6asc").textContent = "ASCII: " + uid.map(asc).join("");
+  }
+  table(); draw();
+})();
+
+/* ═════════ 7 LCD 돌리기 ═════════ */
+(() => {
+  const A = "6A 70 F4 BC".padEnd(16), B = "ASCII: jp..".padEnd(16);
+  let k = 0, auto = 0, acc = 0;
+  const mk = el => { el.innerHTML = ""; for (let i = 0; i < 16; i++) el.appendChild(document.createElement("span")); };
+  mk($("#l7a")); mk($("#l7b"));
+  const rot = (s, n) => { n = ((n % 16) + 16) % 16; return s.slice(16 - n) + s.slice(0, 16 - n); };
+  function show() {
+    [[$("#l7a"), A], [$("#l7b"), B]].forEach(([el, s]) => [...el.children].forEach((c, i) => c.textContent = rot(s, k)[i]));
+    $("#l7k").textContent = ((k % 16) + 16) % 16;
+    $("#l7auto").classList.toggle("on", auto !== 0);
+  }
+  $("#l7left").onclick = () => { k--; show(); };
+  $("#l7right").onclick = () => { k++; show(); };
+  $("#l7sw").onclick = () => { k = 0; auto = 0; show(); };
+  $("#l7auto").onclick = () => { auto = auto ? 0 : 1; show(); };
+  anim[7] = (dt) => { if (!auto) return; acc += dt; if (acc > 0.4) { acc = 0; k++; show(); } };
+  show();
+})();
+
+/* ═════════ 8 180° 배치 ═════════ */
+(() => {
+  let rotated = false, flip = false;
+  const pins = $("#f8pins");
+  function lcdHtml() {
+    // 화면에 실제로 그려지는 모양: flip 이면 글자를 180° 돌려 거꾸로 쓴 것
+    const rows = ["6A 70 F4 BC", "ASCII: jp.."];
+    const cell = (ch, r) => `<span style="display:inline-block;width:22px;text-align:center;transform:${r ? "rotate(180deg)" : "none"}">${ch === " " ? "&nbsp;" : ch}</span>`;
+    const lines = flip ? [rows[1].padEnd(16).split("").reverse(), rows[0].padEnd(16).split("").reverse()]
+                       : [rows[0].padEnd(16).split(""), rows[1].padEnd(16).split("")];
+    $("#f8lcd").innerHTML = lines.map(l => `<div style="font:700 26px/40px Consolas,'DejaVu Sans Mono',monospace;color:#1E2A08">${l.map(c => cell(c, flip)).join("")}</div>`).join("");
+  }
+  function draw() {
+    pins.innerHTML = ["GND", "VCC", "SDA", "SCL"].map(p => `<div style="background:#C9A227;padding:3px 6px;border-radius:3px">${p}</div>`).join("");
+    lcdHtml();
+    $("#f8panel").style.transform = rotated ? "rotate(180deg)" : "none";
+    $("#f8rot").classList.toggle("on", rotated); $("#f8flip").classList.toggle("on", flip);
+    $("#f8rot").textContent = rotated ? "LCD 180° 돌려 놓음 ✔" : "LCD 180° 돌려 놓기";
+    $("#f8flip").textContent = flip ? "LCD_FLIP 켜짐 ✔" : "LCD_FLIP 켜기";
+    const msg = !rotated && !flip ? "똑바로 놓으면 I2C 핀이 <b>왼쪽</b> — 10cm 점퍼가 Pico 까지 안 닿아요."
+      : rotated && !flip ? "<span class='warn'>핀은 Pico 쪽이 됐지만 글씨가 거꾸로!</span> → LCD_FLIP 을 켜 보세요."
+      : rotated && flip ? "<b style='color:#0064E0'>✔ 핀은 Pico 쪽, 글씨는 똑바로</b> — 우리 회로는 이렇게 (code.py 기본 LCD_FLIP = True)."
+      : "LCD 를 똑바로 놓았는데 LCD_FLIP 을 켜면 오히려 거꾸로 보여요 → 이때는 False.";
+    $("#f8msg").innerHTML = msg;
+  }
+  $("#f8rot").onclick = () => { rotated = !rotated; draw(); };
+  $("#f8flip").onclick = () => { flip = !flip; draw(); };
+  draw();
+})();
+
+go(0);
+</script>
+</body>
+</html>

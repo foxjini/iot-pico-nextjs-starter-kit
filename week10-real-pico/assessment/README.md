@@ -95,7 +95,7 @@
 | `mfrc522_lite.py` | RC522 카드 번호 읽기 드라이버 — **항상 함께 넣기** |
 | `test1_joystick.py` | 조이스틱만: X · Y %, 버튼 |
 | `test2_stepper.py` | 스텝모터만: 정방향 한 바퀴 → 역방향 한 바퀴 |
-| `test3_lcd.py` | LCD 만: I2C 주소 찾기 → 「Hello Pico 2 W」 |
+| `test3_lcd.py` | LCD 만: I2C 주소 찾기 → 「HI PICO」 + 1초마다 숫자 (FLIP = True 면 돌려 놓은 LCD 에서 똑바로) |
 | `test4_rfid.py` | RC522 만: 버전 확인 → 카드 번호 |
 | `code.py` | 통합: 조이스틱 → 모터 · RFID → LCD |
 
