@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="exam-id" content="written-final-extra-v1">
+<title>서술형 수행평가 답안지</title>
+<!--
+  서술형 수행평가 — 학생 답안지 (인터넷 없이 동작하는 파일 하나)
+  1) 반 · 번호 · 이름을 쓰고 답을 씁니다 — 쓰는 동안 이 컴퓨터에 자동 보관됩니다.
+  2) 「답안 저장」(또는 Ctrl+S) → 「서술형_2반_03번_이름.html」 파일이 만들어집니다.
+  3) 그 파일을 PC 관리 프로그램으로 선생님께 제출합니다.
+  만든 곳: worksheets/scripts/make_written_html.js (원본 서술형_평가.html)
+-->
+<style>
+
+:root { --ink:#15171C; --sub:#4A505B; --faint:#8A909B; --line:#D5D8DE; --soft:#F3F4F6; --acc:#1D5FD1; --accsoft:#E8F0FD; --ok:#1E7B3C; --warn:#B3261E; --bg:#FFFFFF; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--soft); color: var(--ink); font-family: "Malgun Gothic", "맑은 고딕", "NanumGothic", "Apple SD Gothic Neo", sans-serif; font-size: 16px; line-height: 1.6; word-break: keep-all; }
+button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: #fff; color: var(--ink); padding: 7px 14px; }
+button.primary { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 700; }
+button:disabled { opacity: .5; cursor: default; }
+input, textarea, select { font: inherit; color: var(--ink); }
+.wrap { max-width: 920px; margin: 0 auto; padding: 0 16px 48px; }
+.card { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-top: 14px; }
+.part { margin: 26px 0 0; font-size: 18px; border-left: 5px solid var(--ink); padding-left: 10px; }
+.qh { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.qh h2 { margin: 0; font-size: 18px; }
+.qh .num { display: inline-block; min-width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 6px; background: var(--ink); color: #fff; font-size: 15px; margin-right: 8px; }
+.qh .pt { color: var(--sub); font-size: 14px; white-space: nowrap; }
+.stem { margin: 10px 0 0; }
+.given { margin: 8px 0 0; background: var(--soft); border-radius: 8px; padding: 6px 12px; font-size: 14.5px; color: var(--sub); }
+.fig { display: block; margin: 10px auto 0; width: 230px; max-width: 100%; height: auto; }
+.fig text { font-family: inherit; }
+.sq { margin: 14px 0 4px; font-weight: 400; }
+.sq .k { font-weight: 700; margin-right: 4px; }
+.sq .p { color: var(--sub); font-size: 13.5px; margin-left: 4px; }
+
+.top { position: sticky; top: 0; z-index: 5; background: #fff; border-bottom: 1px solid var(--line); }
+.top .in { max-width: 1100px; margin: 0 auto; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+.top h1 { font-size: 18px; margin: 0; }
+.who { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 15px; }
+.who input { border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; width: 64px; }
+.who input#f-name { width: 120px; }
+.who input.bad { border-color: var(--warn); background: #FDECEA; }
+.bar { display: flex; gap: 10px; align-items: center; }
+.clock { color: var(--sub); font-size: 14px; min-width: 120px; text-align: right; }
+.state { font-size: 13.5px; color: var(--sub); }
+.state.dirty { color: var(--warn); }
+.state.saved { color: var(--ok); }
+.info { font-size: 14.5px; color: var(--sub); }
+.info b { color: var(--ink); }
+.info ul { margin: 6px 0 0; padding-left: 20px; }
+textarea.ans-box { display: block; width: 100%; margin-top: 4px; border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; resize: vertical; line-height: 1.7; min-height: 90px; background: #fff; }
+textarea.ans-box:focus { outline: none; border-color: var(--acc); box-shadow: 0 0 0 3px var(--accsoft); }
+textarea[readonly] { background: #FAFAFA; }
+.count { text-align: right; font-size: 12.5px; color: var(--faint); }
+.banner { display: none; background: var(--accsoft); border: 1px solid var(--acc); border-radius: 10px; padding: 12px 16px; margin-top: 14px; }
+.banner.show { display: block; }
+.banner b { color: var(--acc); }
+.banner.warn { background: #FDECEA; border-color: var(--warn); }
+.banner.warn b { color: var(--warn); }
+.done { text-align: center; padding: 22px 20px; }
+.done .big { font-size: 22px; font-weight: 700; margin: 4px 0 8px; }
+#toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff; border-radius: 10px; padding: 12px 18px; font-size: 15px; display: none; max-width: 90vw; z-index: 20; }
+#toast.show { display: block; }
+@media print { .top, #toast, .done button, .banner button { display: none; } body { background: #fff; } .card { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <h1>서술형 수행평가 — 최종 회로 · 추가 회로</h1>
+  <div class="who">
+    <label>반 <input id="f-class" inputmode="numeric" maxlength="3" autocomplete="off"></label>
+    <label>번호 <input id="f-no" inputmode="numeric" maxlength="3" autocomplete="off"></label>
+    <label>이름 <input id="f-name" maxlength="20" autocomplete="off"></label>
+  </div>
+  <div class="bar">
+    <span class="clock" id="clock"></span>
+    <button class="primary" id="btn-save" title="Ctrl+S 와 같아요">답안 저장</button>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <div class="banner" id="banner"></div>
+
+  <section class="card info">
+    <b>시간</b> 50분 &nbsp;·&nbsp; <b>배점</b> 6문항 · 100점 (15 · 15 · 15 · 20 · 20 · 15) &nbsp;·&nbsp; 한 문항에 약 8분
+    <ul>
+      <li>「까닭」 을 묻는 문항은 <b>무엇이 → 어떻게 되어서 → 그래서</b> 순서로 씁니다. 계산 문항은 <b>풀이</b>도 씁니다.</li>
+      <li>쓰는 동안 이 컴퓨터에 <b>자동 보관</b>됩니다. 그래도 끝나면 꼭 <b>「답안 저장」</b> 을 눌러 제출 파일을 만드세요.</li>
+      <li>답안 저장은 여러 번 해도 됩니다. <b>마지막에 저장한 파일</b>을 제출합니다.</li>
+    </ul>
+    <span class="state" id="state"></span>
+  </section>
+
+<h3 class="part">Ⅰ. 최종 회로</h3>
+<section class="card q" id="q1">
+  <div class="qh"><h2><span class="num">1</span>빛 센서(CdS)의 전압 나누기</h2><span class="pt">15점 · 약 8분</span></div>
+  <svg class="fig" class="fig" viewBox="0 0 220 200">
+      <g stroke="#111" stroke-width="2.4" fill="none">
+        <line x1="70" y1="20" x2="70" y2="40"></line>
+        <rect x="56" y="40" width="28" height="44" fill="#fff"></rect>
+        <line x1="70" y1="84" x2="70" y2="116"></line>
+        <circle cx="70" cy="140" r="22" fill="#fff"></circle>
+        <path d="M58,132 L66,138 L58,144 M74,132 L82,138 L74,144"></path>
+        <line x1="70" y1="162" x2="70" y2="180"></line>
+        <line x1="52" y1="180" x2="88" y2="180"></line><line x1="58" y1="187" x2="82" y2="187"></line><line x1="64" y1="194" x2="76" y2="194"></line>
+        <line x1="70" y1="100" x2="150" y2="100"></line>
+      </g>
+      <circle cx="70" cy="100" r="4.5" fill="#111"></circle>
+      <text x="70" y="14" text-anchor="middle" font-size="16" font-weight="700">3V3</text>
+      <text x="92" y="68" font-size="15">10kΩ</text>
+      <text x="98" y="146" font-size="15">CdS</text>
+      <text x="154" y="105" font-size="16" font-weight="700">GP26</text>
+      <text x="154" y="124" font-size="12" fill="#555">(ADC 입력)</text>
+    </svg>
+<p class="stem">무드등은 위 그림처럼 <b>10kΩ 은 3V3 쪽, CdS 는 GND 쪽</b>에 두고 그 사이를 GP26 에 잇습니다. CdS 는 <b>어두울수록 저항이 커지는</b> 부품이고, 코드는 <b>밝기(%) = 100 − (GP26 값의 %)</b> 로 계산합니다.</p>
+<p class="sq"><span class="k">(1)</span>방이 <b>어두워지면</b> GP26 의 전압은 어떻게 변하는지 까닭과 함께 쓰시오.<span class="p">[8점]</span></p>
+<textarea class="ans-box" data-key="q1-1" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q1-1">0자</div>
+<p class="sq"><span class="k">(2)</span>두 부품의 자리를 <b>바꿔 꽂으면</b>(CdS 를 3V3 쪽, 10kΩ 을 GND 쪽) 무드등은 어떻게 동작하는지 쓰시오.<span class="p">[7점]</span></p>
+<textarea class="ans-box" data-key="q1-2" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q1-2">0자</div>
+</section>
+
+<section class="card q" id="q2">
+  <div class="qh"><h2><span class="num">2</span>서보 모터의 전원</h2><span class="pt">15점 · 약 7분</span></div>
+  <p class="stem">최종 배선도에서 SG90 서보의 빨강(전원)선은 Pico 의 VBUS(노트북 USB 5V)가 아니라 <b>왼쪽 레일의 외부 5V 어댑터</b>에 잇고, 그 레일에 <b>470~1000μF 커패시터</b>를 꽂았습니다.</p>
+<p class="sq"><span class="k">(1)</span>서보 전원을 노트북 USB(VBUS)에서 받으면 생기는 문제를 <b>전류</b>와 관련지어 쓰시오.<span class="p">[9점]</span></p>
+<textarea class="ans-box" data-key="q2-1" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q2-1">0자</div>
+<p class="sq"><span class="k">(2)</span>레일에 꽂은 큰 커패시터가 하는 일을 쓰시오.<span class="p">[6점]</span></p>
+<textarea class="ans-box" data-key="q2-2" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q2-2">0자</div>
+</section>
+
+<section class="card q" id="q3">
+  <div class="qh"><h2><span class="num">3</span>공통 GND 와 전원 레일</h2><span class="pt">15점 · 약 7분</span></div>
+  <p class="stem">최종 배선도는 <b>왼쪽 레일 = 외부 5V · 외부 GND</b>, <b>오른쪽 레일 = Pico 3V3 · GND</b> 로 나누고, 아래쪽에 <b>왼쪽 파랑(−) ↔ 오른쪽 파랑(−)</b> 을 잇는 점퍼를 하나 꽂았습니다.</p>
+<p class="sq"><span class="k">(1)</span>이 공통 GND 점퍼를 빼면 서보 모터가 어떻게 되는지 까닭과 함께 쓰시오.<span class="p">[9점]</span></p>
+<textarea class="ans-box" data-key="q3-1" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q3-1">0자</div>
+<p class="sq"><span class="k">(2)</span>외부 5V 를 <b>오른쪽 레일</b>에 넣으면 안 되는 까닭을 쓰시오.<span class="p">[6점]</span></p>
+<textarea class="ans-box" data-key="q3-2" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q3-2">0자</div>
+</section>
+<h3 class="part">Ⅱ. 추가 회로</h3>
+<section class="card q" id="q4">
+  <div class="qh"><h2><span class="num">4</span>초음파 센서 ECHO 의 전압 나누기</h2><span class="pt">20점 · 약 9분</span></div>
+  <svg class="fig" class="fig" viewBox="0 0 230 190">
+      <g stroke="#111" stroke-width="2.4" fill="none">
+        <line x1="70" y1="26" x2="70" y2="40"></line>
+        <rect x="56" y="40" width="28" height="40" fill="#fff"></rect>
+        <line x1="70" y1="80" x2="70" y2="110"></line>
+        <rect x="56" y="110" width="28" height="40" fill="#fff"></rect>
+        <line x1="70" y1="150" x2="70" y2="168"></line>
+        <line x1="52" y1="168" x2="88" y2="168"></line><line x1="58" y1="175" x2="82" y2="175"></line><line x1="64" y1="182" x2="76" y2="182"></line>
+        <line x1="70" y1="95" x2="150" y2="95"></line>
+      </g>
+      <circle cx="70" cy="95" r="4.5" fill="#111"></circle>
+      <text x="70" y="18" text-anchor="middle" font-size="15" font-weight="700">ECHO (5V)</text>
+      <text x="92" y="66" font-size="15">1kΩ</text>
+      <text x="92" y="136" font-size="15">2kΩ</text>
+      <text x="154" y="100" font-size="16" font-weight="700">GP11</text>
+    </svg>
+<p class="stem">HC-SR04 의 ECHO 핀은 <b>5V</b> 신호를 내보냅니다. 그래서 위 그림처럼 <b>1kΩ(ECHO 쪽) + 2kΩ(GND 쪽)</b> 으로 나눈 점을 GP11 에 잇습니다.</p>
+<div class="given">참고: 큰 저항에 큰 전압이 걸린다 · V(GP11) = 5V × (GND 쪽 저항) ÷ (두 저항의 합) · Pico 는 약 2V 이상을 HIGH 로 읽음</div>
+<p class="sq"><span class="k">(1)</span>ECHO 가 5V 일 때 GP11 의 전압을 <b>풀이와 함께</b> 구하시오.<span class="p">[8점]</span></p>
+<textarea class="ans-box" data-key="q4-1" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q4-1">0자</div>
+<p class="sq"><span class="k">(2)</span>두 저항을 <b>바꿔 꽂으면</b> GP11 의 전압은 얼마가 되고, 초음파 센서는 어떻게 되는지 쓰시오.<span class="p">[6점]</span></p>
+<textarea class="ans-box" data-key="q4-2" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q4-2">0자</div>
+<p class="sq"><span class="k">(3)</span>ECHO 를 GP11 에 바로 잇지 않고 저항으로 나누는 까닭을 쓰시오.<span class="p">[6점]</span></p>
+<textarea class="ans-box" data-key="q4-3" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q4-3">0자</div>
+</section>
+
+<section class="card q" id="q5">
+  <div class="qh"><h2><span class="num">5</span>포토커플러 + 릴레이로 모터 켜기</h2><span class="pt">20점 · 약 10분</span></div>
+  <p class="stem">추가 회로에서 포토커플러 모듈의 <b>IN1 = 5V</b>, <b>IN1 옆 G = GP13</b> 이고, 릴레이는 <b>COM = 5V, NO → 모터</b> 입니다. 그래서 <b>GP13 이 LOW(0V) 일 때 모터가 돕니다.</b></p>
+<p class="sq"><span class="k">(1)</span>GP13 이 LOW 가 되었을 때 모터가 돌기까지의 과정을 아래 낱말을 <b>모두 써서</b> 순서대로 서술하시오.<span class="p">[12점]</span></p>
+<div class="given">낱말: 적외선 LED · 포토트랜지스터 · 릴레이 코일(전자석) · COM · NO</div>
+<textarea class="ans-box" data-key="q5-1" rows="4" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q5-1">0자</div>
+<p class="sq"><span class="k">(2)</span>릴레이 코일(5V · 약 70mA)을 Pico 핀으로 <b>직접</b> 켜지 않는 까닭을 쓰시오.<span class="p">[4점]</span></p>
+<textarea class="ans-box" data-key="q5-2" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q5-2">0자</div>
+<p class="sq"><span class="k">(3)</span>포토커플러를 쓰면 좋은 점을 「빛」 과 관련지어 쓰시오.<span class="p">[4점]</span></p>
+<textarea class="ans-box" data-key="q5-3" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q5-3">0자</div>
+</section>
+
+<section class="card q" id="q6">
+  <div class="qh"><h2><span class="num">6</span>PWM 으로 LED 밝기 조절</h2><span class="pt">15점 · 약 8분</span></div>
+  <p class="stem">밝기 LED 는 <b>GP22</b> 에서 <b>1000Hz</b> PWM 으로 켭니다(한 주기 = 1ms). 코드는 duty cycle 을 0 ~ 100% 로 바꾸며 밝기를 조절합니다.</p>
+<p class="sq"><span class="k">(1)</span><b>PWM</b> 이 무엇인지 「켜고 끄기」 라는 말을 넣어 설명하고, <b>duty cycle</b> 의 뜻을 쓰시오. 또 LED 의 duty cycle 을 <b>25% → 75%</b> 로 바꾸면 LED 밝기가 어떻게 되는지 까닭과 함께 쓰시오.<span class="p">[9점]</span></p>
+<textarea class="ans-box" data-key="q6-1" rows="5" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q6-1">0자</div>
+<p class="sq"><span class="k">(2)</span>같은 duty 50% 라도 <b>2Hz</b> 에서는 LED 가 깜빡이고 <b>1000Hz</b> 에서는 은은하게 보이는 까닭을 쓰시오.<span class="p">[6점]</span></p>
+<textarea class="ans-box" data-key="q6-2" rows="3" spellcheck="false" placeholder="여기에 답을 쓰세요"></textarea><div class="count" data-for="q6-2">0자</div>
+</section>
+
+  <section class="card done">
+    <div>다 썼나요? 빈 칸이 없는지 확인한 뒤</div>
+    <div class="big">「답안 저장」 → 파일 제출</div>
+    <button class="primary" id="btn-save2">답안 저장</button>
+    <ol style="text-align:left;max-width:560px;margin:16px auto 0;color:var(--sub);font-size:14.5px">
+      <li>「답안 저장」 을 누르면 <b>서술형_반_번호_이름.html</b> 파일이 만들어집니다.<br>저장할 곳을 묻는 창이 뜨면 선생님이 알려 준 폴더를 고르고, 묻지 않으면 <b>다운로드</b> 폴더에 저장됩니다.</li>
+      <li>화면 아래에 나오는 <b>파일 이름</b>을 확인합니다.</li>
+      <li>그 파일을 <b>PC 관리 프로그램</b>으로 선생님께 제출합니다.</li>
+    </ol>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  var EXAM_ID = "written-final-extra-v1";
+  // 제출본이면 답안(JSON)을 먼저 읽고 그 태그를 떼어 낸 뒤, 저장할 때 쓸 깨끗한 원본을 잡아 둔다
+  var subEl = document.getElementById("submitted"), SUB = null;
+  if (subEl) { try { SUB = JSON.parse(subEl.textContent); } catch (e) {} subEl.parentNode.removeChild(subEl); }
+  var TEMPLATE = "<!doctype html>\n" + document.documentElement.outerHTML;
+  var KEY = "exam:" + EXAM_ID + ":" + location.pathname;
+  var $ = function (s) { return document.querySelector(s); };
+  var boxes = Array.prototype.slice.call(document.querySelectorAll("textarea.ans-box"));
+  var fClass = $("#f-class"), fNo = $("#f-no"), fName = $("#f-name");
+  var dirty = false, readOnly = false, lastFile = "";
+
+  function store(get, val) {
+    try { if (get) return JSON.parse(localStorage.getItem(KEY) || "null"); localStorage.setItem(KEY, JSON.stringify(val)); } catch (e) { return null; }
+  }
+  function collect() {
+    var a = {}; boxes.forEach(function (b) { a[b.dataset.key] = b.value; });
+    return { cls: fClass.value.trim(), no: fNo.value.trim(), name: fName.value.trim(), answers: a };
+  }
+  function fill(d) {
+    if (!d) return;
+    fClass.value = d.cls || ""; fNo.value = d.no || ""; fName.value = d.name || "";
+    boxes.forEach(function (b) { b.value = (d.answers && d.answers[b.dataset.key]) || ""; grow(b); count(b); });
+  }
+  function grow(b) { b.style.height = "auto"; b.style.height = Math.max(b.scrollHeight + 4, 90) + "px"; }
+  function count(b) { var c = document.querySelector('.count[data-for="' + b.dataset.key + '"]'); if (c) c.textContent = b.value.replace(/\s/g, "").length + "자"; }
+  function setState(t, cls) { var s = $("#state"); s.textContent = t; s.className = "state " + (cls || ""); }
+  function toast(t, ms) { var e = $("#toast"); e.innerHTML = t; e.className = "show"; clearTimeout(toast.t); toast.t = setTimeout(function () { e.className = ""; }, ms || 6000); }
+  function banner(html, warn) { var b = $("#banner"); b.innerHTML = html; b.className = "banner show" + (warn ? " warn" : ""); }
+
+  function autosave() {
+    if (readOnly) return;
+    var d = collect(); d.started = started; d.at = new Date().toISOString();
+    store(false, d);
+    dirty = true; setState("자동 보관됨 · 아직 제출 파일은 저장하지 않았어요", "dirty");
+  }
+  function lock(on) {
+    readOnly = on;
+    [fClass, fNo, fName].concat(boxes).forEach(function (e) { e.readOnly = on; });
+    $("#btn-save").style.visibility = on ? "hidden" : ""; $("#btn-save2").disabled = on;
+  }
+
+  // 시계 (시간 제한은 걸지 않음 — 지난 시간만 보여 줌)
+  var started = Date.now();
+  function tick() {
+    var m = Math.floor((Date.now() - started) / 60000);
+    $("#clock").textContent = readOnly ? "" : "지난 시간 " + m + "분 / 50분";
+  }
+
+  // ── 제출 파일 만들기 ──
+  function pad2(s) { return /^\d$/.test(s) ? "0" + s : s; }
+  function safe(s) { return String(s).replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 20); }
+  function buildFile(d) {
+    var payload = { exam: EXAM_ID, cls: d.cls, no: d.no, name: d.name, savedAt: new Date().toISOString(),
+      started: new Date(started).toISOString(), answers: d.answers };
+    var tag = '<script type="application/json" id="submitted">' + JSON.stringify(payload).replace(/</g, "\\u003c") + "<\/script>";
+    var i = TEMPLATE.indexOf("</head>");
+    return TEMPLATE.slice(0, i) + tag + "\n" + TEMPLATE.slice(i);
+  }
+  function validate(d) {
+    var ok = true;
+    [[fClass, /^\d{1,2}$/], [fNo, /^\d{1,2}$/], [fName, /\S/]].forEach(function (p) {
+      var bad = !p[1].test(p[0].value.trim()); p[0].classList.toggle("bad", bad); if (bad) ok = false;
+    });
+    if (!ok) { toast("맨 위의 <b>반 · 번호 · 이름</b>을 먼저 쓰세요. (반 · 번호는 숫자)"); fClass.scrollIntoView({ block: "center" }); }
+    return ok;
+  }
+  function save() {
+    var d = collect();
+    if (!validate(d)) return;
+    var empty = boxes.filter(function (b) { return !b.value.trim(); }).length;
+    if (empty && !confirm("아직 빈 답 칸이 " + empty + "개 있어요. 그래도 저장할까요?\n(나중에 다시 저장할 수 있어요)")) return;
+    var name = "서술형_" + safe(d.cls) + "반_" + pad2(safe(d.no)) + "번_" + safe(d.name) + ".html";
+    var blob = new Blob([buildFile(d)], { type: "text/html;charset=utf-8" });
+    var done = function (where) {
+      dirty = false; lastFile = name;
+      setState("제출 파일 저장됨 · " + new Date().toLocaleTimeString("ko-KR"), "saved");
+      toast("저장했어요: <b>" + name + "</b><br>" + where + " → 이 파일을 PC 관리 프로그램으로 제출하세요.", 10000);
+    };
+    var fallback = function () {
+      var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+      done("다운로드 폴더에 저장됨 (파일 이름이 다르게 저장되었다면 위 이름으로 바꿔 주세요)");
+    };
+    if (window.showSaveFilePicker) {
+      window.showSaveFilePicker({ suggestedName: name, types: [{ description: "답안 파일 (HTML)", accept: { "text/html": [".html"] } }] })
+        .then(function (h) { return h.createWritable().then(function (w) { return w.write(blob).then(function () { return w.close(); }); }).then(function () { done("고른 폴더에 저장됨"); }); })
+        .catch(function (e) { if (e && e.name === "AbortError") return; fallback(); });
+    } else fallback();
+  }
+
+  // ── 시작: 제출본인지, 이어 쓰는 중인지 ──
+  if (subEl) {
+    var d = SUB;
+    if (d) {
+      fill(d); lock(true);
+      started = Date.parse(d.started) || started;
+      banner("<b>제출본</b> — " + d.cls + "반 " + d.no + "번 " + d.name + " · 저장 시각 " + new Date(d.savedAt).toLocaleString("ko-KR") +
+        ' &nbsp; <button id="btn-edit">이어 쓰기</button>');
+      setState("읽기 전용 제출본입니다", "saved");
+      $("#btn-edit").onclick = function () {
+        lock(false); $("#banner").className = "banner"; setState("이어 쓰는 중 — 끝나면 다시 「답안 저장」", "dirty");
+        var own = store(true); if (own && own.at && own.at > d.savedAt) fill(own);
+      };
+    }
+  } else {
+    var saved = store(true);
+    if (saved && (saved.name || Object.keys(saved.answers || {}).some(function (k) { return saved.answers[k]; }))) {
+      fill(saved); started = saved.started || started;
+      banner("<b>이어서 쓰기</b> — 이 컴퓨터에 자동 보관된 답을 불러왔어요 (" + new Date(saved.at).toLocaleString("ko-KR") + ").");
+      setState("자동 보관됨 · 아직 제출 파일은 저장하지 않았어요", "dirty");
+    } else {
+      setState("쓰는 동안 자동 보관됩니다");
+      store(false, { started: started, at: new Date().toISOString(), answers: {} });
+    }
+  }
+
+  boxes.forEach(function (b) { b.addEventListener("input", function () { grow(b); count(b); autosave(); }); grow(b); count(b); });
+  [fClass, fNo, fName].forEach(function (e) { e.addEventListener("input", function () { e.classList.remove("bad"); autosave(); }); });
+  $("#btn-save").onclick = save; $("#btn-save2").onclick = save;
+  document.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) { e.preventDefault(); if (readOnly) toast("제출본입니다 — 고치려면 「이어 쓰기」 를 누르세요."); else save(); }
+  });
+  window.addEventListener("beforeunload", function (e) { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+  tick(); setInterval(tick, 20000);
+})();
+</script>
+</body>
+</html>
