@@ -28,12 +28,27 @@ DEAD = 7                   # code.py 의 가운데 정지 범위 (±%)
 CENTER_OK = (20000, 45000)  # 조이스틱 가운데 원값(0~65535)이 이 안이면 정상
 LCD_BG, LCD_INK, LCD_CELL = "#B7CC3B", "#1E2A08", "#A9BE30"     # 실물 LCD 색 (녹색 백라이트)
 
+# 뒤집기(LCD_FLIP) 때 돌려도 LCD 에 이미 있는 글자 — assessment/lcd_i2c.py 의 FLIP_SAME 과 같게
+FLIP_SAME = set(" 0869HINOSXZ-=+:*#%|/()<>[].,")
+FLIP_SLOTS = 8
+
+
+def flip_overflow(lines):
+    """뒤집기 때 사용자 글자 칸이 필요한 글자 종류 중 8칸을 넘는 것 (1줄 먼저 칸을 받음)"""
+    need = []
+    for ch in "".join(lines):
+        if ch not in FLIP_SAME and ch not in need:
+            need.append(ch)
+    return need[FLIP_SLOTS:]
+
+
 CHIPS = ["연결", "코드", "LCD", "RC522", "조이스틱 가운데", "버튼", "모터", "카드"]
 
 # 장치별 안내 — (머리줄, 점검 순서)
 GUIDE = {
     "LCD": ("✖ LCD 를 찾지 못했습니다 (I2C 주소 응답 없음)", [
-        "① LCD 모듈: VCC → 외부 5V(왼쪽 빨강 레일), GND → GND",
+        "① LCD: 180° 돌려 놓음(I2C 핀이 Pico 쪽, 위에서부터 SCL · SDA · VCC · GND) — "
+        "SCL → A30, SDA → A31, VCC → 왼쪽 + 레일 32행(외부 5V), GND → − 레일 33행",
         "② 레벨 변환(파란 기판, 글씨가 거꾸로 보이게 26~31행): 왼쪽 HV → 5V 레일 · GND, 오른쪽 LV → 3.3V 레일 · GND",
         "③ 신호: GP16 → LV1, HV1 → LCD SDA / GP17 → LV2, HV2 → LCD SCL — SDA · SCL 이 바뀌지 않았는지",
         "④ 외부 5V 어댑터가 켜져 있는지 (LCD · 레벨 변환 HV 가 여기서 전원을 받습니다)",
@@ -42,10 +57,12 @@ GUIDE = {
     "LCD_BLANK": ("⚠ LCD 는 응답하지만 글자가 안 보이면", [
         "① 뒷면 파란 가변저항(대비)을 드라이버로 천천히 돌리기 — 네모 칸만 보이거나 아무것도 안 보일 때",
         "② 백라이트가 꺼져 있으면 뒷면 백라이트 점퍼가 꽂혀 있는지",
+        "③ 글씨가 거꾸로 보이면 → 아래 「글자 뒤집기」 버튼 (또는 code.py 의 LCD_FLIP) — LCD 를 돌려 놓았으면 켜짐, 똑바로 놓았으면 꺼짐",
     ]),
     "RC522": ("✖ RC522 가 응답하지 않습니다", [
         "① 전원: 3.3V · RST → 3.3V 레일(5V 금지!), GND → GND",
-        "② SPI: SCK → GP18, MOSI → GP19, MISO → GP20, SDA(CS) → GP21, IRQ 비움",
+        "② 모듈은 180° 돌려 핀이 왼쪽 — 위에서부터 SDA · SCK · MOSI · MISO · IRQ · GND · RST · 3.3V",
+        "   SPI: SDA(CS) → GP21, SCK → GP18, MOSI → GP19, MISO → GP20, IRQ 비움",
         "③ 모듈 핀머리를 납땜했는지 — 꽂기만 하면 접촉이 불안정합니다",
         "④ 고쳐 꽂으면 Pico 가 3초 안에 저절로 다시 찾습니다. 그래도 안 되면 위의 「Pico 재시작」",
     ]),
@@ -354,6 +371,11 @@ class AssessApp:
             return
         if len(a) > 16 or len(b) > 16:
             self.app_line("한 줄은 16자까지입니다 — 넘는 글자는 LCD 에서 잘립니다.")
+        over = flip_overflow([a[:16], b[:16]])
+        if self.data and self.data.get("flip") and over:
+            self.add_line(f"[LCD] ⚠ 글자 뒤집기 중에는 돌려도 같은 글자(0 · 8 · H · I · N · O · S · X · Z · 기호 등)가 아닌 글자가 "
+                          f"한 화면에 {FLIP_SLOTS}종류까지입니다 — 넘친 {len(over)}종류({' '.join(over)})는 실제 LCD 에서 비슷한 "
+                          f"글자로 보입니다. 대문자 · 숫자를 쓰거나 글자 종류를 줄여 보세요.", "warn")
         self.send(f"LCD {a[:16]}|{b[:16]}")
 
     def restart_pico(self):
@@ -562,8 +584,8 @@ class AssessApp:
         self.draw_lcd(d["lcd"] if d else None, on=bool(d and d.get("lcd_addr")))
         if d:
             self.flip_btn.set_text("글자 뒤집기: " + ("켜짐" if d.get("flip") else "꺼짐"))
-        self.lcd_info.configure(text=(f"Pico 가 LCD 에 쓴 내용 · 주소 {d['lcd_addr']}"
-                                      + (" · 글자 뒤집기 켜짐(LCD 를 돌려 놓고 보면 이렇게)" if d.get("flip") else "")
+        self.lcd_info.configure(text=(f"LCD 에 쓴 내용 · 주소 {d['lcd_addr']}"
+                                      + (" · 뒤집기 켜짐(글자 8종류까지)" if d.get("flip") else "")
                                       if d and d.get("lcd_addr") else
                                       "LCD 를 찾지 못함 — Pico 가 쓰려던 내용만 흐리게 보여 줍니다" if d else ""))
         uid = (d or self.data or {}).get("uid") if self.data else ""
