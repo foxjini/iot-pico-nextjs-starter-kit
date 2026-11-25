@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <title>작품 설명 포스터</title>
 <!--
-  학교 작품 전시회 — 작품 설명 포스터 (A4 2쪽). make_exhibit_poster.js 가 PDF 로 만듭니다.
-  1쪽 = 기본 회로(최종 배선도), 2쪽 = 추가 회로(추가 배선도). 보는 사람 = 관련 지식이 없는 일반인.
+  학교 작품 전시회 — 작품 설명 포스터 (A4 3쪽). make_exhibit_poster.js 가 PDF 로 만듭니다.
+  1쪽 = 기본 회로(최종 배선도), 2쪽 = 추가 회로(추가 배선도),
+  3쪽 = 수행평가 회로(수행평가 회로도 · 배선도). 보는 사람 = 관련 지식이 없는 일반인.
   쉬운 말(ELI5): 한 문장에 생각 하나, 비유 먼저 · 이름은 작게. 그림이 글보다 먼저.
   아이콘은 모두 이 파일 안의 SVG <symbol> 로 직접 그렸습니다 (외부 이미지 · 글꼴 없음).
 -->
@@ -54,6 +55,11 @@ h2 .num { display: inline-block; width: 7.4mm; height: 7.4mm; line-height: 7.4mm
 .steps li::before { content: attr(data-n); position: absolute; left: 0; top: .5mm; width: 4mm; height: 4mm; line-height: 4mm; text-align: center; border-radius: 50%; border: 1.2px solid var(--ink); font-size: 7.6pt; font-weight: 700; }
 .secret { margin-top: 1.6mm; background: #FFF8EE; border-left: 3px solid var(--acc); border-radius: 0 2.4mm 2.4mm 0; padding: 1.4mm 2.6mm; font-size: 9.8pt; line-height: 1.42; }
 .secret b:first-child { color: var(--acc); }
+.maps { display: flex; justify-content: center; gap: 4mm; align-items: flex-end; }
+.maps figure { margin: 0; }
+.maps img { display: block; height: 41mm; width: auto; border: 1px solid var(--line); border-radius: 2mm; background: #fff; }
+.maps figcaption { margin-top: 1mm; font-size: 9.6pt; color: var(--sub); text-align: center; }
+.maps figcaption b:first-child { color: var(--acc); }
 svg text { font-family: "NanumGothic", sans-serif; }
 svg .hd { font-family: "NanumSquareRound", sans-serif; font-weight: 800; }
 </style>
@@ -175,6 +181,57 @@ svg .hd { font-family: "NanumSquareRound", sans-serif; font-weight: 800; }
     <symbol id="ic-bat" viewBox="0 0 64 30"><path d="M32,9 L29,4 L30,10 C22,5 12,4 2,9 C9,11 12,15 13,20 C17,16 21,16 25,20 C27,17 30,18 32,24 C34,18 37,17 39,20 C43,16 47,16 51,20 C52,15 55,11 62,9 C52,4 42,5 34,10 L35,4 Z" fill="#16181D"/></symbol>
     <symbol id="ic-timer" viewBox="0 0 24 24"><circle cx="12" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12,14 L15,10 M10,2 H14 M12,2 V6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   </defs>
+    <!-- ── 3쪽 · 수행평가 회로 ── -->
+    <!-- 조이스틱 (기울어진 손잡이) -->
+    <symbol id="ic-joy" viewBox="0 0 60 84">
+      <rect x="4" y="30" width="52" height="50" rx="4" fill="#2A3442"/>
+      <g fill="#C9A227"><circle cx="12" cy="76" r="1.8"/><circle cx="21" cy="76" r="1.8"/><circle cx="30" cy="76" r="1.8"/><circle cx="39" cy="76" r="1.8"/><circle cx="48" cy="76" r="1.8"/></g>
+      <circle cx="30" cy="52" r="17" fill="#9AA1AB"/><circle cx="30" cy="52" r="10" fill="#7B838F"/>
+      <line x1="30" y1="52" x2="40" y2="16" stroke="#4B515C" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="41" cy="13" r="11" fill="#16181D"/><circle cx="38" cy="10" r="3" fill="#4B515C"/>
+    </symbol>
+    <!-- 스텝모터 + ULN2003 드라이버 -->
+    <symbol id="ic-step" viewBox="0 0 90 70">
+      <rect x="2" y="14" width="36" height="44" rx="3" fill="#2E7D4F"/>
+      <rect x="9" y="22" width="22" height="12" rx="1" fill="#16181D"/>
+      <g fill="#FF5A4E"><circle cx="10" cy="47" r="2.6"/><circle cx="17" cy="47" r="2.6"/><circle cx="24" cy="47" r="2.6"/><circle cx="31" cy="47" r="2.6"/></g>
+      <g stroke-width="2.2"><line x1="38" y1="30" x2="46" y2="30" stroke="#3B6FD8"/><line x1="38" y1="34" x2="46" y2="34" stroke="#E07000"/><line x1="38" y1="38" x2="46" y2="38" stroke="#E5C100"/><line x1="38" y1="42" x2="46" y2="42" stroke="#E0457B"/></g>
+      <rect x="44" y="32" width="44" height="10" rx="5" fill="#B8BEC7"/>
+      <circle cx="66" cy="37" r="21" fill="#C9CED6" stroke="#7B838F" stroke-width="2"/>
+      <circle cx="66" cy="37" r="12" fill="#3B6FD8"/>
+      <circle cx="66" cy="24" r="4.4" fill="#E9C46A" stroke="#8A6D1E" stroke-width="1"/>
+    </symbol>
+    <!-- LCD 1602 -->
+    <symbol id="ic-lcd" viewBox="0 0 120 56">
+      <rect x="0" y="0" width="120" height="56" rx="4" fill="#2E7D4F"/>
+      <rect x="6" y="8" width="108" height="40" rx="2" fill="#16181D"/>
+      <rect x="10" y="12" width="100" height="32" rx="1" fill="#B9DC4C"/>
+      <text x="15" y="25" font-size="10.5" font-weight="700" fill="#16181D" style="font-family:'DejaVu Sans Mono',monospace">6A 70 F4 BC</text>
+      <text x="15" y="39" font-size="10.5" font-weight="700" fill="#16181D" style="font-family:'DejaVu Sans Mono',monospace">ASCII: jp..</text>
+    </symbol>
+    <!-- RFID 리더기 + 카드 -->
+    <symbol id="ic-rfid" viewBox="0 0 80 84">
+      <rect x="2" y="2" width="56" height="78" rx="3" fill="#2B5DAE"/>
+      <rect x="9" y="9" width="42" height="42" rx="5" fill="none" stroke="#E9C46A" stroke-width="2.4"/>
+      <rect x="15" y="15" width="30" height="30" rx="4" fill="none" stroke="#E9C46A" stroke-width="2.4"/>
+      <g fill="#C9A227"><circle cx="9" cy="62" r="1.8"/><circle cx="9" cy="69" r="1.8"/><circle cx="9" cy="76" r="1.8"/></g>
+      <g transform="rotate(-14 60 56)"><rect x="42" y="34" width="34" height="46" rx="4" fill="#fff" stroke="#16181D" stroke-width="2"/>
+      <path d="M52,52 a6,6 0 0 1 0,10 M56,48 a11,11 0 0 1 0,18 M60,44 a16,16 0 0 1 0,26" fill="none" stroke="#E07000" stroke-width="2.2" stroke-linecap="round"/></g>
+    </symbol>
+    <!-- 레벨 변환기 -->
+    <symbol id="ic-lvl" viewBox="0 0 60 60">
+      <rect x="4" y="4" width="52" height="52" rx="4" fill="#1F4E9C"/>
+      <g fill="#C9A227"><circle cx="11" cy="14" r="2"/><circle cx="11" cy="24" r="2"/><circle cx="11" cy="34" r="2"/><circle cx="11" cy="44" r="2"/><circle cx="49" cy="14" r="2"/><circle cx="49" cy="24" r="2"/><circle cx="49" cy="34" r="2"/><circle cx="49" cy="44" r="2"/></g>
+      <text x="30" y="20" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">5V</text>
+      <path d="M18,30 H42 M36,25 L42,30 L36,35 M42,40 H18 M24,35 L18,40 L24,45" fill="none" stroke="#FFB15C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="30" y="54" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">3.3V</text>
+    </symbol>
+    <!-- 비유 아이콘 (3쪽) -->
+    <symbol id="ic-game" viewBox="0 0 24 24"><path d="M6.5,7 H17.5 A4.5,4.5 0 0 1 21.6,13 L20,18 A2.4,2.4 0 0 1 16,18.6 L14.6,16.4 H9.4 L8,18.6 A2.4,2.4 0 0 1 4,18 L2.4,13 A4.5,4.5 0 0 1 6.5,7 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5.6,11.6 H9.4 M7.5,9.7 V13.5" stroke="currentColor" stroke-width="1.8"/><circle cx="15.6" cy="10.6" r="1.2" fill="currentColor"/><circle cx="17.8" cy="13" r="1.2" fill="currentColor"/></symbol>
+    <symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12,12 V5.6 M12,12 L16,14.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-sign" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="12" rx="1.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.6,8.4 H9 M11,8.4 H14.4 M16.4,8.4 H18.4 M5.6,11.8 H11 M13,11.8 H18.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7,16 V21 M17,16 V21" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="ic-tcard" viewBox="0 0 24 24"><rect x="2" y="7" width="13" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.6,8 a4,4 0 0 1 0,6 M19,5.4 a8,8 0 0 1 0,11.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5,11 H10" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="ic-talk" viewBox="0 0 24 24"><path d="M2.5,4 H13 V11 H7 L4,13.6 V11 H2.5 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M21.5,10 H11 V17 H17 L20,19.6 V17 H21.5 Z" fill="currentColor" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
 </svg>
 
 <!-- ════════════════════ 1쪽 · 기본 회로 ════════════════════ -->
@@ -393,6 +450,109 @@ svg .hd { font-family: "NanumSquareRound", sans-serif; font-weight: 800; }
     </div>
   </div>
   <div class="nerd"><b>궁금한 분께</b> — 초음파 <b>GP10</b>(보내기) · <b>GP11</b>(받기, 1kΩ / 2kΩ 로 5V → 3.3V) · 모터 <b>GP13</b>(포토커플러 → 릴레이) · 밝기 LED <b>GP22</b>(220Ω). 자세한 연결은 옆의 「추가 배선도」를 보세요.</div>
+</div>
+
+<!-- ════════════════════ 3쪽 · 수행평가 회로 ════════════════════ -->
+<div class="page">
+  <div class="kicker"><span><span class="tag">학교 작품 전시회</span>사물인터넷(IoT) 작품 · 수행평가 회로</span><span>수행평가 배선도대로 만들었어요</span></div>
+  <h1>손으로 <em>모터</em>를 돌리고,<br><em>카드</em>를 알아봐요</h1>
+  <p class="lead">조이스틱을 기울이면 모터가 돌고, 카드를 대면 작은 화면에 카드 번호가 나와요.</p>
+  <div class="fields"><span><b>작품 이름</b></span><span><b>만든 사람</b></span></div>
+
+  <!-- 큰 흐름: 두 갈래 -->
+  <svg width="180mm" height="50.3mm" viewBox="0 0 1860 520" style="margin:2.4mm auto 0;display:block">
+    <!-- ① 기울여요 -->
+    <rect x="0" y="0" width="560" height="245" rx="36" fill="#F4F5F7"/>
+    <circle cx="52" cy="52" r="28" fill="#E07000"/><text x="52" y="65" text-anchor="middle" font-size="36" font-weight="700" fill="#fff">1</text>
+    <text x="94" y="67" class="hd" font-size="46">기울여요</text>
+    <use href="#ic-joy" x="60" y="92" width="104" height="146"/>
+    <text x="200" y="146" font-size="35" font-weight="700">조이스틱</text>
+    <text x="200" y="190" font-size="28" fill="#4B515C">손으로 좌우 · 위아래로</text>
+    <!-- ② 대 봐요 -->
+    <rect x="0" y="275" width="560" height="245" rx="36" fill="#F4F5F7"/>
+    <circle cx="52" cy="327" r="28" fill="#E07000"/><text x="52" y="340" text-anchor="middle" font-size="36" font-weight="700" fill="#fff">2</text>
+    <text x="94" y="342" class="hd" font-size="46">대 봐요</text>
+    <use href="#ic-rfid" x="50" y="370" width="132" height="139"/>
+    <text x="200" y="421" font-size="35" font-weight="700">RFID 리더기</text>
+    <text x="200" y="465" font-size="28" fill="#4B515C">카드를 가까이 대요</text>
+    <!-- → Pico -->
+    <line x1="572" y1="140" x2="668" y2="140" stroke="#E07000" stroke-width="14" marker-end="url(#arw)"/>
+    <line x1="572" y1="415" x2="668" y2="415" stroke="#E07000" stroke-width="14" marker-end="url(#arw)"/>
+    <!-- ③ 생각해요 -->
+    <rect x="680" y="0" width="500" height="520" rx="36" fill="#F4F5F7"/>
+    <circle cx="732" cy="52" r="28" fill="#E07000"/><text x="732" y="65" text-anchor="middle" font-size="36" font-weight="700" fill="#fff">3</text>
+    <text x="774" y="67" class="hd" font-size="46">생각해요</text>
+    <use href="#ic-pico" x="735" y="130" width="390" height="208"/>
+    <text x="930" y="385" text-anchor="middle" font-size="35" font-weight="700">작은 컴퓨터 Pico 2 W</text>
+    <g color="#8A4300"><rect x="800" y="412" width="260" height="84" rx="42" fill="#FFF1E3"/>
+      <use href="#ic-brain" x="828" y="428" width="52" height="52"/><text x="894" y="468" font-size="33" font-weight="700" fill="#8A4300">뇌</text></g>
+    <!-- Pico → -->
+    <line x1="1192" y1="140" x2="1288" y2="140" stroke="#E07000" stroke-width="14" marker-end="url(#arw)"/>
+    <line x1="1192" y1="415" x2="1288" y2="415" stroke="#E07000" stroke-width="14" marker-end="url(#arw)"/>
+    <!-- ④ 돌아요 -->
+    <rect x="1300" y="0" width="560" height="245" rx="36" fill="#F4F5F7"/>
+    <circle cx="1352" cy="52" r="28" fill="#E07000"/><text x="1352" y="65" text-anchor="middle" font-size="36" font-weight="700" fill="#fff">4</text>
+    <text x="1394" y="67" class="hd" font-size="46">돌아요</text>
+    <use href="#ic-step" x="1324" y="88" width="196" height="152"/>
+    <text x="1560" y="146" font-size="35" font-weight="700">스텝모터</text>
+    <text x="1560" y="190" font-size="28" fill="#4B515C">한 칸씩 빙글빙글</text>
+    <!-- ⑤ 보여 줘요 -->
+    <rect x="1300" y="275" width="560" height="245" rx="36" fill="#F4F5F7"/>
+    <circle cx="1352" cy="327" r="28" fill="#E07000"/><text x="1352" y="340" text-anchor="middle" font-size="36" font-weight="700" fill="#fff">5</text>
+    <text x="1394" y="342" class="hd" font-size="46">보여 줘요</text>
+    <use href="#ic-lvl" x="1330" y="372" width="96" height="96"/>
+    <text x="1378" y="502" text-anchor="middle" font-size="26" font-weight="700" fill="#8A4300">통역</text>
+    <line x1="1434" y1="420" x2="1474" y2="420" stroke="#E07000" stroke-width="10" marker-end="url(#arw)"/>
+    <use href="#ic-lcd" x="1486" y="362" width="340" height="159"/>
+  </svg>
+
+  <!-- 부품 카드 -->
+  <div class="grid3" style="margin-top:2.6mm">
+    <div class="card"><svg viewBox="0 0 60 84"><use href="#ic-joy"/></svg>
+      <h3>조이스틱<small>2방향 + 누름 버튼</small></h3>
+      <p>기울인 <b>방향과 정도</b>를 알려 줘요.</p>
+      <span class="like"><svg><use href="#ic-game"/></svg>게임기 조종간</span></div>
+    <div class="card"><svg viewBox="0 0 90 70" style="height:12mm;margin-top:3mm"><use href="#ic-step"/></svg>
+      <h3>스텝모터<small>28BYJ-48 · 드라이버</small></h3>
+      <p>전자석을 <b>차례로</b> 켜서 돌아요.</p>
+      <span class="like"><svg><use href="#ic-clock"/></svg>시계 초침</span></div>
+    <div class="card"><svg viewBox="0 0 120 56" style="height:8mm;margin-top:5mm"><use href="#ic-lcd"/></svg>
+      <h3>LCD 화면<small>16칸 × 2줄 글자판</small></h3>
+      <p>글자를 <b>전광판처럼</b> 돌려요.</p>
+      <span class="like"><svg><use href="#ic-sign"/></svg>작은 전광판</span></div>
+    <div class="card"><svg viewBox="0 0 80 84"><use href="#ic-rfid"/></svg>
+      <h3>RFID 리더기<small>RC522 + 카드</small></h3>
+      <p><b>전파</b>로 카드 번호를 읽어요.</p>
+      <span class="like"><svg><use href="#ic-tcard"/></svg>교통카드 찍기</span></div>
+    <div class="card"><svg viewBox="0 0 60 60" style="height:13mm;margin-top:3mm"><use href="#ic-lvl"/></svg>
+      <h3>레벨 변환기<small>5V ↔ 3.3V 신호</small></h3>
+      <p>5V와 3.3V가 <b>안전하게</b> 대화해요.</p>
+      <span class="like"><svg><use href="#ic-talk"/></svg>통역사</span></div>
+    <div class="card"><svg viewBox="0 0 90 70" style="height:12mm;margin-top:3mm"><use href="#ic-power"/></svg>
+      <h3>모터용 전기<small>외부 5V 어댑터</small></h3>
+      <p>모터와 화면은 전기를 <b>따로</b> 받아요.</p>
+      <span class="like"><svg><use href="#ic-lunch"/></svg>따로 싼 도시락</span></div>
+  </div>
+
+  <!-- 해 보세요 -->
+  <div class="box soft" style="margin-top:2.6mm;padding:2.4mm 3.4mm">
+    <h2 style="margin-bottom:1.4mm"><span class="num">!</span>해 보세요</h2>
+    <div class="try">
+      <div><svg viewBox="0 0 60 84"><use href="#ic-joy"/></svg><span>조이스틱을 <b>좌우로</b><br>→ 모터가 돌아요</span></div>
+      <div><svg viewBox="0 0 80 84"><use href="#ic-rfid"/></svg><span>카드를 <b>대 보세요</b><br>→ 카드 번호가 나와요</span></div>
+      <div><svg viewBox="0 0 120 56" style="flex-basis:14mm"><use href="#ic-lcd"/></svg><span>조이스틱을 <b>위아래로</b><br>→ 글자가 빙글 돌아요</span></div>
+    </div>
+  </div>
+
+  <!-- 회로도 · 배선도 -->
+  <div class="box" style="margin-top:2.6mm;padding:2.4mm 3.4mm">
+    <h2 style="margin-bottom:1.4mm"><span class="num">?</span>어떻게 이어져 있을까요</h2>
+    <div class="maps">
+      <figure><img src="수행평가_회로도_학습지용.png" alt="수행평가 회로도"><figcaption><b>회로도</b> — 무엇이 무엇과 이어지는지 <b>기호</b>로 그린 지도</figcaption></figure>
+      <figure><img src="../수행평가 배선도.png" alt="수행평가 배선도"><figcaption><b>배선도</b> — 브레드보드 <b>어디에 꽂는지</b> 그린 지도</figcaption></figure>
+    </div>
+  </div>
+  <div class="nerd"><b>궁금한 분께</b> — 조이스틱 <b>GP26 · 27 · 22</b> · 스텝모터 <b>GP10~13</b>(ULN2003) · LCD <b>GP16 · 17</b>(I2C, 레벨 변환기 거쳐 5V) · RFID <b>GP18~21</b>(SPI, 3.3V). 점퍼선이 짧아 LCD · RC522 · 레벨 변환기를 180° 돌려 놓았고, LCD 글자는 코드가 뒤집어 그려요.</div>
 </div>
 
 <script>

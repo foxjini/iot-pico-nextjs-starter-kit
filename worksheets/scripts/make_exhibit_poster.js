@@ -1,4 +1,5 @@
-// 전시용 작품 설명 포스터 HTML → A4 2쪽 PDF (꼬리말에 작은 쪽 번호)
+// 전시용 작품 설명 포스터 HTML → A4 3쪽 PDF (꼬리말에 작은 쪽 번호)
+//   1쪽 기본 회로 · 2쪽 추가 회로 · 3쪽 수행평가 회로(회로도 · 배선도 그림을 함께 넣음)
 //   node make_exhibit_poster.js   →   worksheets/작품 설명 포스터.pdf
 // Playwright(Chromium) 가 필요합니다. 글꼴 NanumGothic · NanumSquareRound 가 PDF 에 함께 들어갑니다.
 const path = require("path");
